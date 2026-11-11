@@ -45,7 +45,7 @@ jobs:
           go test -mod=vendor -race ./core/internal/... ./core/cmd/plugin-audit
           npm run check
           npm ci
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
           npm test
       - uses: android-actions/setup-android@v3
         with:

@@ -235,8 +235,9 @@ func TestStationBoundsQueueWithoutReplacingCurrentAudio(t *testing.T) {
 		t.Fatal(err)
 	}
 	before := s.player.snapshot()
+	currentEntry := before.EntryIDs[before.Index]
 	after := waitPlayback(t, s, func(p Playback) bool { return p.State == "ready" && p.Station != nil && !p.Station.Loading })
-	if len(after.Queue) != 53 || after.Index != 50 || after.EntryIDs[after.Index] != before.EntryIDs[998] || after.Generation != before.Generation || after.Queue[52].Source != "fixture" {
+	if len(after.Queue) != 53 || after.Index != 50 || after.EntryIDs[after.Index] != currentEntry || after.Generation != before.Generation || after.Queue[52].Source != "fixture" {
 		t.Fatal(after)
 	}
 	if err := s.player.control("previous", 0); err != nil {

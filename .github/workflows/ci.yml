@@ -25,7 +25,9 @@ jobs:
       - run: go test -mod=vendor -race ./core/internal/... ./core/cmd/plugin-audit
       - run: npm run check
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      # Ubuntu 24.04 already supplies Chromium's native libraries. Avoid an
+      # unrelated apt font-mirror dependency; Playwright still validates libs.
+      - run: npx playwright install chromium
       - run: npm test
   android:
     runs-on: ubuntu-24.04
