@@ -56,6 +56,27 @@ test('non-16:9 viewports expand the logical canvas to fill the screen without st
   }
 });
 
+test('resizing restores the focused sidebar and content action inside their scroll regions', async ({ page }) => {
+  await page.setViewportSize({width:1280,height:960}); await boot(page);
+  const settings=page.locator('[data-focus="nav-settings"]');
+  await settings.focus();
+  await page.setViewportSize({width:1280,height:720});
+  await expect.poll(()=>page.locator('#stage').evaluate(n=>Math.round(n.getBoundingClientRect().height))).toBe(720);
+  const inside=async selector=>page.locator(selector).evaluate(n=>{
+    const r=n.getBoundingClientRect(),box=n.closest('#content,nav').getBoundingClientRect();
+    return r.top>=box.top&&r.bottom<=box.bottom;
+  });
+  await expect(settings).toBeFocused(); await expect.poll(()=>inside('[data-focus="nav-settings"]')).toBe(true);
+  await settings.click(); await page.setViewportSize({width:1280,height:960});
+  await expect.poll(()=>page.locator('#stage').evaluate(n=>Math.round(n.getBoundingClientRect().height))).toBe(960);
+  const exit=page.locator('[data-action="exit-confirm"]'); await exit.focus();
+  await page.setViewportSize({width:1280,height:720});
+  await expect.poll(()=>page.locator('#stage').evaluate(n=>Math.round(n.getBoundingClientRect().height))).toBe(720);
+  await expect(exit).toBeFocused(); await expect.poll(()=>inside('[data-action="exit-confirm"]')).toBe(true);
+  await page.keyboard.press('ArrowLeft');
+  expect(await page.evaluate(()=>document.querySelector('#nav').contains(document.activeElement))).toBe(true);
+});
+
 test('fixed canvas scales without rearranging, and remote focus remains visible', async ({ page }) => {
   await page.route('**/api/catalog', route => route.fulfill({ json:{ entries:[0,1,2].map(i => ({repository:'fixture/source-' + i,name:'Source ' + i})) } }));
   await boot(page);

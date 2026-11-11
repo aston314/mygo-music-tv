@@ -1,0 +1,42 @@
+# 借鉴 Lampa 的界面适配与布局刷新
+
+核对日期：2026-11-11。发行 CSS 位于 `yumata/lampa`，可读源码位于
+`yumata/lampa-source`。以下区分上游机制、本项目已落实内容和后续候选。
+
+## 上游机制与本项目取舍
+
+| Lampa 的实现 | MyGo Music TV 的处理 |
+| --- | --- |
+| [Layer](https://github.com/yumata/lampa-source/blob/main/src/core/layer.js) 根据窗口宽度调整 body 字号，大量尺寸使用 em；另有界面大小偏好。 | 保留现有 1280×720 最小逻辑画布和统一缩放，额外空间扩展逻辑画布，铺满任意比例的窗口。没有新增固定分辨率档位。 |
+| Layer 计算侧栏、顶部等占用空间，再更新内容区可用尺寸。 | 继续用边缘定位与 flex 分配可用空间，让侧栏、内容区和歌词区使用扩展空间。 |
+| resize 经短暂合并后更新布局，再发送 resize_end；[Activity](https://github.com/yumata/lampa-source/blob/main/src/interaction/activity/activity.js) 通知各页面 resize。 | 本轮采用“立即缩放、稍后校正”的共同入口；resize、pageshow、重新可见时更新当前焦点与歌词的几何位置。 |
+| [Scroll 焦点模块](https://github.com/yumata/lampa-source/blob/main/src/core/module/scroll.js) 在遥控器焦点进入时更新滚动；悬停和触摸分别处理。 | 保留现有统一焦点路由；遥控器移动保证可见，鼠标悬停不强制居中，滚轮保留阅读位置。 |
+| [Scroll](https://github.com/yumata/lampa-source/blob/main/src/interaction/scroll.js) 对浏览器原生滚动和 TV 的 transform 滚动采用不同路径，并限制滚动边界。 | 保留当前 scrollTop 路径和统一缩放坐标，避免同时引入第二套滚动位置。移植 transform 滚动需要另行性能和旧 WebView 证据。 |
+| [Card](https://github.com/yumata/lampa-source/blob/main/src/sass/components/card.scss) 用稳定卡片尺寸、封面比例、标题截断和外置焦点装饰维持布局。 | 继续使用不改变布局尺寸的焦点样式；测试比较布局坐标时避开装饰 transform 对包围盒的影响。 |
+
+Layer 对视口附近元素的可见性管理与首次可见事件，可以作为以后封面延迟加载的参考；
+它本身不能证明列表已经实现 DOM 虚拟化。
+
+## 本轮复现与修复
+
+1. 1280×960 收缩到 1280×720 后，Settings 仍有 DOM 焦点，却可能落到导航滚动区之外。
+   同样检查了设置页面底部操作。尺寸稳定后只滚动当前有效焦点所在容器，不重设焦点。
+2. 暂停播放后改变窗口高度，歌词当前行仍使用旧偏移，实测偏差约 103 CSS 像素。
+   提取当前行居中方法，行切换和布局收尾共用；窗口宽度改变导致长句换行时也重新计算。
+3. 保留原有页面与歌词节点、曲目和暂停状态，不重新请求歌词，不通过重建页面恢复布局。
+   延迟回调读取执行时的活动元素，并遵守当前弹窗的焦点边界。
+
+实现位于 `ui/app.js`；回归位于 `tests/tv.spec.cjs` 和
+`tests/listening.spec.cjs`。歌词检查先等待画布尺寸更新，再检查行的位置，
+避免异步 resize 尚未执行时误判通过。
+
+## 后续候选
+
+- 统一卡片、间距、字号的尺寸参数，为将来可选的“界面大小”设置做准备。
+  真正增加该设置时，需同时调整列数与焦点间距，保留当前默认布局。
+- 对长列表的封面采用可见区域附近加载。先测请求数、内存和滚动速度，
+  再决定是否需要虚拟列表；不能以隐藏元素代替释放 DOM。
+- 对动画和滚动速度按旧电视实测调整；无需为了模仿上游切换整套滚动框架。
+
+本轮验证是源码与浏览器回归。已发布 v0.1.1 APK 不包含本轮布局收尾改动；
+Android 6 输入法、原生显示层和后台恢复仍需对应设备验证。

@@ -22,6 +22,29 @@ async function song(page,beforePlayer){
  await page.locator('#open-player').click();await expect(page.locator('.player-heading')).toBeVisible();
 }
 
+test('resizing recenters paused lyrics without replacing the line or moving focus',async({page})=>{
+ let requests=0;
+ await song(page,()=>page.route('**/lyrics?id=t1',route=>{
+  requests++;
+  return route.fulfill({json:{timed:true,lines:[{start:0,text:'暂停时歌词也应该根据可用空间重新居中，长句换行以后仍然保持当前行的位置。'.repeat(2)},{start:60000,text:'下一句歌词'}]}});
+ }));
+ const line=page.locator('.lyric-line.current');await expect(line).toHaveCount(1);
+ const centered=()=>line.evaluate(n=>{const r=n.getBoundingClientRect(),box=document.querySelector('#lyrics').getBoundingClientRect();return Math.abs((r.top+r.bottom)/2-(box.top+box.height*.43));});
+ await expect.poll(centered).toBeLessThan(2);
+ const before=await(await page.request.get('/api/player')).json();
+ await line.evaluate(n=>{window.resizeLyricLine=n;});
+ await page.locator('#toggle').focus();
+ for(const [width,height] of [[1280,960],[1920,800],[960,540]]){
+  await page.setViewportSize({width,height});
+  await expect.poll(()=>page.locator('#stage').evaluate(n=>{const r=n.getBoundingClientRect();return [Math.round(r.width),Math.round(r.height)];})).toEqual([width,height]);
+  await expect.poll(centered).toBeLessThan(2);
+  await expect(page.locator('#toggle')).toBeFocused();
+  expect(await line.evaluate(n=>n===window.resizeLyricLine)).toBe(true);
+ }
+ const after=await(await page.request.get('/api/player')).json();
+ expect(after.state).toBe('paused');expect(after.generation).toBe(before.generation);expect(requests).toBe(1);
+});
+
 test('player uses SVG, centers lyrics, supports translation/fullscreen, and restores entry focus',async({page})=>{
  await song(page);
  await expect(page.locator('#toggle')).toBeFocused();
