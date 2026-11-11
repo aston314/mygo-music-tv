@@ -75,12 +75,28 @@ for(const theme of ['light','dark'])test(theme+' lyrics credit focus fits short 
  }
 });
 
-test('a long source error stays within the lyrics controls and leaves the seek thumb reachable',async({page})=>{
- await bootSong(page);await page.locator('#open-player').click();
- await page.route('**/api/player',async route=>{const response=await route.fetch(),p=await response.json();await route.fulfill({json:{...p,error:'音乐源暂时拒绝播放请求，请稍后再试。'.repeat(10)}});});
- await expect(page.locator('#playback-status')).toContainText('音乐源暂时拒绝');
- const boxes=await page.evaluate(()=>{const rect=s=>document.querySelector(s).getBoundingClientRect();return {bar:rect('#player-bar'),status:rect('#playback-status'),seek:rect('#seek'),lyrics:rect('.lyric-column')};});
- expect(boxes.status.left).toBeGreaterThanOrEqual(boxes.bar.left);expect(boxes.status.right).toBeLessThanOrEqual(boxes.bar.right);
- expect(boxes.seek.left).toBeGreaterThanOrEqual(boxes.bar.left);expect(boxes.seek.right).toBeLessThan(boxes.lyrics.left);
- await page.locator('#toggle').focus();await page.keyboard.press('ArrowDown');await expect(page.locator('#seek')).toBeFocused();
+test('a long -460 source error cannot widen lyrics controls in either theme or fullscreen mode',async({page},info)=>{
+ await bootSong(page);let sourceError='';
+ await page.route('**/api/player',async route=>{const response=await route.fetch(),p=await response.json();await route.fulfill({json:{...p,error:sourceError}});});
+ for(const theme of ['light','dark']){
+  await page.request.post('/api/preferences',{data:{theme}});await page.reload();await expect(page.locator('#open-player')).toBeVisible();await page.locator('#open-player').click();
+  for(const [width,height] of [[960,540],[1920,1080]]){
+   await page.setViewportSize({width,height});await expect.poll(()=>page.locator('#stage').evaluate(n=>Math.round(n.getBoundingClientRect().width))).toBe(width);
+   for(const full of [false,true]){
+    if(full)await page.locator('#lyrics-button').click();
+    sourceError='';await expect(page.locator('#playback-status')).not.toContainText('-460');
+    const before=await page.evaluate(()=>({timeline:document.querySelector('.timeline').getBoundingClientRect().width,lyrics:document.querySelector('.lyric-column').getBoundingClientRect().width}));
+    sourceError='网易云 -460：音乐源暂时拒绝播放请求，请稍后再试。'+('source-request-failed-with-no-whitespace').repeat(60);
+    await expect(page.locator('#playback-status')).toContainText('-460');
+    const boxes=await page.evaluate(()=>{const rect=s=>document.querySelector(s).getBoundingClientRect();return {bar:rect('#player-bar'),status:rect('#playback-status'),seek:rect('#seek'),lyrics:rect('.lyric-column'),timeline:rect('.timeline')};});
+    expect(boxes.status.left).toBeGreaterThanOrEqual(boxes.bar.left);expect(boxes.status.right).toBeLessThanOrEqual(boxes.bar.right);
+    expect(boxes.seek.left).toBeGreaterThanOrEqual(boxes.bar.left);expect(boxes.seek.right).toBeLessThanOrEqual(boxes.bar.right);
+    expect(boxes.timeline.width).toBeCloseTo(before.timeline,1);expect(boxes.lyrics.width).toBeCloseTo(before.lyrics,1);
+    if(!full)expect(boxes.seek.right).toBeLessThan(boxes.lyrics.left);
+    await page.locator('#toggle').focus();await page.keyboard.press('ArrowDown');await expect(page.locator('#seek')).toBeFocused();
+    await page.screenshot({path:info.outputPath(theme+'-'+width+'-'+(full?'full':'split')+'-460.png')});
+    if(full)await page.locator('#lyrics-button').click();
+   }
+  }
+ }
 });

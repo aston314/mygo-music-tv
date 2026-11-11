@@ -1,6 +1,6 @@
 # Android 电视测试版发布
 
-私有源码仓库通过 [Android Release 工作流](https://github.com/aston314/mygo-music-tv/actions/workflows/release.yml) 构建、校验并发布签名 APK。默认手动发布为测试版；当前版本为 `v0.1.2` / versionCode `3`。从 `main` 手动运行，或推送与 app.json 一致且可追溯到 main 的版本标签。
+私有源码仓库通过 [Android Release 工作流](https://github.com/aston314/mygo-music-tv/actions/workflows/release.yml) 构建、校验并发布签名 APK。默认手动发布为测试版；当前版本为 `v0.1.3` / versionCode `4`。从 `main` 手动运行，或推送与 app.json 一致且可追溯到 main 的版本标签。
 
 ## 填写签名项
 
@@ -35,7 +35,7 @@ base64 < "$HOME/.mygo-signing/mygo-music-tv-release.jks" | tr -d '\n' | pbcopy
 
 Release 仅包含从同一份签名 APK 生成的文件：
 
-- `mygo-music-tv-0.1.2.apk`
+- `mygo-music-tv-0.1.3.apk`
 - `update.json`：大小、SHA256、证书指纹与版本信息
 - `SHA256SUMS.txt`
 

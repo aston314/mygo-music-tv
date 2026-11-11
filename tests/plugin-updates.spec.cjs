@@ -18,6 +18,28 @@ async function setup(page){
 async function market(page){await page.locator('[data-focus="nav-market"]').click();await expect(page.locator('[data-catalog="0"]')).toBeVisible();}
 function finish(model){model.version='2.0.0';model.revision='v2.0.0';model.job={...model.job,state:'complete'};model.update={...model.update,currentVersion:'2.0.0',revision:'v2.0.0',state:'current',available:false,jobId:''};}
 
+test('market actions have distinct icons and retain focus through checking, refresh and failures',async({page},info)=>{
+ const model=await setup(page);await market(page);
+ const check=page.locator('[data-action="check-all-updates"]'),refresh=page.locator('[data-action="refresh-catalog"]'),card=page.locator('[data-catalog="0"]');
+ const checkIcon=await check.locator('svg').innerHTML(),catalogIcon=await refresh.locator('svg').innerHTML();expect(checkIcon).not.toBe(catalogIcon);
+ let releaseCheck;const checkGate=new Promise(resolve=>{releaseCheck=resolve;});let checkRequests=0;
+ await page.route('**/api/plugins/check-updates',async route=>{checkRequests++;await checkGate;model.update={...model.update,state:'checking'};await route.fulfill({json:[model.update]});});
+ await check.click();await expect(check).toHaveAttribute('aria-busy','true');await expect(check).toBeFocused();
+ await expect(check.locator('svg')).toHaveCSS('animation-name','spin');await check.click({force:true});expect(checkRequests).toBe(1);
+ releaseCheck();await expect.poll(()=>model.update.state).toBe('checking');await expect(check).toHaveAttribute('aria-busy','true');
+ model.update={...model.update,state:'current',available:false};await expect(check).toHaveAttribute('aria-busy','false');await expect(check).toBeFocused();
+ expect(await check.locator('svg').innerHTML()).toBe(checkIcon);await expect(check.locator('svg')).toHaveCSS('animation-name','none');
+ await page.route('**/api/plugins/check-updates',route=>route.abort());await check.click();await expect(check).toHaveAttribute('aria-busy','false');await expect(check).toBeFocused();
+ let releaseCatalog;const catalogGate=new Promise(resolve=>{releaseCatalog=resolve;});let catalogRequests=0;
+ await page.route('**/api/catalog?refresh=1',async route=>{catalogRequests++;await catalogGate;await route.fulfill({json:{entries:[{repository,name:'在线音乐',description:'刷新后的目录。'}]}});});
+ await refresh.click();await expect(refresh).toHaveAttribute('aria-busy','true');await expect(refresh).toBeFocused();await expect(refresh.locator('svg')).toHaveCSS('animation-name','spin');
+ await refresh.click({force:true});expect(catalogRequests).toBe(1);await card.focus();releaseCatalog();
+ await expect(refresh).toHaveAttribute('aria-busy','false');await expect(card).toBeFocused();expect(await refresh.locator('svg').innerHTML()).toBe(catalogIcon);
+ await page.route('**/api/catalog?refresh=1',route=>route.abort());await refresh.click();await expect(refresh).toHaveAttribute('aria-busy','false');await expect(refresh).toBeFocused();await expect(card).toBeVisible();
+ expect(await refresh.locator('svg').innerHTML()).toBe(catalogIcon);await expect(refresh.locator('svg')).toHaveCSS('animation-name','none');
+ await page.screenshot({path:info.outputPath('market-distinct-actions.png')});
+});
+
 test('update badges, pinned installation and playback keep their source and focus',async({page},info)=>{
  const model=await setup(page);
  await page.locator('[data-focus="nav-search"]').click();await page.locator('#search-input').fill('song');await page.locator('[data-focus="search-submit"]').click();await page.locator('[data-track="0"]').click();

@@ -17,6 +17,7 @@ public final class MainActivity extends Activity {
     private LinearLayout startup;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean loaded, destroyed, editing, exitVisible;
+    private volatile int nativeViewWidth;
     private long backSequence;
     private final BroadcastReceiver receiver = new BroadcastReceiver() { @Override public void onReceive(Context c, Intent i) { connect(); } };
     @Override public void onCreate(Bundle state) {
@@ -24,6 +25,10 @@ public final class MainActivity extends Activity {
         super.onCreate(state); immersive();
         root = new FrameLayout(this); root.setBackgroundColor(Appearance.background(this)); setContentView(root);
         web = new WebView(this); web.setBackgroundColor(Appearance.background(this));
+        web.addOnLayoutChangeListener((v,left,top,right,bottom,oldLeft,oldTop,oldRight,oldBottom)->{
+            int width=right-left;
+            if(width>0&&width!=nativeViewWidth){nativeViewWidth=width;if(loaded&&!destroyed)web.evaluateJavascript("if(window.MyGo&&window.MyGo.refreshViewport)window.MyGo.refreshViewport()",null);}
+        });
         web.setVerticalScrollBarEnabled(false); web.setHorizontalScrollBarEnabled(false);
         WebSettings settings = web.getSettings(); settings.setJavaScriptEnabled(true); settings.setDomStorageEnabled(true); settings.setAllowFileAccess(false); settings.setAllowContentAccess(false); settings.setMediaPlaybackRequiresUserGesture(false); settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         if (BuildConfig.DEBUG) WebView.setWebContentsDebuggingEnabled(true);
@@ -87,6 +92,7 @@ public final class MainActivity extends Activity {
     }
     private final class Bridge {
         @JavascriptInterface public String platform() { return "android-tv"; }
+        @JavascriptInterface public int nativeViewWidth() { return nativeViewWidth; }
         @JavascriptInterface public boolean webSignInSupported() { return true; }
         @JavascriptInterface public void openLogin(String id,String requestId) {
             if(id==null||requestId==null||!id.matches("[a-f0-9]{48}")||!requestId.matches("[a-f0-9]{48}"))return;
