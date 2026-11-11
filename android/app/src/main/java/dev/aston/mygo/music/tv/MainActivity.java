@@ -8,6 +8,7 @@ import android.view.*;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.*;
 import android.widget.*;
+import androidx.core.content.ContextCompat;
 import java.net.URI;
 
 public final class MainActivity extends Activity {
@@ -32,7 +33,7 @@ public final class MainActivity extends Activity {
         });
         root.addView(web, new FrameLayout.LayoutParams(-1,-1)); showStartup();
         IntentFilter filter = new IntentFilter(CoreService.STATUS);
-        if (Build.VERSION.SDK_INT >= 33) registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED); else registerReceiver(receiver, filter);
+        ContextCompat.registerReceiver(this, receiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
         startCore(); connect();
     }
     private void startCore() { Intent i = new Intent(this, CoreService.class); if (Build.VERSION.SDK_INT >= 26) startForegroundService(i); else startService(i); }
