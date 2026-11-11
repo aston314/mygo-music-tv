@@ -31,6 +31,7 @@ public final class CoreService extends Service {
     private long generation = -1, seekRevision = -1, lastEventAt;
     private boolean applying;
     static CoreService get() { return current; }
+    CoreClient loginClient() { return client; }
     String pageURL() { return client == null ? null : base + "/?token=" + client.token; }
     String error() { return errorResource == 0 ? null : Appearance.text(this,errorResource); }
 

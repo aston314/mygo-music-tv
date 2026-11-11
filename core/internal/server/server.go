@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -18,6 +19,7 @@ import (
 	product "mygo-music-tv"
 	"mygo-music-tv/core/examples"
 	"mygo-music-tv/core/internal/catalog"
+	"mygo-music-tv/core/internal/compatibility"
 	"mygo-music-tv/core/internal/i18n"
 	"mygo-music-tv/core/internal/music"
 	"mygo-music-tv/core/internal/plugin"
@@ -34,13 +36,6 @@ func randomID() string {
 	return hex.EncodeToString(b)
 }
 
-type Login struct {
-	ID      string             `json:"id"`
-	Source  string             `json:"source"`
-	State   string             `json:"state"`
-	Prompt  music.SignInPrompt `json:"prompt"`
-	Message string             `json:"message,omitempty"`
-}
 type Server struct {
 	sources                 *sources.Manager
 	catalog                 *catalog.Catalog
@@ -50,6 +45,8 @@ type Server struct {
 	mux                     *http.ServeMux
 	mu                      sync.Mutex
 	login                   Login
+	loginSession            *loginSession
+	loginStopping           bool
 	wg                      sync.WaitGroup
 	settingsPath            string
 	settings                map[string]string
@@ -96,7 +93,19 @@ func New(data, mode, token string) (*Server, error) {
 	}
 	s.player = newPlayer(s, filepath.Join(data, "player-settings.json"))
 	s.player.restoreSession(filepath.Join(data, "playback-session.json"))
-	m.GuardUpdate = s.player.guardPluginUpdate
+	m.GuardUpdate = func(id string) (func(), error) {
+		s.mu.Lock()
+		if s.login.State == "waiting" && s.login.Source == id {
+			s.mu.Unlock()
+			return nil, errors.New("请完成或取消登录后再更新音乐源")
+		}
+		release, err := s.player.guardPluginUpdate(id)
+		if err != nil {
+			s.mu.Unlock()
+			return nil, err
+		}
+		return func() { release(); s.mu.Unlock() }, nil
+	}
 	if mode == "real" {
 		m.StartUpdateChecks()
 	}
@@ -147,7 +156,13 @@ func (s *Server) extractFixture() error {
 	})
 }
 func (s *Server) Token() string { return s.token }
-func (s *Server) Close()        { s.player.close(); s.sources.Close(); s.wg.Wait(); s.media.close() }
+func (s *Server) Close() {
+	s.cancelLogin("")
+	s.player.close()
+	s.sources.Close()
+	s.wg.Wait()
+	s.media.close()
+}
 func (s *Server) authorized(r *http.Request) bool {
 	t := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
 	if c, e := r.Cookie("mygo_session"); e == nil && t == "" {
@@ -209,8 +224,9 @@ func decode(w http.ResponseWriter, r *http.Request, v any) bool {
 	return true
 }
 func (s *Server) routes() {
+	s.mux.HandleFunc("GET /api/plugins/compatibility", func(w http.ResponseWriter, r *http.Request) { respond(w, compatibility.Bundled()) })
 	s.mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
-		respond(w, map[string]any{"ready": true, "version": product.App().VersionName, "instance": s.token[:12], "mode": s.mode, "capabilities": map[string]bool{"plugins": true, "localMusic": false, "process": false, "webSignIn": false}})
+		respond(w, map[string]any{"ready": true, "version": product.App().VersionName, "instance": s.token[:12], "mode": s.mode, "capabilities": map[string]bool{"plugins": true, "localMusic": false, "process": false, "webSignIn": runtime.GOOS == "android", "webSignInBroker": true, "oauthLoopback": true}})
 	})
 	s.mux.HandleFunc("GET /api/config", func(w http.ResponseWriter, r *http.Request) {
 		respond(w, map[string]any{"app": product.App(), "mode": s.mode})
@@ -318,19 +334,17 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("POST /api/login/{id}", s.startLogin)
 	s.mux.HandleFunc("GET /api/login", func(w http.ResponseWriter, r *http.Request) { s.mu.Lock(); defer s.mu.Unlock(); respond(w, s.login) })
 	s.mux.HandleFunc("DELETE /api/login", func(w http.ResponseWriter, r *http.Request) {
-		s.mu.Lock()
-		id := s.login.Source
-		s.login.ID = randomID()
-		s.login.State = "cancelled"
-		s.mu.Unlock()
-		if p, e := s.sources.Get(id); e == nil {
-			p.Close()
-		}
+		s.cancelLogin(r.URL.Query().Get("id"))
 		respond(w, map[string]bool{"ok": true})
 	})
+	s.mux.HandleFunc("GET /api/login/native", s.nativeLogin)
+	s.mux.HandleFunc("POST /api/login/native", s.nativeLogin)
 	s.mux.HandleFunc("GET /api/login/qr", func(w http.ResponseWriter, r *http.Request) {
 		s.mu.Lock()
 		value := s.login.Prompt.QR
+		if id := r.URL.Query().Get("id"); id != "" && id != s.login.ID {
+			value = ""
+		}
 		s.mu.Unlock()
 		if value == "" || len(value) > 4000 {
 			http.NotFound(w, r)
@@ -546,45 +560,4 @@ func (s *Server) images(value any, p *plugin.Plugin) {
 			s.images(v, p)
 		}
 	}
-}
-func (s *Server) startLogin(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	p, e := s.sources.Get(id)
-	if e != nil {
-		failure(w, 404, e)
-		return
-	}
-	s.mu.Lock()
-	if s.login.State == "waiting" {
-		s.mu.Unlock()
-		failure(w, 409, errors.New("请先完成或取消当前登录"))
-		return
-	}
-	session := randomID()
-	s.login = Login{ID: session, Source: id, State: "waiting"}
-	s.mu.Unlock()
-	p.OnSignInPrompt(func(prompt music.SignInPrompt) {
-		s.mu.Lock()
-		defer s.mu.Unlock()
-		if s.login.ID == session {
-			s.login.Prompt = prompt
-		}
-	})
-	s.wg.Add(1)
-	go func() {
-		defer s.wg.Done()
-		_, e := p.SignIn()
-		s.mu.Lock()
-		defer s.mu.Unlock()
-		if s.login.ID != session {
-			return
-		}
-		if e != nil {
-			s.login.State = "failed"
-			s.login.Message = e.Error()
-		} else {
-			s.login.State = "complete"
-		}
-	}()
-	respond(w, map[string]string{"id": session})
 }

@@ -1,0 +1,3858 @@
+{
+  "observedAt": "2026-11-11T13:22:59Z",
+  "directory": "https://music.egoist.dev/zh/plugins",
+  "host": "darwin/arm64; portable HTTP runtime; no account; no audio playback",
+  "entries": [
+    {
+      "repository": "AdkinsHan/mygo-local-lyrics",
+      "revision": "v1.1.1",
+      "version": "1.1.1",
+      "name": "LRCLib Lyrics",
+      "playback": "stream",
+      "process": [
+        "bin/read-index-*"
+      ],
+      "capabilities": [
+        "account",
+        "search",
+        "album",
+        "artist",
+        "home",
+        "browse",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-provided"
+        },
+        "search": {
+          "state": "passed"
+        }
+      }
+    },
+    {
+      "repository": "AkinoKaede/mygo-music-netease-cloud-music",
+      "revision": "v0.1.12",
+      "version": "0.1.12",
+      "name": "NetEase Cloud Music",
+      "playback": "stream",
+      "login": [
+        "cookies",
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "likeEpisode",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "savePlaylist",
+        "followArtist",
+        "saveAlbum",
+        "savedAlbums",
+        "shows",
+        "show",
+        "subscribeShow",
+        "stations",
+        "stationNext",
+        "comments",
+        "likeComment",
+        "postComment",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "comments": {
+          "state": "passed",
+          "count": 50
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "search": {
+          "state": "passed",
+          "count": 50
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "unavailable"
+        }
+      }
+    },
+    {
+      "repository": "Amamiya23/mygo-music-qq-plugin",
+      "revision": "378b5555172f",
+      "version": "0.3.0",
+      "name": "QQ Music",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "saveAlbum",
+        "savedAlbums",
+        "stations",
+        "stationNext",
+        "comments",
+        "lyrics",
+        "stream"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "blocked",
+          "code": "request-failed"
+        }
+      }
+    },
+    {
+      "repository": "Arteiimis/mygo-music-netease",
+      "revision": "7c15ed929499",
+      "version": "0.2.1",
+      "name": "NetEase Cloud Music Plus",
+      "playback": "stream",
+      "login": [
+        "cookies",
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "likeEpisode",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "savePlaylist",
+        "followArtist",
+        "saveAlbum",
+        "savedAlbums",
+        "shows",
+        "show",
+        "subscribeShow",
+        "stations",
+        "stationNext",
+        "comments",
+        "likeComment",
+        "postComment",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "comments": {
+          "state": "passed",
+          "count": 50
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "search": {
+          "state": "passed",
+          "count": 50
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "request-failed"
+        }
+      }
+    },
+    {
+      "repository": "AsperaUlt/mygo-netease",
+      "revision": "v1.0.14",
+      "version": "1.0.14",
+      "name": "网易云音乐",
+      "playback": "stream",
+      "login": [
+        "cookies",
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "savePlaylist",
+        "followArtist",
+        "saveAlbum",
+        "savedAlbums",
+        "shows",
+        "show",
+        "subscribeShow",
+        "stations",
+        "stationNext",
+        "comments",
+        "likeComment",
+        "postComment",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "comments": {
+          "state": "passed",
+          "count": 50
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "search": {
+          "state": "passed",
+          "count": 50
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "unavailable"
+        }
+      }
+    },
+    {
+      "repository": "DaviRain-Su/mygo-music-qishui",
+      "revision": "v0.5.2",
+      "version": "0.5.2",
+      "name": "汽水音乐",
+      "playback": "stream",
+      "process": [
+        "bin/qishui-helper-*"
+      ],
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "savePlaylist",
+        "followArtist",
+        "saveAlbum",
+        "savedAlbums",
+        "stations",
+        "stationNext",
+        "comments",
+        "likeComment",
+        "postComment",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "search": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        }
+      }
+    },
+    {
+      "repository": "Faye-bit/MyGo-Music-Netease-All",
+      "revision": "0ac44c9a5add",
+      "version": "0.3.1",
+      "name": "网易云音乐 All",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "shows",
+        "show",
+        "stations",
+        "stationNext",
+        "comments",
+        "lyrics",
+        "stream"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "comments": {
+          "state": "passed",
+          "count": 30
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 30
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "request-failed"
+        }
+      }
+    },
+    {
+      "repository": "GYRYEZ/mygo-music-roamdial",
+      "stages": {
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "install": {
+          "state": "blocked",
+          "code": "http-denied"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        }
+      }
+    },
+    {
+      "repository": "GentleM4dman/mygo-music-bilibili",
+      "revision": "v0.4.2",
+      "version": "0.4.2",
+      "name": "Bilibili",
+      "playback": "stream",
+      "process": [
+        "ffmpeg",
+        "/opt/homebrew/bin/ffmpeg",
+        "/usr/local/bin/ffmpeg"
+      ],
+      "login": [
+        "cookies",
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "followArtist",
+        "stations",
+        "stationNext",
+        "comments",
+        "likeComment",
+        "postComment",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "search": {
+          "state": "passed"
+        }
+      }
+    },
+    {
+      "repository": "Guyu23/mygo-music-qishui",
+      "revision": "dd4b334c5ce9",
+      "version": "0.1.0",
+      "name": "Soda Music",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "stations",
+        "stationNext",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "search": {
+          "state": "passed"
+        }
+      }
+    },
+    {
+      "repository": "Guyu23/mygo-music-qqmusic",
+      "revision": "d60aacceefeb",
+      "version": "0.1.4",
+      "name": "QQ Music",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "stations",
+        "stationNext",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "search": {
+          "state": "passed",
+          "count": 20
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "unavailable"
+        }
+      }
+    },
+    {
+      "repository": "InkCitrus/mygo-music-apple-music",
+      "revision": "v0.2.7",
+      "version": "0.2.7",
+      "name": "Apple Music",
+      "playback": "remote",
+      "process": [
+        "/usr/bin/osascript",
+        "osascript"
+      ],
+      "login": [
+        "cookies"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "addToPlaylist",
+        "saveAlbum",
+        "savedAlbums",
+        "stations",
+        "stationNext",
+        "lyrics",
+        "stream",
+        "played",
+        "remotePlay",
+        "remotePause",
+        "remoteResume",
+        "remoteSeek",
+        "remoteVolume",
+        "remoteState",
+        "remoteDevices",
+        "remoteUse"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 20
+        }
+      }
+    },
+    {
+      "repository": "Jimmyzzt/mygo-music-incompetech",
+      "revision": "v0.2.2",
+      "version": "0.2.2",
+      "name": "Incompetech",
+      "playback": "stream",
+      "capabilities": [
+        "search",
+        "suggest",
+        "album",
+        "artist",
+        "home",
+        "browse",
+        "stream"
+      ],
+      "stages": {
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-provided"
+        },
+        "search": {
+          "state": "passed"
+        }
+      }
+    },
+    {
+      "repository": "KirishimaRin/mygo-music-netease-cloud-music",
+      "revision": "v0.1.5",
+      "version": "0.1.5",
+      "name": "NetEase Cloud Music",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "likeEpisode",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "savePlaylist",
+        "followArtist",
+        "saveAlbum",
+        "savedAlbums",
+        "shows",
+        "show",
+        "subscribeShow",
+        "stations",
+        "stationNext",
+        "comments",
+        "likeComment",
+        "postComment",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "comments": {
+          "state": "passed",
+          "count": 20
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "search": {
+          "state": "passed",
+          "count": 30
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "unavailable"
+        }
+      }
+    },
+    {
+      "repository": "LANMIN-X/mygo-plugin-ximalaya",
+      "revision": "v0.1.6",
+      "version": "0.1.6",
+      "name": "喜马拉雅",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "recent",
+        "home",
+        "browse",
+        "show",
+        "subscribeShow",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "blocked",
+          "code": "request-failed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 20
+        },
+        "streamResolve": {
+          "state": "passed"
+        }
+      }
+    },
+    {
+      "repository": "LYJW131/mygo-music-apple-music",
+      "revision": "v0.3.4",
+      "version": "0.3.4",
+      "name": "Apple Music",
+      "playback": "stream",
+      "process": [
+        "ffmpeg",
+        "/opt/homebrew/bin/ffmpeg",
+        "/usr/local/bin/ffmpeg",
+        "bin/amhelper",
+        "bin/amhelper.exe"
+      ],
+      "login": [
+        "cookies"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "savePlaylist",
+        "saveAlbum",
+        "savedAlbums",
+        "stations",
+        "stationNext",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "search": {
+          "state": "passed",
+          "count": 25
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        }
+      }
+    },
+    {
+      "repository": "LYJW131/mygo-music-emby-jellyfin",
+      "revision": "v0.1.0",
+      "version": "0.1.0",
+      "name": "Emby / Jellyfin",
+      "playback": "stream",
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "savedAlbums",
+        "stations",
+        "stationNext",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "blocked",
+          "code": "setup-required"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "setup-required"
+        },
+        "search": {
+          "state": "blocked",
+          "code": "setup-required"
+        }
+      }
+    },
+    {
+      "repository": "Lorpaves/mygo-music-qqmusic",
+      "revision": "v0.3.2",
+      "version": "0.3.2",
+      "name": "QQ Music",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "saveAlbum",
+        "savedAlbums",
+        "stations",
+        "stationNext",
+        "comments",
+        "lyrics",
+        "stream"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "comments": {
+          "state": "passed",
+          "count": 25
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 20
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        }
+      }
+    },
+    {
+      "repository": "MaYunFei/mygo-music-feiniu",
+      "stages": {
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "install": {
+          "state": "blocked",
+          "code": "http-denied"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        }
+      }
+    },
+    {
+      "repository": "Maker-World/mygo-music-migu",
+      "stages": {
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "install": {
+          "state": "blocked",
+          "code": "http-denied"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        }
+      }
+    },
+    {
+      "repository": "SixWa12138/mygo-music-netease-music",
+      "revision": "v0.4.0",
+      "version": "0.4.0",
+      "name": "网易云音乐",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "savePlaylist",
+        "followArtist",
+        "saveAlbum",
+        "savedAlbums",
+        "shows",
+        "show",
+        "subscribeShow",
+        "stations",
+        "stationNext",
+        "comments",
+        "likeComment",
+        "postComment",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "comments": {
+          "state": "passed",
+          "count": 35
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 30
+        },
+        "streamResolve": {
+          "state": "passed"
+        }
+      }
+    },
+    {
+      "repository": "TengYangTuoHai/mygo-music-navidrome",
+      "stages": {
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "install": {
+          "state": "blocked",
+          "code": "http-denied"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        }
+      }
+    },
+    {
+      "repository": "TexasOct/mygo-subsonic",
+      "revision": "v0.1.9",
+      "version": "0.1.9",
+      "name": "Subsonic",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "followArtist",
+        "saveAlbum",
+        "savedAlbums",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "blocked",
+          "code": "setup-required"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "setup-required"
+        },
+        "search": {
+          "state": "blocked",
+          "code": "setup-required"
+        }
+      }
+    },
+    {
+      "repository": "VenusLuna/mygo-music-netease-plus",
+      "revision": "v0.2.5",
+      "version": "0.2.5",
+      "name": "网易云音乐 Plus",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "savePlaylist",
+        "shows",
+        "show",
+        "stations",
+        "stationNext",
+        "comments",
+        "likeComment",
+        "postComment",
+        "lyrics",
+        "stream"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "comments": {
+          "state": "passed",
+          "count": 30
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 30
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "unavailable"
+        }
+      }
+    },
+    {
+      "repository": "YeeYeung/mygo-music-overcast",
+      "revision": "v0.1.0",
+      "version": "0.1.0",
+      "name": "Overcast",
+      "playback": "stream",
+      "login": [
+        "cookies",
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "likeEpisode",
+        "shows",
+        "show",
+        "subscribeShow",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "search": {
+          "state": "passed"
+        }
+      }
+    },
+    {
+      "repository": "ZONGZI-000/zongzi-mygo-plugin-beta",
+      "revision": "v1.1.0-beta.11",
+      "version": "1.1.0-beta.11",
+      "name": "粽子音源",
+      "playback": "stream",
+      "process": [
+        "*",
+        "bin/win32-amd64/ffmpeg.exe",
+        "bin/win32-arm64/ffmpeg.exe",
+        "bin/darwin-arm64/ffmpeg",
+        "bin/darwin-x64/ffmpeg",
+        "bin/linux-x64/ffmpeg",
+        "bin/linux-arm64/ffmpeg",
+        "powershell",
+        "pwsh",
+        "/bin/sh"
+      ],
+      "capabilities": [
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "savePlaylist",
+        "followArtist",
+        "shows",
+        "show",
+        "subscribeShow",
+        "stations",
+        "stationNext",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-provided"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 312
+        },
+        "streamResolve": {
+          "state": "passed"
+        }
+      }
+    },
+    {
+      "repository": "ZONGZI-000/zongzi-mygo-plugin-stable",
+      "revision": "v1.0.0",
+      "version": "1.0.0",
+      "name": "粽子音源",
+      "playback": "stream",
+      "process": [
+        "*",
+        "bin/win32-amd64/ffmpeg.exe",
+        "bin/win32-arm64/ffmpeg.exe",
+        "bin/darwin-arm64/ffmpeg",
+        "bin/darwin-x64/ffmpeg",
+        "bin/linux-x64/ffmpeg",
+        "bin/linux-arm64/ffmpeg",
+        "powershell",
+        "pwsh",
+        "/bin/sh"
+      ],
+      "capabilities": [
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "savePlaylist",
+        "followArtist",
+        "shows",
+        "show",
+        "subscribeShow",
+        "stations",
+        "stationNext",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-provided"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 312
+        },
+        "streamResolve": {
+          "state": "passed"
+        }
+      }
+    },
+    {
+      "repository": "amqsy/mygo-music-bodian",
+      "revision": "v0.3.2",
+      "version": "0.3.2",
+      "name": "Bodian Music",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "savePlaylist",
+        "followArtist",
+        "saveAlbum",
+        "stations",
+        "stationNext",
+        "comments",
+        "likeComment",
+        "postComment",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "comments": {
+          "state": "passed",
+          "count": 30
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 30
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "unavailable"
+        }
+      }
+    },
+    {
+      "repository": "benhaotang/mygo-music-Ampache",
+      "revision": "v0.2",
+      "version": "0.2.0",
+      "name": "Ampache",
+      "playback": "stream",
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "home",
+        "shows",
+        "show",
+        "stations",
+        "stationNext",
+        "lyrics",
+        "stream"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "blocked",
+          "code": "setup-required"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "blocked",
+          "code": "setup-required"
+        }
+      }
+    },
+    {
+      "repository": "biaobiaobiao108/mygo-yun-music",
+      "revision": "68b898377d32",
+      "version": "1.1.1",
+      "name": "YunLu Music",
+      "playback": "stream",
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "savePlaylist",
+        "followArtist",
+        "saveAlbum",
+        "savedAlbums",
+        "comments",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "blocked",
+          "code": "setup-required"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "blocked",
+          "code": "setup-required"
+        }
+      }
+    },
+    {
+      "repository": "bitbyte404/mygo-music-kugou-lite",
+      "revision": "ec1a51f6f563",
+      "version": "1.3.0",
+      "name": "Kugou Concept",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "savePlaylist",
+        "stations",
+        "stationNext",
+        "comments",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "comments": {
+          "state": "passed",
+          "count": 30
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 30
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "unavailable"
+        }
+      }
+    },
+    {
+      "repository": "craigary/mygo-music-kugou-lite",
+      "revision": "29c2ee6258f8",
+      "version": "0.6.2",
+      "name": "Kugou Lite",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "savePlaylist",
+        "followArtist",
+        "saveAlbum",
+        "savedAlbums",
+        "stations",
+        "stationNext",
+        "comments",
+        "likeComment",
+        "postComment",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "comments": {
+          "state": "passed",
+          "count": 30
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "search": {
+          "state": "passed",
+          "count": 30
+        },
+        "streamResolve": {
+          "state": "passed"
+        }
+      }
+    },
+    {
+      "repository": "dddaniel1/mygo-plugin-kugou",
+      "revision": "v0.1.0",
+      "version": "0.1.0",
+      "name": "KuGou Music",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "liked",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "saveAlbum",
+        "savedAlbums",
+        "lyrics",
+        "stream"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 30
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        }
+      }
+    },
+    {
+      "repository": "dddaniel1/mygo-plugin-qqmusic",
+      "revision": "v0.2.4",
+      "version": "0.2.4",
+      "name": "QQ Music",
+      "playback": "stream",
+      "login": [
+        "cookies"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "likeEpisode",
+        "lyrics",
+        "stream"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 30
+        },
+        "streamResolve": {
+          "state": "passed"
+        }
+      }
+    },
+    {
+      "repository": "djyde/mygo-lizhi",
+      "revision": "87b97fd99a84",
+      "version": "1.1.0",
+      "name": "Li Zhi",
+      "playback": "stream",
+      "capabilities": [
+        "search",
+        "suggest",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "stations",
+        "stationNext",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-provided"
+        },
+        "search": {
+          "state": "passed"
+        }
+      }
+    },
+    {
+      "repository": "e5u/mygo-taskbar-lyrics",
+      "stages": {
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "install": {
+          "state": "blocked",
+          "code": "http-denied"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        }
+      }
+    },
+    {
+      "repository": "egoist/mygo-music-youtube-music",
+      "revision": "v0.1.1",
+      "version": "0.1.1",
+      "name": "YouTube Music",
+      "playback": "stream",
+      "process": [
+        "ffmpeg",
+        "yt-dlp",
+        "/opt/homebrew/bin/ffmpeg",
+        "/opt/homebrew/bin/yt-dlp",
+        "/usr/local/bin/ffmpeg",
+        "/usr/local/bin/yt-dlp"
+      ],
+      "login": [
+        "cookies"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "stations",
+        "stationNext",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 20
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "request-failed"
+        }
+      }
+    },
+    {
+      "repository": "fansion314/mygo-music-yoi",
+      "revision": "v0.1.1",
+      "version": "0.1.1",
+      "name": "You Own It",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "likeEpisode",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "savePlaylist",
+        "followArtist",
+        "shows",
+        "show",
+        "subscribeShow",
+        "stations",
+        "stationNext",
+        "comments",
+        "likeComment",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "comments": {
+          "state": "passed",
+          "count": 30
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "search": {
+          "state": "passed",
+          "count": 30
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "unavailable"
+        }
+      }
+    },
+    {
+      "repository": "fcmfcm1999/mygo-music-kugou",
+      "revision": "v1.0.0",
+      "version": "1.0.0",
+      "name": "酷狗",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "home",
+        "browse",
+        "lyrics",
+        "stream"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 30
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "unavailable"
+        }
+      }
+    },
+    {
+      "repository": "hiSlowMo/neteaseXqqmusic",
+      "revision": "v0.1.5",
+      "version": "0.1.5",
+      "name": "NetEaseXQQMusic",
+      "playback": "stream",
+      "process": [
+        "bin/qqmusic-login-darwin-arm64",
+        "bin/qqmusic-login-darwin-amd64",
+        "bin/qqmusic-login-linux-arm64",
+        "bin/qqmusic-login-linux-amd64",
+        "bin/qqmusic-login-windows-arm64.exe",
+        "bin/qqmusic-login-windows-amd64.exe"
+      ],
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "savePlaylist",
+        "followArtist",
+        "shows",
+        "show",
+        "subscribeShow",
+        "stations",
+        "stationNext",
+        "comments",
+        "likeComment",
+        "postComment",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "comments": {
+          "state": "passed",
+          "count": 30
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 50
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "request-failed"
+        }
+      }
+    },
+    {
+      "repository": "hubandad/mygo-music-netease",
+      "revision": "v1.0.0",
+      "version": "1.0.0",
+      "name": "网易云音乐",
+      "playback": "stream",
+      "login": [
+        "cookies",
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "followArtist",
+        "saveAlbum",
+        "savedAlbums",
+        "shows",
+        "show",
+        "subscribeShow",
+        "stations",
+        "stationNext",
+        "comments",
+        "likeComment",
+        "lyrics",
+        "stream"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "comments": {
+          "state": "passed",
+          "count": 50
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "search": {
+          "state": "passed",
+          "count": 50
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "unavailable"
+        }
+      }
+    },
+    {
+      "repository": "iko233/webdav4mygo",
+      "revision": "v0.3.5",
+      "version": "0.3.5",
+      "name": "WebDAV",
+      "playback": "stream",
+      "process": [
+        "bin/cover-*"
+      ],
+      "capabilities": [
+        "search",
+        "playlists",
+        "playlist",
+        "artist",
+        "home",
+        "browse",
+        "lyrics",
+        "stream"
+      ],
+      "stages": {
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "blocked",
+          "code": "setup-required"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-provided"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "blocked",
+          "code": "setup-required"
+        }
+      }
+    },
+    {
+      "repository": "jfeng018/mygo-music-lx-source",
+      "revision": "v0.2.2",
+      "version": "0.2.2",
+      "name": "LX Source",
+      "playback": "stream",
+      "login": [
+        "cookies",
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "playlists",
+        "playlist",
+        "home",
+        "browse",
+        "lyrics",
+        "stream"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 60
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "setup-required"
+        }
+      }
+    },
+    {
+      "repository": "lane128/mygo-music-qishui",
+      "revision": "v1.0.11",
+      "version": "1.0.11",
+      "name": "汽水音乐",
+      "playback": "stream",
+      "process": [
+        "bin/qishui-helper-*"
+      ],
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "savePlaylist",
+        "followArtist",
+        "saveAlbum",
+        "savedAlbums",
+        "stations",
+        "stationNext",
+        "comments",
+        "likeComment",
+        "postComment",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "search": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        }
+      }
+    },
+    {
+      "repository": "liuxiaofengone/synology-DSAudio-mygo-music-plugin",
+      "revision": "v0.1.1",
+      "version": "0.1.1",
+      "name": "群晖 Audio Station",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "lyrics",
+        "stream"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "search": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        }
+      }
+    },
+    {
+      "repository": "louisgreen0726/mygo-music-pocket-casts",
+      "revision": "v0.1.2",
+      "version": "0.1.2",
+      "name": "Pocket Casts",
+      "playback": "stream",
+      "process": [
+        "ffmpeg",
+        "/opt/homebrew/bin/ffmpeg",
+        "/usr/local/bin/ffmpeg"
+      ],
+      "login": [
+        "cookies"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "likeEpisode",
+        "shows",
+        "show",
+        "subscribeShow",
+        "stream"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "search": {
+          "state": "passed"
+        }
+      }
+    },
+    {
+      "repository": "nimrc/mygo-chensheng",
+      "revision": "042976866e7a",
+      "version": "1.0.0",
+      "name": "Bobby Chen",
+      "playback": "stream",
+      "capabilities": [
+        "search",
+        "suggest",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "stations",
+        "stationNext",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-provided"
+        },
+        "search": {
+          "state": "passed"
+        }
+      }
+    },
+    {
+      "repository": "pingfury108/mygo-music-sonust",
+      "revision": "v0.1.1",
+      "version": "0.1.1",
+      "name": "Sonust",
+      "playback": "stream",
+      "capabilities": [
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "followArtist",
+        "saveAlbum",
+        "savedAlbums",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "blocked",
+          "code": "setup-required"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-provided"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "setup-required"
+        },
+        "search": {
+          "state": "blocked",
+          "code": "setup-required"
+        }
+      }
+    },
+    {
+      "repository": "popeyelau/mygo-queyue",
+      "revision": "76ec66a1e354",
+      "version": "0.1.0",
+      "name": "QueYue",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "liked",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "savePlaylist",
+        "stations",
+        "stationNext",
+        "lyrics",
+        "stream"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "search": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        }
+      }
+    },
+    {
+      "repository": "qile222/mygo-music-qishui",
+      "revision": "0.8.2",
+      "version": "0.8.2",
+      "name": "Qishui Music",
+      "playback": "stream",
+      "process": [
+        "/usr/bin/base64",
+        "/usr/bin/env"
+      ],
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "savePlaylist",
+        "followArtist",
+        "saveAlbum",
+        "savedAlbums",
+        "stations",
+        "stationNext",
+        "comments",
+        "likeComment",
+        "postComment",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "comments": {
+          "state": "passed",
+          "count": 20
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "search": {
+          "state": "passed",
+          "count": 20
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        }
+      }
+    },
+    {
+      "repository": "r0k1s-i/mygotify",
+      "revision": "a62fde0922ba",
+      "version": "0.1.0",
+      "name": "MyGotify",
+      "playback": "stream",
+      "process": [
+        "ffmpeg",
+        "yt-dlp",
+        "/opt/homebrew/bin/ffmpeg",
+        "/opt/homebrew/bin/yt-dlp",
+        "/usr/local/bin/ffmpeg",
+        "/usr/local/bin/yt-dlp"
+      ],
+      "login": [
+        "cookies"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "savePlaylist",
+        "followArtist",
+        "saveAlbum",
+        "savedAlbums",
+        "stations",
+        "stationNext",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 20
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "request-failed"
+        }
+      }
+    },
+    {
+      "repository": "rocona/mygo-navidrome",
+      "revision": "0.1.0",
+      "version": "0.1.0",
+      "name": "Navidrome",
+      "playback": "stream",
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "blocked",
+          "code": "setup-required"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "setup-required"
+        },
+        "search": {
+          "state": "blocked",
+          "code": "setup-required"
+        }
+      }
+    },
+    {
+      "repository": "satyawikananda/soundgo",
+      "revision": "3a5b3e6bd2f6",
+      "version": "0.1.0",
+      "name": "SoundGo",
+      "playback": "stream",
+      "process": [
+        "ffmpeg",
+        "/opt/homebrew/bin/ffmpeg",
+        "/usr/local/bin/ffmpeg"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "lyrics",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 20
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "setup-required"
+        }
+      }
+    },
+    {
+      "repository": "shensl4499/mygo-music-xiaoyuzhou",
+      "revision": "045cff05f0d4",
+      "version": "0.1.0",
+      "name": "小宇宙",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "likeEpisode",
+        "shows",
+        "show",
+        "subscribeShow",
+        "comments",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "search": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        }
+      }
+    },
+    {
+      "repository": "sogud/mygo-music-netease",
+      "revision": "v0.1.7",
+      "version": "0.1.7",
+      "name": "网易云音乐",
+      "playback": "stream",
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "shows",
+        "show",
+        "stations",
+        "stationNext",
+        "comments",
+        "lyrics",
+        "stream"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "comments": {
+          "state": "passed",
+          "count": 30
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 30
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "unavailable"
+        }
+      }
+    },
+    {
+      "repository": "sounfury/mygo-music-spotify-soloist",
+      "stages": {
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "install": {
+          "state": "blocked",
+          "code": "http-denied"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        }
+      }
+    },
+    {
+      "repository": "specialhua/mygo-ximalaya",
+      "revision": "5084fa6ed17f",
+      "version": "0.1.4",
+      "name": "喜马拉雅",
+      "playback": "stream",
+      "login": [
+        "cookies",
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "recent",
+        "home",
+        "browse",
+        "show",
+        "stream",
+        "played"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "search": {
+          "state": "passed",
+          "count": 30
+        },
+        "streamResolve": {
+          "state": "blocked",
+          "code": "request-failed"
+        }
+      }
+    },
+    {
+      "repository": "starriv/mygo-music-spotify",
+      "revision": "v1.0.0",
+      "version": "1.0.0",
+      "name": "Spotify",
+      "playback": "remote",
+      "process": [
+        "soloist/soloist",
+        "soloist/soloist.exe",
+        "curl",
+        "tar"
+      ],
+      "login": [
+        "oauth",
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "likeEpisode",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "savePlaylist",
+        "followArtist",
+        "saveAlbum",
+        "savedAlbums",
+        "shows",
+        "show",
+        "subscribeShow",
+        "lyrics",
+        "remotePlay",
+        "remotePause",
+        "remoteResume",
+        "remoteSeek",
+        "remoteVolume",
+        "remoteState",
+        "remoteDevices",
+        "remoteUse"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "blocked",
+          "code": "setup-required"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "setup-required"
+        },
+        "search": {
+          "state": "blocked",
+          "code": "setup-required"
+        }
+      }
+    },
+    {
+      "repository": "xingkaixin/mygo-music-spotify",
+      "revision": "573e98e54c02",
+      "version": "0.1.1",
+      "name": "Spotify",
+      "playback": "remote",
+      "process": [
+        "/opt/homebrew/bin/librespot",
+        "/usr/local/bin/librespot"
+      ],
+      "login": [
+        "oauth",
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "savePlaylist",
+        "saveAlbum",
+        "savedAlbums",
+        "shows",
+        "show",
+        "subscribeShow",
+        "lyrics",
+        "remotePlay",
+        "remotePause",
+        "remoteResume",
+        "remoteSeek",
+        "remoteVolume",
+        "remoteState",
+        "remoteDevices",
+        "remoteUse"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        }
+      }
+    },
+    {
+      "repository": "yiyiSmallti/mygo-qishui",
+      "revision": "v0.6.8",
+      "version": "0.6.8",
+      "name": "汽水音乐",
+      "playback": "stream",
+      "process": [
+        "*"
+      ],
+      "login": [
+        "prompt"
+      ],
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "savedAlbums",
+        "stations",
+        "stationNext",
+        "lyrics",
+        "stream"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "passed"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        },
+        "search": {
+          "state": "blocked",
+          "code": "sign-in-required"
+        }
+      }
+    },
+    {
+      "repository": "yunforge/mygo-music-download",
+      "revision": "v0.2.0",
+      "version": "0.2.0",
+      "name": "Music Download",
+      "playback": "stream",
+      "capabilities": [
+        "search",
+        "playlists",
+        "playlist",
+        "album",
+        "browse",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "movePlaylistTrack",
+        "lyrics",
+        "stream"
+      ],
+      "stages": {
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-provided"
+        },
+        "lyrics": {
+          "state": "passed"
+        },
+        "playlists": {
+          "state": "passed"
+        },
+        "search": {
+          "state": "passed",
+          "count": 20
+        },
+        "streamResolve": {
+          "state": "passed"
+        }
+      }
+    },
+    {
+      "repository": "yusgsysh/mygo-music-fnos-plugin",
+      "revision": "v1.1.2",
+      "version": "1.1.2",
+      "name": "fnOS Music",
+      "playback": "stream",
+      "capabilities": [
+        "signIn",
+        "signOut",
+        "account",
+        "search",
+        "suggest",
+        "playlists",
+        "playlist",
+        "album",
+        "artist",
+        "liked",
+        "recent",
+        "home",
+        "browse",
+        "isLiked",
+        "like",
+        "createPlaylist",
+        "renamePlaylist",
+        "deletePlaylist",
+        "addToPlaylist",
+        "removeFromPlaylist",
+        "lyrics",
+        "stream"
+      ],
+      "stages": {
+        "account": {
+          "state": "passed"
+        },
+        "devicePlayback": {
+          "state": "not-tested",
+          "code": "requires-device"
+        },
+        "home": {
+          "state": "blocked",
+          "code": "setup-required"
+        },
+        "install": {
+          "state": "passed"
+        },
+        "login": {
+          "state": "not-tested",
+          "code": "requires-user-authorization"
+        },
+        "playlists": {
+          "state": "blocked",
+          "code": "setup-required"
+        },
+        "search": {
+          "state": "blocked",
+          "code": "setup-required"
+        }
+      }
+    }
+  ]
+}

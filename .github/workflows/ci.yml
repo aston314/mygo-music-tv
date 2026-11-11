@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: '22'
       - run: python3 scripts/validate_tv_app.py
-      - run: go test -mod=vendor -race ./core/internal/...
+      - run: go test -mod=vendor -race ./core/internal/... ./core/cmd/plugin-audit
       - run: npm run check
       - run: npm ci
       - run: npx playwright install --with-deps chromium

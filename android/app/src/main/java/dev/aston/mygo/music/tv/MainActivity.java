@@ -62,6 +62,7 @@ public final class MainActivity extends Activity {
     private boolean trusted(String url) { try { CoreService s = CoreService.get(); if (s == null || s.pageURL() == null) return false; URI a = new URI(url), b = new URI(s.pageURL()); return "http".equals(a.getScheme()) && a.getHost().equals(b.getHost()) && a.getPort() == b.getPort(); } catch (Exception e) { return false; } }
     private void immersive() { getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_STABLE); }
     @Override public void onWindowFocusChanged(boolean focus) { super.onWindowFocusChanged(focus); if (focus) immersive(); }
+    @Override protected void onResume() { super.onResume(); if(loaded&&web!=null)web.evaluateJavascript("if(window.MyGo&&window.MyGo.resumeLogin)window.MyGo.resumeLogin()",null); }
     @Override public void onBackPressed() {
         if (editing) { finishEditing(); web.evaluateJavascript("if(document.activeElement)document.activeElement.blur()",null); return; }
         if (!loaded) { confirmExit(); return; }
@@ -84,6 +85,11 @@ public final class MainActivity extends Activity {
         dialog.setOnDismissListener(d->{exitVisible=false;immersive();}); dialog.setOnShowListener(d->dialog.getButton(AlertDialog.BUTTON_NEGATIVE).requestFocus()); dialog.show();
     }
     private final class Bridge {
+        @JavascriptInterface public boolean webSignInSupported() { return true; }
+        @JavascriptInterface public void openLogin(String id,String requestId) {
+            if(id==null||requestId==null||!id.matches("[a-f0-9]{48}")||!requestId.matches("[a-f0-9]{48}"))return;
+            handler.post(()->{if(!destroyed)startActivity(new Intent(MainActivity.this,BrowserLoginActivity.class).putExtra("id",id).putExtra("requestId",requestId));});
+        }
         @JavascriptInterface public String appearance() { return Appearance.json(MainActivity.this); }
         @JavascriptInterface public void applyAppearance(String theme, String language) {
             if (!Appearance.valid(theme,language)) return;

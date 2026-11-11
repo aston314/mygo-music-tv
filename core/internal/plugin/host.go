@@ -114,6 +114,9 @@ func (p *Plugin) installHost(v *vm) error {
 			if u, err := url.Parse(address); err != nil || (u.Scheme != "https" && u.Scheme != "http") {
 				return moejs.Undefined(), fmt.Errorf("not a web address: %s", address)
 			}
+			if h := p.loginHost(); h != nil && h.OpenURL != nil {
+				return moejs.Undefined(), h.OpenURL(address)
+			}
 			return moejs.Undefined(), openURL(address)
 		}),
 		"signInPrompt": moejs.NativeFunc(func(_ *moejs.Realm, _ moejs.Value, args []moejs.Value) (moejs.Value, error) {
@@ -196,12 +199,7 @@ func (p *Plugin) waitForRedirect(v *vm) native {
 		if len(p.manifest.Permissions.Network) == 0 {
 			return moejs.Undefined(), errors.New("waitForRedirect needs the network permission")
 		}
-		var o struct {
-			Port    int    `json:"port"`
-			Path    string `json:"path"`
-			Timeout int64  `json:"timeout"` // milliseconds
-			Page    string `json:"page"`    // what the browser shows after
-		}
+		var o Redirect
 		if err := v.rt.ToGoInto(moejs.Arg(args, 0), &o); err != nil {
 			return moejs.Undefined(), err
 		}
@@ -212,9 +210,16 @@ func (p *Plugin) waitForRedirect(v *vm) native {
 		if wait <= 0 {
 			wait = signInTimeout
 		}
+		host := p.loginHost()
 		promise, settle := v.loop.NewPromise()
 		go func() {
-			query, err := awaitRedirect(o.Port, o.Path, o.Page, wait)
+			var query map[string]any
+			var err error
+			if host != nil && host.WaitForRedirect != nil {
+				query, err = host.WaitForRedirect(o)
+			} else {
+				query, err = awaitRedirect(o.Port, o.Path, o.Page, wait)
+			}
 			settle(func(rt *moejs.Runtime) (moejs.Value, error) {
 				if err != nil {
 					return moejs.Undefined(), err
@@ -227,13 +232,25 @@ func (p *Plugin) waitForRedirect(v *vm) native {
 }
 
 func awaitRedirect(port int, path, page string, wait time.Duration) (map[string]any, error) {
-	l, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", port))
+	return awaitRedirectContext(context.Background(), Redirect{Port: port, Path: path, Page: page, Timeout: wait.Milliseconds()}, nil)
+}
+func awaitRedirectContext(parent context.Context, o Redirect, ready func(string)) (map[string]any, error) {
+	if o.Port < 0 || o.Port > 65535 || (o.Path != "" && (!strings.HasPrefix(o.Path, "/") || strings.ContainsAny(o.Path, "?#\r\n"))) {
+		return nil, errors.New("invalid redirect address")
+	}
+	wait := time.Duration(o.Timeout) * time.Millisecond
+	if wait <= 0 || wait > signInTimeout {
+		wait = signInTimeout
+	}
+	ctx, cancel := context.WithTimeout(parent, wait)
+	defer cancel()
+	l, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", o.Port))
 	if err != nil {
 		return nil, err
 	}
 	got := make(chan map[string]any, 1)
 	srv := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if path != "" && r.URL.Path != path {
+		if r.Method != "GET" || (o.Path != "" && r.URL.Path != o.Path) || r.URL.RawQuery == "" {
 			http.NotFound(w, r)
 			return
 		}
@@ -242,23 +259,28 @@ func awaitRedirect(port int, path, page string, wait time.Duration) (map[string]
 			query[k] = vs[0]
 		}
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		io.WriteString(w, page)
+		w.Header().Set("Cache-Control", "no-store")
+		w.Header().Set("Referrer-Policy", "no-referrer")
+		io.WriteString(w, o.Page)
 		select {
 		case got <- query:
 		default:
 		}
-	})}
+	}), ReadHeaderTimeout: 5 * time.Second}
 	go srv.Serve(l)
 	defer func() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
 		srv.Shutdown(ctx)
 	}()
+	if ready != nil {
+		ready("http://" + l.Addr().String() + o.Path)
+	}
 	select {
 	case q := <-got:
 		return q, nil
-	case <-time.After(wait):
-		return nil, errors.New("timed out waiting for the sign-in to come back")
+	case <-ctx.Done():
+		return nil, ctx.Err()
 	}
 }
 
@@ -275,9 +297,16 @@ func (p *Plugin) webSignIn(v *vm) native {
 			return moejs.Undefined(), err
 		}
 		o.Plugin, o.Name = p.manifest.ID, p.manifest.Name
+		host := p.loginHost()
 		promise, settle := v.loop.NewPromise()
 		go func() {
-			cookie, err := webSignIn(o)
+			var cookie string
+			var err error
+			if host != nil && host.WebSignIn != nil {
+				cookie, err = host.WebSignIn(o)
+			} else {
+				cookie, err = webSignIn(o)
+			}
 			settle(func(rt *moejs.Runtime) (moejs.Value, error) {
 				if err != nil {
 					return moejs.Undefined(), err

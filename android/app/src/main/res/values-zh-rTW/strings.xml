@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="login_loading">正在開啟登入頁面…</string>
+    <string name="login_browser_hint">請在網頁完成登入，完成後自動返回</string>
+    <string name="login_page_failed">網頁載入失敗，可重試或取消</string>
+    <string name="login_connection_failed">登入服務暫時無法使用，正在重試</string>
     <string name="app_starting">正在啟動 MyGo Music TV…</string>
     <string name="version_label">版本 %1$s</string>
     <string name="retry">重試</string>

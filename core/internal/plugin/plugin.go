@@ -166,12 +166,13 @@ type Plugin struct {
 	// level runs as it starts, and the host functions it calls take mu.
 	starting sync.Mutex
 
-	mu       sync.Mutex // guards what follows
-	settings map[string]string
-	storage  map[string]json.RawMessage
-	granted  bool // the listener let it start programs
-	vm       *vm
-	prompt   func(music.SignInPrompt)
+	mu         sync.Mutex // guards what follows
+	settings   map[string]string
+	storage    map[string]json.RawMessage
+	granted    bool // the listener let it start programs
+	vm         *vm
+	prompt     func(music.SignInPrompt)
+	signInHost *SignInHost
 	// processDisabled is a host policy, independent of a desktop grant on disk.
 	processDisabled bool
 	retired         bool
