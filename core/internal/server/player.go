@@ -12,37 +12,47 @@ import (
 )
 
 type Playback struct {
-	Generation    int64         `json:"generation"`
-	Revision      int64         `json:"revision"`
-	State         string        `json:"state"`
-	Queue         []music.Track `json:"queue"`
-	Index         int           `json:"index"`
-	Media         string        `json:"media,omitempty"`
-	Position      int64         `json:"position"`
-	Duration      int64         `json:"duration"`
-	WantPlay      bool          `json:"wantPlay"`
-	Error         string        `json:"error,omitempty"`
-	Remote        bool          `json:"remote"`
-	Device        string        `json:"device,omitempty"`
-	Mode          string        `json:"mode"`
-	EntryIDs      []string      `json:"entryIds"`
-	QueueRevision int64         `json:"queueRevision"`
-	PositionAt    int64         `json:"positionAt"`
-	SeekRevision  int64         `json:"seekRevision"`
+	Generation       int64         `json:"generation"`
+	Revision         int64         `json:"revision"`
+	State            string        `json:"state"`
+	Queue            []music.Track `json:"queue"`
+	Index            int           `json:"index"`
+	Media            string        `json:"media,omitempty"`
+	Position         int64         `json:"position"`
+	Duration         int64         `json:"duration"`
+	WantPlay         bool          `json:"wantPlay"`
+	Error            string        `json:"error,omitempty"`
+	Remote           bool          `json:"remote"`
+	Device           string        `json:"device,omitempty"`
+	Mode             string        `json:"mode"`
+	EntryIDs         []string      `json:"entryIds"`
+	QueueRevision    int64         `json:"queueRevision"`
+	PositionAt       int64         `json:"positionAt"`
+	SeekRevision     int64         `json:"seekRevision"`
+	Quality          string        `json:"quality,omitempty"`
+	Station          *Station      `json:"station,omitempty"`
+	Restored         bool          `json:"restored,omitempty"`
+	PersistenceError string        `json:"persistenceError,omitempty"`
 }
 type player struct {
 	sync.Mutex
-	state       Playback
-	server      *Server
-	recorded    int64
-	remoteMu    sync.Mutex
-	remote      *plugin.Plugin
-	closed      bool
-	modePath    string
-	history     []string
-	historyAt   int
-	bag         []string
-	nextEntries []string
+	state           Playback
+	server          *Server
+	recorded        int64
+	remoteMu        sync.Mutex
+	remote          *plugin.Plugin
+	closed          bool
+	modePath        string
+	history         []string
+	historyAt       int
+	bag             []string
+	nextEntries     []string
+	sessionPath     string
+	savedAt         time.Time
+	artwork         map[string]string
+	stationGen      int64
+	stationAwaiting bool
+	lastEnded       int64
 }
 
 func (p *player) snapshot() Playback {
@@ -51,6 +61,10 @@ func (p *player) snapshot() Playback {
 	s := p.state
 	s.Queue = append([]music.Track{}, s.Queue...)
 	s.EntryIDs = append([]string{}, s.EntryIDs...)
+	if s.Station != nil {
+		station := *s.Station
+		s.Station = &station
+	}
 	return s
 }
 func (p *player) resolve(gen int64, t music.Track) {
@@ -73,11 +87,14 @@ func (p *player) resolve(gen int64, t music.Track) {
 		_ = p.remote.RemotePause()
 		p.remote = nil
 	}
+	p.Lock()
+	position := p.state.Position
+	p.Unlock()
 	if src.Info().Playback == music.PlaybackRemote {
 		p.Lock()
 		p.state.Remote = true
 		p.Unlock()
-		if e := src.RemotePlay([]string{t.ID}, 0, 0); e != nil {
+		if e := src.RemotePlay([]string{t.ID}, 0, position); e != nil {
 			p.remoteMu.Unlock()
 			p.fail(gen, e.Error())
 			return
@@ -137,7 +154,10 @@ func (p *player) resolve(gen int64, t music.Track) {
 		return
 	}
 	p.remoteMu.Unlock()
-	stream, e := src.Stream(t.ID, "high")
+	p.server.mu.Lock()
+	quality := p.server.settings["quality"]
+	p.server.mu.Unlock()
+	stream, e := src.Stream(t.ID, quality)
 	if e != nil {
 		p.fail(gen, e.Error())
 		return
@@ -162,6 +182,7 @@ func (p *player) resolve(gen int64, t music.Track) {
 	}
 	p.state.Media = p.server.media.add(address, stream.Headers, 6*time.Hour, fixture)
 	p.state.State = "ready"
+	p.state.Quality = stream.Quality
 	p.state.Revision++
 }
 func (p *player) fail(gen int64, msg string) {
@@ -172,11 +193,34 @@ func (p *player) fail(gen int64, msg string) {
 		p.state.Error = msg
 		p.state.WantPlay = false
 		p.state.Revision++
+		p.saveSessionLocked(true)
 	}
 }
 func (p *player) control(action string, pos int64) error {
 	var s Playback
 	switch action {
+	case "station-retry", "leave-station":
+		p.Lock()
+		defer p.Unlock()
+		if p.closed {
+			return errors.New("音乐服务正在退出")
+		}
+		if action == "leave-station" {
+			p.endStationLocked()
+		} else {
+			if p.state.Station == nil {
+				return errors.New("当前没有正在播放的电台")
+			}
+			if p.state.State == "ended" {
+				p.stationAwaiting = true
+				p.state.WantPlay = true
+			}
+			p.refillStationLocked(true)
+		}
+		p.state.Revision++
+		p.state.QueueRevision++
+		p.saveSessionLocked(true)
+		return nil
 	case "next":
 		return p.advance(1, false, 0)
 	case "previous":
@@ -231,6 +275,16 @@ func (p *player) control(action string, pos int64) error {
 		p.state.WantPlay = false
 		p.state.State = "paused"
 	case "resume":
+		if p.stationAwaiting {
+			p.state.WantPlay = true
+			p.state.State = "buffering"
+			p.saveSessionLocked(true)
+			return nil
+		}
+		if p.state.Media == "" && !p.state.Remote && p.state.State != "preparing" && len(p.state.Queue) > 0 {
+			p.beginAtLocked(p.state.Index, p.state.Position)
+			return nil
+		}
 		p.state.WantPlay = true
 		if p.state.Media != "" {
 			p.state.State = "ready"
@@ -245,6 +299,7 @@ func (p *player) control(action string, pos int64) error {
 		p.state.Position = pos
 		p.state.SeekRevision++
 	case "stop":
+		p.endStationLocked()
 		p.state.Generation++
 		p.server.media.revoke(p.state.Media)
 		p.state.Media = ""
@@ -254,12 +309,15 @@ func (p *player) control(action string, pos int64) error {
 		p.state.Device = ""
 		p.remote = nil
 	}
+	p.saveSessionLocked(true)
 	return nil
 }
 
 func (p *player) close() {
 	p.Lock()
+	p.saveSessionLocked(true)
 	p.closed = true
+	p.endStationLocked()
 	p.state.Generation++
 	p.Unlock()
 }
@@ -269,7 +327,7 @@ func (p *player) event(gen int64, state string, pos, duration int64, seekAck ...
 		return false
 	}
 	p.Lock()
-	if gen != p.state.Generation || p.closed || p.state.State == "ended" || len(seekAck) > 0 && seekAck[0] != p.state.SeekRevision {
+	if gen != p.state.Generation || p.closed || p.state.State == "ended" || p.stationAwaiting || state == "ended" && p.lastEnded == gen || len(seekAck) > 0 && seekAck[0] != p.state.SeekRevision {
 		p.Unlock()
 		return false
 	}
@@ -287,7 +345,9 @@ func (p *player) event(gen int64, state string, pos, duration int64, seekAck ...
 	}
 	if state == "ended" {
 		p.state.WantPlay = false
+		p.lastEnded = gen
 	}
+	p.saveSessionLocked(state != "playing" && state != "buffering")
 	// Only the first confirmed playing event records listening history.
 	record := state == "playing" && p.recorded != gen
 	if record {

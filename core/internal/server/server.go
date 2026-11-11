@@ -85,7 +85,6 @@ func New(data, mode, token string) (*Server, error) {
 		return nil, e
 	}
 	s := &Server{sources: m, catalog: catalog.New(cfg.PluginCatalogURL, filepath.Join(data, "catalog.json")), media: newMedia(), mode: mode, token: token, mux: http.NewServeMux(), settingsPath: settingsPath, settings: settings}
-	s.player = newPlayer(s, filepath.Join(data, "player-settings.json"))
 	if mode != "real" {
 		s.fixtureDir = filepath.Join(data, "fixture")
 		if e = s.extractFixture(); e != nil {
@@ -95,6 +94,8 @@ func New(data, mode, token string) (*Server, error) {
 			return nil, e
 		}
 	}
+	s.player = newPlayer(s, filepath.Join(data, "player-settings.json"))
+	s.player.restoreSession(filepath.Join(data, "playback-session.json"))
 	m.GuardUpdate = s.player.guardPluginUpdate
 	if mode == "real" {
 		m.StartUpdateChecks()
@@ -103,7 +104,7 @@ func New(data, mode, token string) (*Server, error) {
 	return s, nil
 }
 func defaultPreferences() map[string]string {
-	return map[string]string{"sidebar": "expanded", "translation": "on", "theme": "light", "language": "zh-CN"}
+	return map[string]string{"sidebar": "expanded", "translation": "on", "theme": "light", "language": "zh-CN", "quality": "high", "source": ""}
 }
 func validPreference(key, value string) bool {
 	switch key {
@@ -115,6 +116,14 @@ func validPreference(key, value string) bool {
 		return value == "dark" || value == "light"
 	case "language":
 		return value == "zh-CN" || value == "zh-TW"
+	case "quality":
+		return value == "standard" || value == "high" || value == "lossless"
+	case "source":
+		if value == "" || value == "fixture" {
+			return true
+		}
+		_, err := hex.DecodeString(value)
+		return len(value) == 24 && err == nil
 	}
 	return false
 }
@@ -361,13 +370,14 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /api/sources/{id}/lyrics", s.getLyrics)
 	s.mux.HandleFunc("POST /api/player/play", func(w http.ResponseWriter, r *http.Request) {
 		var q struct {
-			Queue []music.Track `json:"queue"`
-			Index int           `json:"index"`
+			Queue   []music.Track `json:"queue"`
+			Index   int           `json:"index"`
+			Station *Station      `json:"station"`
 		}
 		if !decode(w, r, &q) {
 			return
 		}
-		if e := s.player.play(q.Queue, q.Index); e != nil {
+		if e := s.player.playWithStation(q.Queue, q.Index, q.Station); e != nil {
 			failure(w, 400, e)
 			return
 		}

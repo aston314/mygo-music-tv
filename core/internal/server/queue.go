@@ -30,6 +30,9 @@ func (p *player) setMode(mode string) error {
 	}
 	p.Lock()
 	defer p.Unlock()
+	if err := p.stationModeError(); err != nil {
+		return err
+	}
 	b, _ := json.Marshal(map[string]string{"mode": mode})
 	if err := os.WriteFile(p.modePath+".part", b, 0600); err != nil {
 		return err
@@ -40,6 +43,7 @@ func (p *player) setMode(mode string) error {
 	p.state.Mode = mode
 	p.bag = nil
 	p.state.Revision++
+	p.saveSessionLocked(true)
 	return nil
 }
 
@@ -59,11 +63,29 @@ func (p *player) validateTracks(queue []music.Track) error {
 }
 
 func (p *player) play(queue []music.Track, index int) error {
+	return p.playWithStation(queue, index, nil)
+}
+
+func (p *player) playWithStation(queue []music.Track, index int, station *Station) error {
 	if e := p.validateTracks(queue); e != nil {
 		return e
 	}
 	if index < 0 || index >= len(queue) {
 		return errors.New("歌曲位置无效")
+	}
+	if station != nil {
+		src, err := p.server.sources.Get(station.Source)
+		if err != nil {
+			return err
+		}
+		if station.ID == "" || !src.Can("stationNext") || src.Info().Playback == music.PlaybackRemote {
+			return errors.New("此音乐源不支持连续电台")
+		}
+		for _, t := range queue {
+			if t.Source != station.Source {
+				return errors.New("电台歌曲来源不一致")
+			}
+		}
 	}
 	p.Lock()
 	defer p.Unlock()
@@ -80,12 +102,20 @@ func (p *player) play(queue []music.Track, index int) error {
 	p.historyAt = 0
 	p.bag = nil
 	p.nextEntries = nil
+	p.endStationLocked()
+	if station != nil {
+		p.state.Station = &Station{Source: station.Source, ID: station.ID, Name: station.Name}
+	}
 	p.beginLocked(index)
 	return nil
 }
 
 // All queue changes preserve entry identity, including duplicate songs.
 func (p *player) beginLocked(index int) {
+	p.beginAtLocked(index, 0)
+}
+
+func (p *player) beginAtLocked(index int, position int64) {
 	old := p.state.Media
 	id := p.state.EntryIDs[index]
 	p.nextEntries = slices.DeleteFunc(p.nextEntries, func(x string) bool { return x == id })
@@ -94,7 +124,7 @@ func (p *player) beginLocked(index int) {
 	p.state.Revision++
 	p.state.Index = index
 	p.state.Media = ""
-	p.state.Position = 0
+	p.state.Position = position
 	p.state.SeekRevision = 0
 	p.state.PositionAt = time.Now().UnixMilli()
 	p.state.Duration = p.state.Queue[index].Duration
@@ -103,10 +133,15 @@ func (p *player) beginLocked(index int) {
 	p.state.Error = ""
 	p.state.Remote = false
 	p.state.Device = ""
+	p.state.Quality = ""
+	p.state.Restored = false
+	p.stationAwaiting = false
 	gen, track := p.state.Generation, p.state.Queue[index]
 	p.server.media.revoke(old)
 	p.server.wg.Add(1)
 	go func() { defer p.server.wg.Done(); p.resolve(gen, track) }()
+	p.refillStationLocked(false)
+	p.saveSessionLocked(true)
 }
 
 func (p *player) rememberLocked(index int) {
@@ -129,6 +164,29 @@ func (p *player) advance(direction int, automatic bool, expected int64) error {
 		return nil
 	}
 	i := p.state.Index
+	if p.state.Station != nil {
+		if direction < 0 {
+			if i > 0 {
+				p.rememberLocked(i - 1)
+				p.beginLocked(i - 1)
+			}
+			return nil
+		}
+		if i+1 < len(p.state.Queue) {
+			p.rememberLocked(i + 1)
+			p.beginLocked(i + 1)
+			return nil
+		}
+		st := p.state.Station
+		if st.Error == "" && !st.Exhausted {
+			p.stationAwaiting = true
+			p.state.State = "buffering"
+			p.state.WantPlay = true
+			p.refillStationLocked(false)
+		}
+		p.saveSessionLocked(true)
+		return nil
+	}
 	if automatic && p.state.Mode == "single" {
 		p.beginLocked(i)
 		return nil
@@ -258,6 +316,8 @@ func (p *player) changeQueue(q QueueChange) error {
 	s.QueueRevision++
 	s.Revision++
 	p.bag = nil
+	p.refillStationLocked(false)
+	p.saveSessionLocked(true)
 	return nil
 }
 
@@ -269,6 +329,7 @@ func (p *player) clearLocked() error {
 		}
 		p.remote = nil
 	}
+	p.endStationLocked()
 	p.server.media.revoke(p.state.Media)
 	p.state.Generation++
 	p.state.Revision++
@@ -284,9 +345,12 @@ func (p *player) clearLocked() error {
 	p.state.State = "idle"
 	p.state.WantPlay = false
 	p.state.Error = ""
+	p.state.Quality = ""
+	p.state.Restored = false
 	p.history = nil
 	p.historyAt = -1
 	p.bag = nil
 	p.nextEntries = nil
+	p.saveSessionLocked(true)
 	return nil
 }

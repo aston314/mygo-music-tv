@@ -97,7 +97,7 @@ func TestPreferencesUseLightDefaultsAndPreserveSavedThemes(t *testing.T) {
 			}
 			defer s.Close()
 			prefs := preferenceRequest(t, s, "", 200)
-			if prefs["theme"] != tc.theme || prefs["language"] != "zh-CN" || len(prefs) != 4 {
+			if prefs["theme"] != tc.theme || prefs["language"] != "zh-CN" || len(prefs) != len(defaultPreferences()) {
 				t.Fatal(prefs)
 			}
 			if strings.Contains(body, `"icons"`) && prefs["sidebar"] != "icons" {

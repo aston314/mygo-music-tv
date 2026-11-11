@@ -209,3 +209,5 @@ html[data-theme=light] .install-badge.update-available{background:#fff1d6;color:
 .plugin-dialog .catalog-version{font-size:23px}
 .plugin-dialog #catalog-permissions h3{font-size:23px;margin:14px 0 12px}
 .awaiting-permissions .plugin-description,.awaiting-permissions .plugin-install-hint{display:none}
+
+.station-panel{padding:12px 0 16px;flex-shrink:0}.station-panel>span{display:flex;align-items:center;font-size:21px}.station-panel>span .icon{width:24px;height:24px;margin-right:10px}.station-panel p{margin:10px 0}.station-panel button{margin-right:12px}.station-panel .hint{line-height:1.5}
