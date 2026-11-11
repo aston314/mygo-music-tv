@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"mygo-music-tv/core/internal/music"
+	"mygo-music-tv/core/internal/plugin"
 )
 
 type Playback struct {
@@ -21,12 +22,17 @@ type Playback struct {
 	Duration   int64         `json:"duration"`
 	WantPlay   bool          `json:"wantPlay"`
 	Error      string        `json:"error,omitempty"`
+	Remote     bool          `json:"remote"`
+	Device     string        `json:"device,omitempty"`
 }
 type player struct {
 	sync.Mutex
 	state    Playback
 	server   *Server
 	recorded int64
+	remoteMu sync.Mutex
+	remote   *plugin.Plugin
+	closed   bool
 }
 
 func (p *player) snapshot() Playback {
@@ -46,6 +52,10 @@ func (p *player) play(queue []music.Track, index int) error {
 		}
 	}
 	p.Lock()
+	if p.closed {
+		p.Unlock()
+		return errors.New("音乐服务正在退出")
+	}
 	old := p.state.Media
 	p.state.Generation++
 	gen := p.state.Generation
@@ -58,9 +68,11 @@ func (p *player) play(queue []music.Track, index int) error {
 	p.state.WantPlay = true
 	p.state.State = "preparing"
 	p.state.Error = ""
+	p.state.Remote = false
+	p.state.Device = ""
+	p.server.wg.Add(1)
 	p.Unlock()
 	p.server.media.revoke(old)
-	p.server.wg.Add(1)
 	go func() { defer p.server.wg.Done(); p.resolve(gen, queue[index]) }()
 	return nil
 }
@@ -70,10 +82,84 @@ func (p *player) resolve(gen int64, t music.Track) {
 		p.fail(gen, e.Error())
 		return
 	}
-	if src.Info().Playback == music.PlaybackRemote {
-		p.fail(gen, "此插件控制远端设备，请使用来源中的远端控制功能")
+	// Serialize remote commands: a delayed old play must finish and be paused
+	// before a new remote or local source can start.
+	p.remoteMu.Lock()
+	p.Lock()
+	current := p.state.Generation == gen && !p.closed
+	p.Unlock()
+	if !current {
+		p.remoteMu.Unlock()
 		return
 	}
+	if p.remote != nil {
+		_ = p.remote.RemotePause()
+		p.remote = nil
+	}
+	if src.Info().Playback == music.PlaybackRemote {
+		p.Lock()
+		p.state.Remote = true
+		p.Unlock()
+		if e := src.RemotePlay([]string{t.ID}, 0, 0); e != nil {
+			p.remoteMu.Unlock()
+			p.fail(gen, e.Error())
+			return
+		}
+		p.Lock()
+		if p.state.Generation != gen || p.closed {
+			p.Unlock()
+			_ = src.RemotePause()
+			p.remoteMu.Unlock()
+			return
+		}
+		wantPlay := p.state.WantPlay
+		p.state.Revision++
+		p.Unlock()
+		p.remote = src
+		if !wantPlay {
+			_ = src.RemotePause()
+		}
+		p.remoteMu.Unlock()
+		ticker := time.NewTicker(time.Second)
+		defer ticker.Stop()
+		for range ticker.C {
+			p.remoteMu.Lock()
+			p.Lock()
+			current := p.state.Generation == gen && !p.closed
+			p.Unlock()
+			if !current {
+				p.remoteMu.Unlock()
+				return
+			}
+			s, e := src.RemoteState()
+			if e != nil {
+				p.remoteMu.Unlock()
+				p.fail(gen, e.Error())
+				return
+			}
+			if s == nil {
+				p.remoteMu.Unlock()
+				continue
+			}
+			p.Lock()
+			if p.state.Generation != gen {
+				p.Unlock()
+				p.remoteMu.Unlock()
+				return
+			}
+			p.state.Device = s.Device
+			p.state.WantPlay = s.Playing
+			p.Unlock()
+			status := "paused"
+			if s.Playing {
+				status = "playing"
+			}
+			p.event(gen, status, s.Position, s.Duration)
+			p.remoteMu.Unlock()
+		}
+		return
+	}
+	p.remoteMu.Unlock()
 	stream, e := src.Stream(t.ID, "high")
 	if e != nil {
 		p.fail(gen, e.Error())
@@ -130,8 +216,37 @@ func (p *player) control(action string, pos int64) error {
 	default:
 		return errors.New("未知播放操作")
 	}
+	p.remoteMu.Lock()
+	defer p.remoteMu.Unlock()
+	s = p.snapshot()
+	if pos < 0 {
+		pos = 0
+	}
+	if s.Duration > 0 && pos > s.Duration {
+		pos = s.Duration
+	}
+	if s.Remote && len(s.Queue) > s.Index {
+		src, e := p.server.sources.Get(s.Queue[s.Index].Source)
+		if e != nil {
+			return e
+		}
+		switch action {
+		case "pause", "stop":
+			e = src.RemotePause()
+		case "resume":
+			e = src.RemoteResume()
+		case "seek":
+			e = src.RemoteSeek(pos)
+		}
+		if e != nil {
+			return e
+		}
+	}
 	p.Lock()
 	defer p.Unlock()
+	if p.state.Generation != s.Generation || p.closed {
+		return nil
+	}
 	p.state.Revision++
 	switch action {
 	case "pause":
@@ -156,8 +271,18 @@ func (p *player) control(action string, pos int64) error {
 		p.state.Media = ""
 		p.state.WantPlay = false
 		p.state.State = "idle"
+		p.state.Remote = false
+		p.state.Device = ""
+		p.remote = nil
 	}
 	return nil
+}
+
+func (p *player) close() {
+	p.Lock()
+	p.closed = true
+	p.state.Generation++
+	p.Unlock()
 }
 func (p *player) event(gen int64, state string, pos, duration int64) bool {
 	valid := map[string]bool{"playing": true, "paused": true, "buffering": true, "ended": true, "failed": true}
@@ -165,7 +290,7 @@ func (p *player) event(gen int64, state string, pos, duration int64) bool {
 		return false
 	}
 	p.Lock()
-	if gen != p.state.Generation {
+	if gen != p.state.Generation || p.closed {
 		p.Unlock()
 		return false
 	}
@@ -187,14 +312,19 @@ func (p *player) event(gen int64, state string, pos, duration int64) bool {
 	record := state == "playing" && p.recorded != gen
 	if record {
 		p.recorded = gen
+		p.server.wg.Add(1)
 	}
 	s := p.state
 	p.Unlock()
 	if record && len(s.Queue) > s.Index {
-		if src, e := p.server.sources.Get(s.Queue[s.Index].Source); e == nil && src.Can("played") {
-			p.server.wg.Add(1)
-			go func() { defer p.server.wg.Done(); src.Played(s.Queue[s.Index]) }()
-		}
+		go func() {
+			defer p.server.wg.Done()
+			if src, e := p.server.sources.Get(s.Queue[s.Index].Source); e == nil && src.Can("played") {
+				src.Played(s.Queue[s.Index])
+			}
+		}()
+	} else if record {
+		p.server.wg.Done()
 	}
 	if state == "ended" && s.Index+1 < len(s.Queue) {
 		_ = p.play(s.Queue, s.Index+1)

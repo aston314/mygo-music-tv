@@ -17,7 +17,7 @@ go run -mod=vendor ./core/cmd/music-tv -mode real
 - GitHub release/通用包/源码包解析，下载、压缩包校验、编译后安装、安装任务进度、重试、更新和卸载。
 - 按仓库隔离插件实例、设置与登录数据；同 ID 不同作者的插件可以并存。卸载保留账号数据。
 - 上游 JS/TS 插件运行时、网络权限、crypto、storage、settings、capability 与 Source JSON 协议。
-- 音乐源切换、首页/自定义目录、搜索、歌单/专辑/歌手/播客、二维码登录、音频队列与歌词。
+- 音乐源切换、首页/自定义目录、搜索、歌单/专辑/歌手/播客、二维码登录、音频队列与歌词；远端播放设备选择与 remote 播放/暂停/恢复/进度控制。
 - 固定画布等比缩放，遥控器/键盘/鼠标共用焦点，弹窗焦点恢复与确认退出，侧边栏显示偏好由 Go 持久化。
 - Go 管理音频租约、Range 代理和跨主机重定向请求头隔离；页面不会拿到上游音频 URL/凭证。
 - Android 前台服务管理 Go 子进程和 Media3 音频播放、系统媒体会话、音频焦点、后台播放。动态端口、显式 readiness、父进程检查、退出/任务移除清理，无开机自启。
@@ -26,7 +26,7 @@ go run -mod=vendor ./core/cmd/music-tv -mode real
 
 目录完整展示，**收录、安装、登录、实机播放是不同验证阶段**，安装成功不代表所有插件功能可用。当前不会启动插件携带的桌面程序：依赖 ffmpeg、yt-dlp、osascript 或平台 helper 的分支会返回能力错误。纯 HTTP 插件也可能需要账号、服务权限或特定音频格式。
 
-二维码登录已提供。独立网页 Cookie 登录、手机 OAuth 回调和远端播放设备还需要按插件适配，不能默认等同于电视本机播放。源码安装不能替代插件自身需要的构建产物；选择的上游 release 必须包含可运行 JS/TS。
+二维码登录已提供。独立网页 Cookie 登录与手机 OAuth 回调还需要按插件适配。远端设备沿用插件的 remote 协议，依赖外部设备与服务可用性，不等同于电视本机播放。源码安装不能替代插件自身需要的构建产物；选择的上游 release 必须包含可运行 JS/TS。
 
 当前未声称 Android 6 实机输入、真实账号同步或所有在线源可播放。详细证据见 [迁移方案](docs/migration-proposal.md) 与 [目录声明快照](docs/evidence/plugin-catalog-2026-11-11.json)。
 
@@ -46,7 +46,7 @@ gradle -p android testDebugUnitTest lintDebug assembleDebug
 python3 scripts/verify_apk.py android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-GitHub 私有仓库的 CI 执行上述 Go/浏览器/Java/Android 检查并编译 arm64-v8a、armeabi-v7a、x86_64。CI 不把 APK 上传成临时 Actions artifact。尚未配置正式签名、公开下载仓库或应用更新渠道；未创建发布标签。
+GitHub 私有仓库 [aston314/mygo-music-tv](https://github.com/aston314/mygo-music-tv) 的 [CI](https://github.com/aston314/mygo-music-tv/actions/workflows/ci.yml) 执行上述 Go/浏览器/Java/Android 检查并编译 arm64-v8a、armeabi-v7a、x86_64。CI 不把 APK 上传成临时 Actions artifact。尚未配置正式签名、公开下载仓库或应用更新渠道；未创建发布标签。
 
 产品身份、ABI、画布和插件兼容版本保存在 `app.json`。应用版本独立于上游插件 `minAppVersion`。
 

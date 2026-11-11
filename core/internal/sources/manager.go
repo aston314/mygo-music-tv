@@ -36,7 +36,6 @@ type Job struct {
 	InstanceID string `json:"instanceId,omitempty"`
 }
 type instance struct {
-	sync.Mutex
 	info Info
 	p    *plugin.Plugin
 }
@@ -47,6 +46,7 @@ type Manager struct {
 	jobs   map[string]Job
 	closed bool
 	wg     sync.WaitGroup
+	fetch  func(string, string) (*plugin.Pending, error)
 }
 
 func Key(repo string) string {
@@ -54,7 +54,7 @@ func Key(repo string) string {
 	return hex.EncodeToString(sum[:12])
 }
 func New(root string) (*Manager, error) {
-	m := &Manager{root: root, items: map[string]*instance{}, jobs: map[string]Job{}}
+	m := &Manager{root: root, items: map[string]*instance{}, jobs: map[string]Job{}, fetch: plugin.Fetch}
 	if err := os.MkdirAll(root, 0700); err != nil {
 		return nil, err
 	}
@@ -123,6 +123,9 @@ func (m *Manager) List() []Info {
 func (m *Manager) Get(id string) (*plugin.Plugin, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
+	if m.closed {
+		return nil, errors.New("音乐服务正在退出")
+	}
 	it := m.items[id]
 	if it == nil {
 		return nil, errors.New("此音乐源未安装")
@@ -175,7 +178,7 @@ func (m *Manager) install(j Job) {
 func (m *Manager) installRepo(j Job) error {
 	base := filepath.Join(m.root, j.InstanceID)
 	dir := filepath.Join(base, "plugins")
-	pending, e := plugin.Fetch(j.Repository, dir)
+	pending, e := m.fetch(j.Repository, dir)
 	if e != nil {
 		return e
 	}
@@ -187,8 +190,8 @@ func (m *Manager) installRepo(j Job) error {
 		return errors.New("正在退出")
 	}
 	// Data lives outside the versioned plugin folder. Different repositories never share it.
-	if old := m.items[j.InstanceID]; old != nil {
-		old.p.Close()
+	old := m.items[j.InstanceID]
+	if old != nil {
 		if old.info.Manifest.ID != pending.Manifest.ID {
 			return errors.New("插件更新更改了 ID，请先卸载旧版本")
 		}
@@ -203,6 +206,9 @@ func (m *Manager) installRepo(j Job) error {
 	it, e := m.load(j.InstanceID, j.Repository)
 	if e != nil {
 		return e
+	}
+	if old != nil {
+		old.p.Retire()
 	}
 	m.items[j.InstanceID] = it
 	return nil
@@ -232,6 +238,7 @@ func (m *Manager) Remove(id string) error {
 	if id == "fixture" {
 		return errors.New("预览来源由运行模式管理")
 	}
+	it.p.Retire()
 	if e := it.p.Remove(nil); e != nil {
 		return e
 	}
@@ -242,7 +249,7 @@ func (m *Manager) Close() {
 	m.mu.Lock()
 	m.closed = true
 	for _, it := range m.items {
-		it.p.Close()
+		it.p.Retire()
 	}
 	m.mu.Unlock()
 	m.wg.Wait()
@@ -266,7 +273,16 @@ func Stamp(raw json.RawMessage, id string) json.RawMessage {
 					x["source"] = id
 				}
 			}
-			for _, v := range x {
+			for key, v := range x {
+				if key == "tracks" || key == "episodes" {
+					if tracks, ok := v.([]any); ok {
+						for _, t := range tracks {
+							if track, ok := t.(map[string]any); ok {
+								track["source"] = id
+							}
+						}
+					}
+				}
 				walk(v)
 			}
 		case []any:

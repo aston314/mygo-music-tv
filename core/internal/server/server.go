@@ -109,7 +109,7 @@ func (s *Server) extractFixture() error {
 	})
 }
 func (s *Server) Token() string { return s.token }
-func (s *Server) Close()        { s.sources.Close(); s.wg.Wait(); s.media.close() }
+func (s *Server) Close()        { s.player.close(); s.sources.Close(); s.wg.Wait(); s.media.close() }
 func (s *Server) authorized(r *http.Request) bool {
 	t := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
 	if c, e := r.Cookie("mygo_session"); e == nil && t == "" {

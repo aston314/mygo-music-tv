@@ -174,6 +174,21 @@ type Plugin struct {
 	prompt   func(music.SignInPrompt)
 	// processDisabled is a host policy, independent of a desktop grant on disk.
 	processDisabled bool
+	retired         bool
+}
+
+// Retire permanently stops an instance being removed or replaced, including late callers.
+func (p *Plugin) Retire() {
+	p.starting.Lock()
+	defer p.starting.Unlock()
+	p.mu.Lock()
+	p.retired = true
+	v := p.vm
+	p.vm = nil
+	p.mu.Unlock()
+	if v != nil {
+		v.close()
+	}
 }
 
 // DisableProcesses confines an installed source to the portable JS/HTTP host.
@@ -434,11 +449,23 @@ var helperScript = func() *moejs.Script {
 
 // running is the plugin's runtime, started if it isn't.
 func (p *Plugin) running() (*vm, error) {
+	p.mu.Lock()
+	retired := p.retired
+	p.mu.Unlock()
+	if retired {
+		return nil, errors.New("音乐源实例已停止")
+	}
 	if v := p.current(); v != nil {
 		return v, nil
 	}
 	p.starting.Lock()
 	defer p.starting.Unlock()
+	p.mu.Lock()
+	retired = p.retired
+	p.mu.Unlock()
+	if retired {
+		return nil, errors.New("音乐源实例已停止")
+	}
 	if v := p.current(); v != nil {
 		return v, nil
 	}

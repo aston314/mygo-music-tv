@@ -38,9 +38,12 @@ test('search result can start actual fixture audio and changes queue on ended', 
   await expect.poll(async () => (await page.request.get('/api/player')).json().then(p => p.state)).toBe('playing');
   const p = await (await page.request.get('/api/player')).json();
   expect(p.media).toMatch(/^\/media\/[a-f0-9]{48}$/); expect(p.queue[p.index].source).toBe('fixture');
+  await page.locator('#open-player').click();
+  await expect(page.locator('.player-heading h2')).toHaveText(p.queue[0].name);
   const range = await page.request.get(p.media, { headers: { Range:'bytes=0-63' } }); expect(range.status()).toBe(206); expect((await range.body()).length).toBe(64);
   await page.request.post('/api/player/event', { data:{generation:p.generation,state:'ended',position:p.duration,duration:p.duration} });
   await expect.poll(async () => (await page.request.get('/api/player')).json().then(n => n.index)).toBe(1);
+  await expect(page.locator('.player-heading h2')).toHaveText(p.queue[1].name);
 });
 
 test('late list response cannot replace a newly selected page', async ({ page }) => {
@@ -58,4 +61,19 @@ test('sidebar setting persists with focus, and Back cancels the exit dialog', as
   await page.locator('[data-focus="nav-settings"]').click(); await page.locator('[data-action="exit-confirm"]').click();
   await expect(page.locator('[data-action="cancel"]')).toBeFocused(); await page.keyboard.press('Escape'); await expect(page.locator('#modal-layer')).toBeHidden();
   await page.locator('[data-pref="expanded"]').click();
+});
+
+test('legacy remote keys respect sidebar boundaries and return from detail to the original card', async ({ page }) => {
+  await boot(page);
+  const home = page.locator('[data-focus="nav-home"]');
+  await home.focus();
+  await page.evaluate(() => document.activeElement.dispatchEvent(new KeyboardEvent('keydown', {keyCode:40,bubbles:true})));
+  await expect(page.locator('[data-focus="nav-search"]')).toBeFocused();
+  const settings = page.locator('[data-focus="nav-settings"]');
+  await settings.focus(); await page.keyboard.press('ArrowDown'); await expect(settings).toBeFocused();
+  await home.click();
+  const album = page.locator('[data-kind="album"]').first();
+  await album.click(); await expect(page.locator('[data-action="play-all"]')).toBeVisible();
+  await page.keyboard.press('Escape'); await expect(album).toBeFocused();
+  await page.locator('[data-track="0"]').focus(); await page.keyboard.press('ArrowLeft'); await expect(home).toBeFocused();
 });
