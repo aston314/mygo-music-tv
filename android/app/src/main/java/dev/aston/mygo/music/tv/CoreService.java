@@ -65,7 +65,7 @@ public final class CoreService extends Service {
     }
     void refreshAppearance() {
         if(stopped)return;
-        ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).notify(1,notification(notificationTrack==null?Appearance.text(this,R.string.playing_music):notificationTrack));
+        startForeground(1,notification(notificationTrack==null?Appearance.text(this,R.string.playing_music):notificationTrack));
     }
     private void startCore() {
         File ready = new File(getFilesDir(), "core-ready.json");

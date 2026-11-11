@@ -3,6 +3,7 @@
   'use strict';
   root.MyGoLocales = root.MyGoLocales || {};
   root.MyGoLocales['zh-CN'] = {
+  "为你精选": "为你精选",
   " · 当前": " · 当前",
   " · 当前设备": " · 当前设备",
   " · 暂不可播放": " · 暂不可播放",

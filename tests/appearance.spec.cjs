@@ -87,3 +87,15 @@ test('Traditional lyrics, nested queue and comments retain original music text a
  await page.locator('#lyrics-button').click();await expect(page.locator('#lyrics-button')).toHaveAttribute('aria-label','退出全螢幕歌詞');
  await page.keyboard.press('Escape');await expect(page.locator('#lyrics-button')).toHaveAttribute('aria-label','全螢幕歌詞');
 });
+
+test('light home showcases real artwork and keeps its play action in the remote focus graph',async({page})=>{
+ await page.route('**/cover.svg',r=>r.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect width="400" height="400" fill="#ce8693"/></svg>'}));
+ await page.route('**/call/home',async r=>{const res=await r.fetch(),data=await res.json();const track=data.sections.flatMap(s=>s.tracks||[])[0];track.album={...track.album,imageUrl:'/cover.svg'};track.name='电视上的音乐时刻';await r.fulfill({json:data});});
+ await settings(page);await choose(page,'theme','light');await page.locator('[data-focus="nav-home"]').click();
+ await expect(page.locator('[data-action="feature-play"]')).toBeFocused();await expect(page.locator('.feature-copy h2')).toHaveText('电视上的音乐时刻');
+ await expect(page.locator('.feature-art')).toHaveAttribute('src','/cover.svg');
+ for(const [width,height]of [[960,540],[1280,720],[1920,1080]]){await page.setViewportSize({width,height});await expect.poll(async()=>Math.round((await page.locator('#stage').boundingBox()).width)).toBe(width);await page.locator('[data-action="feature-play"]').focus();const box=await page.locator('.music-feature').boundingBox();expect(box.x).toBeGreaterThan(0);expect(box.x+box.width).toBeLessThanOrEqual(width);await page.keyboard.press('ArrowDown');await expect(page.locator('[data-track="0"]')).toBeFocused();}
+ await page.setViewportSize({width:1280,height:720});await page.locator('[data-action="feature-play"]').click();
+ await expect.poll(async()=>(await(await page.request.get('/api/player')).json()).state).toBe('playing');
+ const p=await(await page.request.get('/api/player')).json();expect(p.queue[p.index].name).toBe('电视上的音乐时刻');
+});
