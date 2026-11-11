@@ -3,6 +3,7 @@ package catalog
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -10,6 +11,35 @@ import (
 	"strings"
 	"testing"
 )
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
+
+func TestFirstLaunchUsesCompleteBundledDirectoryWhileOffline(t *testing.T) {
+	c := New("https://music.egoist.dev/zh/plugins", filepath.Join(t.TempDir(), "catalog.json"))
+	called, allow, done := make(chan struct{}), make(chan struct{}), make(chan struct{})
+	c.Client = &http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+		close(called)
+		<-allow
+		defer close(done)
+		return &http.Response{StatusCode: 503, Body: io.NopCloser(strings.NewReader("offline")), Header: http.Header{}}, nil
+	})}
+	first, err := c.Get(context.Background(), false)
+	if err != nil || len(first.Entries) != 62 || !first.Stale || first.Message == "" {
+		t.Fatalf("first launch lost bundled directory: %+v %v", first, err)
+	}
+	<-called
+	close(allow)
+	<-done
+	again, err := c.Get(context.Background(), false)
+	if err != nil || len(again.Entries) != 62 || !again.Stale || !again.UpdatedAt.Equal(first.UpdatedAt) {
+		t.Fatal("failed refresh replaced usable directory", err)
+	}
+	if custom := New("https://example.com/plugins", filepath.Join(t.TempDir(), "catalog.json")); len(custom.saved.Entries) != 0 {
+		t.Fatal("bundled directory was used for an unrelated URL")
+	}
+}
 
 // Discovery follows actual install links rather than CSS classes and refuses empty updates.
 func TestDirectoryAndStaleCache(t *testing.T) {

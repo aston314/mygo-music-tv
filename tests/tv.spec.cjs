@@ -8,6 +8,28 @@ test('page script parses on the Android 6 JavaScript baseline', () => {
   for (const file of ['ui/app.js','ui/i18n.js','ui/locales/zh-CN.js','ui/locales/zh-TW.js']) acorn.parse(fs.readFileSync(file, 'utf8'), { ecmaVersion: 5 });
 });
 
+test('Android WebView canvas uses the visible viewport despite overflowing layout width', async ({ browser }) => {
+  const context = await browser.newContext({viewport:{width:960,height:540},deviceScaleFactor:2,isMobile:true});
+  try {
+    const page = await context.newPage();
+    await boot(page);
+    const stage = await page.locator('#stage').boundingBox();
+    expect(Math.round(stage.width)).toBe(960);
+    expect(Math.round(stage.height)).toBe(540);
+    await page.locator('[data-focus="nav-settings"]').focus();
+    await page.keyboard.press('ArrowDown');
+    await expect(page.locator('#open-player')).toBeFocused();
+    const cover = await page.locator('#open-player').boundingBox();
+    expect(cover.y + cover.height).toBeLessThanOrEqual(540);
+    await page.locator('[data-focus="nav-market"]').click();
+    await page.locator('[data-catalog="0"]').click();
+    const modal = await page.locator('#modal-layer .modal').boundingBox();
+    expect(modal.x).toBeGreaterThanOrEqual(0);
+    expect(modal.x + modal.width).toBeLessThanOrEqual(960);
+    expect(modal.y + modal.height).toBeLessThanOrEqual(540);
+  } finally { await context.close(); }
+});
+
 test('fixed canvas scales without rearranging, and remote focus remains visible', async ({ page }) => {
   await page.route('**/api/catalog', route => route.fulfill({ json:{ entries:[0,1,2].map(i => ({repository:'fixture/source-' + i,name:'Source ' + i})) } }));
   await boot(page);

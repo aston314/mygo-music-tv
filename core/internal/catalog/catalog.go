@@ -3,6 +3,7 @@ package catalog
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"io"
@@ -30,11 +31,16 @@ type Snapshot struct {
 	Message   string    `json:"message,omitempty"`
 }
 type Catalog struct {
-	mu        sync.Mutex
-	URL, Path string
-	Client    *http.Client
-	saved     Snapshot
+	mu          sync.Mutex
+	URL, Path   string
+	Client      *http.Client
+	saved       Snapshot
+	seeded      bool
+	lastAttempt time.Time
 }
+
+//go:embed bundled.json
+var bundled []byte
 
 func New(address, path string) *Catalog {
 	c := &Catalog{URL: address, Path: path, Client: &http.Client{Timeout: 25 * time.Second}}
@@ -42,6 +48,18 @@ func New(address, path string) *Catalog {
 		_ = json.Unmarshal(b, &c.saved)
 		for i := range c.saved.Entries {
 			c.saved.Entries[i].Description = cleanCachedDescription(c.saved.Entries[i].Description)
+		}
+	}
+	if len(c.saved.Entries) == 0 {
+		var seed struct {
+			URL      string   `json:"url"`
+			Snapshot Snapshot `json:"snapshot"`
+		}
+		if json.Unmarshal(bundled, &seed) == nil && seed.URL == address {
+			c.saved = seed.Snapshot
+			c.saved.Stale = true
+			c.saved.Message = "正在使用内置目录，可联网刷新获取最新插件"
+			c.seeded = true
 		}
 	}
 	return c
@@ -157,9 +175,20 @@ func Parse(r io.Reader) ([]Entry, error) {
 func (c *Catalog) Get(ctx context.Context, refresh bool) (Snapshot, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if !refresh && len(c.saved.Entries) > 0 && time.Since(c.saved.UpdatedAt) < 30*time.Minute {
+	if c.seeded && !refresh {
+		c.seeded = false
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
+			defer cancel()
+			_, _ = c.Get(ctx, true)
+		}()
 		return c.saved, nil
 	}
+	if !refresh && len(c.saved.Entries) > 0 && (time.Since(c.saved.UpdatedAt) < 30*time.Minute || time.Since(c.lastAttempt) < 30*time.Minute) {
+		return c.saved, nil
+	}
+	c.seeded = false
+	c.lastAttempt = time.Now()
 	req, err := http.NewRequestWithContext(ctx, "GET", c.URL, nil)
 	var entries []Entry
 	if err == nil {
@@ -177,10 +206,9 @@ func (c *Catalog) Get(ctx context.Context, refresh bool) (Snapshot, error) {
 	}
 	if err != nil {
 		if len(c.saved.Entries) > 0 {
-			s := c.saved
-			s.Stale = true
-			s.Message = "刷新失败，显示最近成功获取的目录"
-			return s, nil
+			c.saved.Stale = true
+			c.saved.Message = "刷新失败，显示最近成功获取的目录"
+			return c.saved, nil
 		}
 		return Snapshot{}, err
 	}
