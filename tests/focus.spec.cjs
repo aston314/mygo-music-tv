@@ -108,6 +108,17 @@ test('fullscreen lyrics are the last footer icon and work directly from browsing
  await page.keyboard.press('Escape');await expect(full).toBeFocused();await expect(page.locator('#page-title')).not.toHaveText('正在播放');
 });
 
+test('a delayed sidebar preference save cannot pull focus back from the footer',async({page})=>{
+ await song(page);await page.keyboard.press('Escape');await page.locator('[data-focus="nav-settings"]').click();
+ let release,started=false;const gate=new Promise(resolve=>release=resolve);
+ await page.route('**/api/preferences',async route=>{if(route.request().method()!=='POST')return route.continue();started=true;await gate;const response=await route.fetch();await route.fulfill({response});});
+ await page.locator('[data-pref="icons"]').click();await expect.poll(()=>started).toBe(true);
+ await page.keyboard.press('ArrowLeft');await expect(page.locator('[data-pref="expanded"]')).toBeFocused();await page.keyboard.press('ArrowLeft');
+ await expect(page.locator('[data-focus="nav-settings"]')).toBeFocused();await page.keyboard.press('ArrowDown');await expect(page.locator('#open-player')).toBeFocused();
+ release();await expect(page.locator('#app')).toHaveClass('icons');await expect(page.locator('#open-player')).toBeFocused();
+ await page.keyboard.press('ArrowUp');await expect(page.locator('[data-focus="nav-settings"]')).toBeFocused();
+});
+
 for(const [width,height] of [[960,540],[1280,720],[1920,1080]])test('sidebar, rows and footer form reversible focus paths at '+width+'x'+height,async({page},testInfo)=>{
  await page.setViewportSize({width,height});await song(page);await page.keyboard.press('Escape');
  for(const mode of ['expanded','icons']){

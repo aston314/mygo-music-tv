@@ -331,7 +331,7 @@
     if((v=n.getAttribute('data-item'))!==null){openItem(+v,n.getAttribute('data-kind'));return;}
     if((v=n.getAttribute('data-browse'))!==null){rememberPage();state.detail=null;navigate('browse:'+v);return;}
     if((v=n.getAttribute('data-search-kind'))!==null){state.searchKind=v;Array.prototype.forEach.call(document.querySelectorAll('[data-search-kind]'),function(b){b.setAttribute('aria-pressed',String(b===n));});if($('search-input').value)search();return;}
-    if((v=n.getAttribute('data-pref'))!==null){post('/api/preferences',{sidebar:v},function(err){if(err){toast(err);return;}state.pref=v;appClass();renderSettings();focusId('pref-'+v);});return;}
+    if((v=n.getAttribute('data-pref'))!==null){post('/api/preferences',{sidebar:v},function(err){if(err){toast(err);return;}state.pref=v;appClass();Array.prototype.forEach.call($('content').querySelectorAll('[data-pref]'),function(choice){choice.setAttribute('aria-pressed',String(choice.getAttribute('data-pref')===v));});});return;}
     if((v=n.getAttribute('data-setting'))!==null){var setting=state.source.manifest.settings[+v];post('/api/sources/'+state.source.instanceId+'/settings',{key:setting.key,value:$('setting-'+v).value},function(err){toast(err||'已保存');});return;}
     if((v=n.getAttribute('data-set-mode'))!==null){var modeGen=state.modalGen;playerCommand('/api/player/mode',{mode:v},function(err){if(!err){if(modeGen===state.modalGen)closeModal();toast(modeLabels[v]);if(state.page==='settings')renderSettings();}});return;}
     if((v=n.getAttribute('data-queue-jump'))!==null){queueChange('jump',null,v);return;}
