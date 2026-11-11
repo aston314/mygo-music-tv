@@ -30,32 +30,142 @@
 
 /* Appearance choices share the same fixed TV focus graph in both themes. */
 .appearance-choices{display:flex}.appearance-choice.secondary{display:flex;align-items:center;width:calc(50% - 6px);padding:16px;text-align:left;border:1px solid #547363}.appearance-choice.secondary:last-child{margin-right:0}.theme-swatch{display:flex;align-items:center;justify-content:center;flex-shrink:0;width:54px;height:54px;border-radius:12px;margin-right:15px;border:1px solid #709582}.theme-swatch.dark{background:#14271f;color:#c6f5df}.theme-swatch.light{background:#f8f7f3;color:#626d5c}.theme-swatch .icon{width:29px;height:29px}.appearance-choice strong{display:block;font-size:22px;font-weight:500}.appearance-choice small{display:block;font-size:17px;line-height:1.5;color:#b1c8b9;margin-top:5px}.choice-check{margin-left:auto;padding-left:8px;visibility:hidden}.choice-check .icon{width:25px;height:25px}.appearance-choice[aria-pressed=true] .choice-check{visibility:visible}
-/* Explicit fallbacks keep the light palette compatible with Android 6 WebView. */
-html[data-theme=light],html[data-theme=light] body{background:#f5f5f7;color:#242426}
-html[data-theme=light] #stage{background:linear-gradient(140deg,#fcfcfd,#f5f5f7);color:#242426}
-html[data-theme=light] #startup{background:#f8f8fa;color:#242426}html[data-theme=light] .startup-logo .icon{color:#e64b60}html[data-theme=light] .ring{border-color:#e6e6eb;border-top-color:#e64b60}html[data-theme=light] #startup small{color:#77777d}html[data-theme=light] #startup-retry{background:#df4056;color:#fff}
-html[data-theme=light] #sidebar{background:rgba(238,238,243,.85);border-color:#e4e4e9}html[data-theme=light] .brand-mark{color:#e64b60}html[data-theme=light] .brand-name{color:#28282b}html[data-theme=light] .brand-name span{color:#85858b}
-html[data-theme=light] button{color:inherit}html[data-theme=light] button:focus,html[data-theme=light] input:focus,html[data-theme=light] textarea:focus,html[data-theme=light] [data-focus]:focus{outline:3px solid #e35c70;outline-offset:3px;box-shadow:0 5px 22px rgba(45,45,60,.12);background-color:#fff}
-html[data-theme=light] .source-switch{background:#e7e7ec;color:#57575d;border-color:transparent}html[data-theme=light] .source-dot{background:#e45d71}
-html[data-theme=light] nav button{color:#65656d}html[data-theme=light] nav button.active{background:#fff;color:#29292e;box-shadow:0 3px 12px rgba(50,50,66,.06)}html[data-theme=light] nav button.active .nav-icon{color:#df4056}
-html[data-theme=light] #eyebrow,html[data-theme=light] .muted,html[data-theme=light] .hint{color:#76767d}html[data-theme=light] #eyebrow{letter-spacing:.6px}html[data-theme=light] #header-actions button,html[data-theme=light] #account-button{background:#ededf1;border-color:transparent;color:#66666e}
-html[data-theme=light] .primary,html[data-theme=light] .transport .play-button{background:#df4056;color:#fff;box-shadow:0 4px 12px rgba(220,55,85,.14)}html[data-theme=light] .primary:focus,html[data-theme=light] .transport .play-button:focus{background:#cf354b;color:#fff}
-html[data-theme=light] .secondary,html[data-theme=light] .tool-button{background:#eaeaf0;color:#53535c;border-color:transparent}html[data-theme=light] .secondary[aria-pressed=true]{background:#fbe5e9;color:#b33349;border-color:transparent}
-html[data-theme=light] .hero{padding:24px 0 30px;background:transparent;border:0;border-bottom:1px solid #e4e4e9;border-radius:0;box-shadow:none}html[data-theme=light] .hero h2{color:#29292d;font-size:34px;letter-spacing:-.5px}html[data-theme=light] .hero p,html[data-theme=light] .hero-kicker,html[data-theme=light] .section-head span{color:#77777f}html[data-theme=light] .section-head h2{font-size:25px;font-weight:600}
-html[data-theme=light] .plugin-card{background:#fff;border-color:transparent;box-shadow:0 4px 16px rgba(40,40,62,.035);padding:22px;border-radius:17px}html[data-theme=light] .plugin-card .card-top{margin-bottom:20px}html[data-theme=light] .monogram{background:#f4e6ec;color:#b76d86;border-radius:11px}html[data-theme=light] .plugin-card:nth-child(3n+2) .monogram{background:#e9e7f6;color:#8b80ba}html[data-theme=light] .plugin-card:nth-child(3n) .monogram{background:#e7edf6;color:#7c95b9}html[data-theme=light] .card-owner,html[data-theme=light] .card-description,html[data-theme=light] .card-bottom{color:#71717b}html[data-theme=light] .card-bottom{padding-top:12px;border-top:1px solid #f0f0f3}
-html[data-theme=light] .install-badge{background:#f1f1f5;border-color:transparent;color:#70707a;border-radius:16px;font-size:16px}html[data-theme=light] .install-badge.installed{background:#fbe9ed;border-color:transparent;color:#ba4e64}html[data-theme=light] .plugin-card.is-installed{background:#fff;border-color:transparent}html[data-theme=light] .plugin-card.is-installed:focus{background:#fff}
-html[data-theme=light] .album-card{padding:8px;background:transparent;border-color:transparent;box-shadow:none;border-radius:14px}html[data-theme=light] .album-art{height:210px;background:linear-gradient(135deg,#e8e8ee,#dddde6);border-radius:12px;box-shadow:0 7px 17px rgba(45,45,65,.1)}html[data-theme=light] .album-art .icon{color:#a1a1af}html[data-theme=light] .album-card strong{margin-top:16px}html[data-theme=light] .album-card small{color:#71717b}html[data-theme=light] .track-art,html[data-theme=light] .now-cover{background:#e8e8f0;color:#9595a5}
-html[data-theme=light] .track-wrap{border-color:#e8e8ee}html[data-theme=light] .track-wrap.current{background:#fff}html[data-theme=light] .track-no,html[data-theme=light] .track-meta small,html[data-theme=light] .track-time{color:#71717c}
-html[data-theme=light] input,html[data-theme=light] textarea{background:#fff;border-color:#d7d7e0;color:#292930}html[data-theme=light] input::placeholder,html[data-theme=light] textarea::placeholder{color:#8a8a95;opacity:1}
-html[data-theme=light] .state-symbol,html[data-theme=light] .state p,html[data-theme=light] .lyrics-state{color:#7b7b85}html[data-theme=light] .settings-card{background:#fff;border-color:transparent;box-shadow:0 3px 14px rgba(45,45,66,.025);border-radius:17px}html[data-theme=light] .empty-banner,html[data-theme=light] .account-stale{background:#fff5e7;border-color:#edd7b2;color:#987843}
-html[data-theme=light] .appearance-choice.secondary{background:#f4f4f7;border-color:transparent}html[data-theme=light] .appearance-choice.secondary[aria-pressed=true]{background:#fbe9ed;border-color:transparent}html[data-theme=light] .appearance-choice small{color:#777780}html[data-theme=light] .theme-swatch.light{background:#fff;border-color:#e0e0e6;color:#e06478}html[data-theme=light] .choice-check{color:#d94b62}
-html[data-theme=light] #player-bar{background:rgba(252,252,254,.98);border-color:#e7e7ed;box-shadow:0 -4px 20px rgba(45,45,65,.025)}html[data-theme=light] .now-meta .credit-link,html[data-theme=light] #now-album{color:#797981}html[data-theme=light] .timeline,html[data-theme=light] #playback-status,html[data-theme=light] #mode-button,html[data-theme=light] #queue-button,html[data-theme=light] #lyrics-button{color:#71717b}
-html[data-theme=light] .progress-track{background:#dcdce4}html[data-theme=light] .progress-track i,html[data-theme=light] .progress-thumb{background:#e56a7d}html[data-theme=light] #seek:focus{background:transparent;outline:none;box-shadow:none}html[data-theme=light] #seek:focus .progress-thumb{box-shadow:0 0 0 4px #f8f8fb,0 0 0 7px #e35c70}html[data-theme=light] #seek:focus .progress-track{background:#c6c6d3}
-html[data-theme=light] #modal-layer{background:rgba(42,42,54,.28)}html[data-theme=light] .modal{background:#fcfcfe;border-color:transparent;border-radius:23px;box-shadow:0 22px 70px rgba(40,40,60,.16)}html[data-theme=light] .modal p,html[data-theme=light] .badge-line,html[data-theme=light] .panel-subtitle,html[data-theme=light] #login-status,html[data-theme=light] .panel-status{color:#70707b}
-html[data-theme=light] .source-option,html[data-theme=light] .menu-option{background:#f0f0f5}html[data-theme=light] .comment-card{background:#f3f3f7;border-color:transparent}html[data-theme=light] .comment-card:focus{background:#fff}html[data-theme=light] .comment-head{color:#80808a}html[data-theme=light] .comment-text{color:#41414a}html[data-theme=light] .comment-actions button{background:#eaeaf0;color:#73737e}
-html[data-theme=light] .seek-value{color:#565665}html[data-theme=light] .range-input{accent-color:#df5268}
-html[data-theme=light] #app.player-view h1{color:#73737e}html[data-theme=light] .large-cover{background:linear-gradient(135deg,#e7e7ef,#dadae6);border-radius:12px;box-shadow:0 14px 28px rgba(45,45,66,.18)}html[data-theme=light] .large-cover .icon{color:#a2a2b2}html[data-theme=light] .player-heading p,html[data-theme=light] .player-album{color:#70707b}html[data-theme=light] .player-tools button{background:#ededf3;color:#74747f}html[data-theme=light] .lyric-toolbar button{background:#ececf2;border-color:transparent;color:#70707b}html[data-theme=light] .lyric-line{color:#8b8b96}html[data-theme=light] .lyric-line.current,html[data-theme=light] .lyric-word.sung{color:#282830}html[data-theme=light] .lyric-word{color:#aaaab5}html[data-theme=light] .lyric-line .translation{color:#6f6f7b}html[data-theme=light] .untimed .lyric-line{color:#565663}html[data-theme=light] #app.player-view #player-bar{background:transparent;box-shadow:none}
-html[data-theme=light] #toast{background:#35353f;color:#fff;box-shadow:0 8px 25px rgba(40,40,60,.15)}html[data-theme=light] .danger{color:#c64e63!important}
+/* ==========================================================================
+   MyGo 淡色主题 v2 —— 替换 app.css 中从 "/* Explicit fallbacks..." 注释起到文件末尾的全部内容
+   （.appearance-choices 那段深浅共用的基础样式保留不动）
+   不使用 CSS 变量 / gap / inset，兼容 Android 6 WebView。
+   色板：强调红 #e5324b（按钮/进度/焦点）  深红 #c7283e（按下/当前项文字）  浅红底 #fde9ed（当前项底）
+         墨黑 #1d1d1f（主文字）  次文字 #55555e  三级文字 #6e6e78  分割线 #e6e6ec  凹槽底 #ececf1
+   语法约定：「当前/选中」= 浅红底 + 红字；「焦点」= 白底 + 4px 红环 + 外圈光晕 + 投影。两者一眼可分。
+   ========================================================================== */
+.music-feature{display:none}
+html[data-theme=light],html[data-theme=light] body{background:#f6f6f8;color:#1d1d1f}
+html[data-theme=light] #stage{background:radial-gradient(ellipse at 90% -8%,#ffe4e9 0,rgba(255,228,233,0) 55%),linear-gradient(160deg,#fefefe,#f4f4f7);color:#1d1d1f}
+/* 启动页 */
+html[data-theme=light] #startup{background:#f8f8fa;color:#1d1d1f}
+html[data-theme=light] .startup-logo .icon{color:#e5324b}
+html[data-theme=light] .ring{border-color:#e9e9ee;border-top-color:#e5324b}
+html[data-theme=light] #startup small{color:#6e6e78}
+html[data-theme=light] #startup-retry{background:#e5324b;color:#fff}
+/* 侧边栏 */
+html[data-theme=light] #sidebar{background:rgba(244,244,248,.92);border-right:1px solid #e6e6ec}
+html[data-theme=light] .brand-mark{color:#e5324b}
+html[data-theme=light] .brand-name{color:#1d1d1f}
+html[data-theme=light] .brand-name span{color:#6e6e78}
+html[data-theme=light] .source-switch{background:#e9e9ef;color:#3d3d45;border-color:transparent}
+html[data-theme=light] .source-dot{background:#e5324b}
+html[data-theme=light] nav button{color:#55555e}
+html[data-theme=light] nav button.active{background:#fde9ed;color:#c7283e;font-weight:600}
+html[data-theme=light] nav button.active .nav-icon{color:#e5324b}
+/* 焦点（遥控器核心）*/
+html[data-theme=light] button:focus,html[data-theme=light] input:focus,html[data-theme=light] textarea:focus,html[data-theme=light] [data-focus]:focus{outline:4px solid #e5324b;outline-offset:3px;background-color:#fff;box-shadow:0 10px 30px rgba(30,30,50,.16),0 0 0 8px rgba(229,50,75,.14)}
+html[data-theme=light] [tabindex="0"]:focus{outline:4px solid #e5324b;outline-offset:3px;box-shadow:0 0 0 8px rgba(229,50,75,.14)}
+html[data-theme=light] button[aria-pressed=true]{color:#c7283e}
+/* 页头 */
+html[data-theme=light] #eyebrow{color:#6e6e78;letter-spacing:.6px}
+html[data-theme=light] .muted,html[data-theme=light] .hint{color:#6e6e78}
+html[data-theme=light] #header-actions button,html[data-theme=light] #account-button{background:#ececf1;border-color:transparent;color:#55555e;border-radius:26px}
+html[data-theme=light] .account-stale{color:#8a6a30}
+/* 按钮 */
+html[data-theme=light] .primary,html[data-theme=light] .secondary,html[data-theme=light] .tool-button{border-radius:28px}
+html[data-theme=light] .primary,html[data-theme=light] .transport .play-button{background:#e5324b;color:#fff;box-shadow:0 6px 16px rgba(229,50,75,.28)}
+html[data-theme=light] .primary:focus,html[data-theme=light] .transport .play-button:focus{background:#c7283e;color:#fff;box-shadow:0 8px 22px rgba(229,50,75,.35),0 0 0 8px rgba(229,50,75,.14)}
+html[data-theme=light] .secondary,html[data-theme=light] .tool-button{background:#ececf1;color:#3d3d45;border-color:transparent}
+html[data-theme=light] .secondary[aria-pressed=true]{background:#fde9ed;color:#c7283e;border-color:transparent}
+/* 首页：推荐大卡（一处重色，其余克制）*/
+html[data-theme=light] .music-feature{display:flex;align-items:center;min-height:270px;margin:2px 0 28px;padding:30px 34px;border-radius:24px;background:linear-gradient(110deg,#b81d3b 0,#d92a45 48%,#f0566b 100%);color:#fff;box-shadow:0 18px 44px rgba(217,42,69,.28)}
+html[data-theme=light] .feature-copy{flex:1;min-width:0;padding-right:28px}
+html[data-theme=light] .feature-kicker{font-size:17px;font-weight:600;letter-spacing:2px;color:rgba(255,255,255,.84)}
+html[data-theme=light] .feature-copy h2{font-size:38px;line-height:1.22;letter-spacing:-.8px;margin:10px 0 12px;font-weight:700;color:#fff;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+html[data-theme=light] .feature-copy p{font-size:21px;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 0 24px}
+html[data-theme=light] .feature-copy .primary{padding:10px 28px;min-height:52px;border-radius:26px;font-size:20px;background:#fff;color:#b81d3b;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+html[data-theme=light] .feature-copy .primary:focus{background:#1d1d1f;color:#fff;outline-color:#fff;box-shadow:0 0 0 8px rgba(255,255,255,.3)}
+html[data-theme=light] .feature-art{width:210px;height:210px;flex-shrink:0;object-fit:cover;border-radius:12px;box-shadow:0 18px 34px rgba(60,0,15,.4)}
+html[data-theme=light] .hero{padding:26px 0 30px;background:transparent;border:0;border-bottom:1px solid #e6e6ec;border-radius:0;box-shadow:none}
+html[data-theme=light] .hero-kicker{color:#e5324b;font-weight:600;letter-spacing:1px}
+html[data-theme=light] .hero h2{color:#1d1d1f;font-size:36px;font-weight:700;letter-spacing:-.8px}
+html[data-theme=light] .hero p,html[data-theme=light] .section-head span{color:#6e6e78}
+html[data-theme=light] .section-head h2{font-size:26px;font-weight:700;color:#1d1d1f}
+/* 卡片 */
+html[data-theme=light] .plugin-card{background:#fff;border-color:transparent;border-radius:18px;padding:22px;box-shadow:0 2px 6px rgba(30,30,50,.04),0 8px 24px rgba(30,30,50,.05)}
+html[data-theme=light] .plugin-card .card-top{margin-bottom:20px}
+html[data-theme=light] .plugin-card:focus,html[data-theme=light] .album-card:focus{transform:scale(1.025)}
+html[data-theme=light] .monogram{background:#fbe3e9;color:#c7283e;border-radius:11px}
+html[data-theme=light] .plugin-card:nth-child(3n+2) .monogram{background:#e9e7f6;color:#6f64a8}
+html[data-theme=light] .plugin-card:nth-child(3n) .monogram{background:#e3ebf6;color:#5b7aa8}
+html[data-theme=light] .card-owner,html[data-theme=light] .card-description,html[data-theme=light] .card-bottom{color:#6e6e78}
+html[data-theme=light] .card-bottom{padding-top:12px;border-top:1px solid #f0f0f3}
+html[data-theme=light] .install-badge{background:#f1f1f5;border-color:transparent;color:#6e6e78;border-radius:16px;font-size:16px}
+html[data-theme=light] .install-badge.installed{background:#fde9ed;border-color:transparent;color:#c7283e}
+html[data-theme=light] .plugin-card.is-installed,html[data-theme=light] .plugin-card.is-installed:focus{background:#fff;border-color:transparent}
+html[data-theme=light] .album-card{padding:8px;background:transparent;border-color:transparent;box-shadow:none;border-radius:16px}
+html[data-theme=light] .album-art{height:210px;background:linear-gradient(135deg,#e9e9f0,#dcdce6);border-radius:12px;box-shadow:0 10px 24px rgba(30,30,50,.14)}
+html[data-theme=light] .album-art .icon{color:#a1a1af}
+html[data-theme=light] .album-card strong{margin-top:16px}
+html[data-theme=light] .album-card small{color:#6e6e78}
+/* 歌曲列表：当前=浅红底+红字 */
+html[data-theme=light] .track-wrap{border-color:#ebebf0}
+html[data-theme=light] .track-wrap.current{background:#fdeef1}
+html[data-theme=light] .track-wrap.current .track-meta strong,html[data-theme=light] .track-wrap.current .track-no{color:#c7283e}
+html[data-theme=light] .track-art,html[data-theme=light] .now-cover{background:#e9e9f0;color:#9595a5}
+html[data-theme=light] .now-cover{border-radius:10px}
+html[data-theme=light] .track-no,html[data-theme=light] .track-meta small,html[data-theme=light] .track-time{color:#6e6e78}
+/* 输入 / 状态 / 设置 */
+html[data-theme=light] input,html[data-theme=light] textarea{background:#fff;border-color:#d3d3dc;color:#1d1d1f}
+html[data-theme=light] input::placeholder,html[data-theme=light] textarea::placeholder{color:#82828d;opacity:1}
+html[data-theme=light] .state h2{color:#1d1d1f}
+html[data-theme=light] .state-symbol{color:#e5324b}
+html[data-theme=light] .state p,html[data-theme=light] .lyrics-state{color:#6e6e78}
+html[data-theme=light] .settings-card{background:#fff;border-color:transparent;border-radius:18px;box-shadow:0 2px 6px rgba(30,30,50,.04),0 8px 24px rgba(30,30,50,.05)}
+html[data-theme=light] .empty-banner{background:#fff5e7;border-color:#edd7b2;color:#8a6a30}
+html[data-theme=light] .appearance-choice.secondary{background:#f0f0f4;border-color:transparent;border-radius:16px}
+html[data-theme=light] .appearance-choice.secondary[aria-pressed=true]{background:#fde9ed}
+html[data-theme=light] .appearance-choice small{color:#6e6e78}
+html[data-theme=light] .theme-swatch.light{background:#fff;border-color:#e0e0e6;color:#e5324b}
+html[data-theme=light] .choice-check{color:#e5324b}
+/* 底部播放条 */
+html[data-theme=light] #player-bar{background:rgba(255,255,255,.97);border-color:#e6e6ec;box-shadow:0 -6px 24px rgba(30,30,50,.04)}
+html[data-theme=light] .now-meta span,html[data-theme=light] .now-meta .credit-link,html[data-theme=light] #now-album{color:#6e6e78}
+html[data-theme=light] .timeline,html[data-theme=light] #playback-status,html[data-theme=light] #mode-button,html[data-theme=light] #queue-button,html[data-theme=light] #lyrics-button{color:#6e6e78}
+html[data-theme=light] .progress-track{background:#dcdce4}
+html[data-theme=light] .progress-track i,html[data-theme=light] .progress-thumb{background:#e5324b}
+html[data-theme=light] .progress-thumb{box-shadow:0 1px 4px rgba(30,30,50,.3)}
+html[data-theme=light] #seek:focus{background:transparent;outline:none;box-shadow:none}
+html[data-theme=light] #seek:focus .progress-thumb{box-shadow:0 0 0 4px #fff,0 0 0 8px #e5324b}
+html[data-theme=light] #seek:focus .progress-track{background:#c6c6d3}
+html[data-theme=light] [data-like-key][aria-pressed=true]{color:#e5324b}
+/* 弹窗 */
+html[data-theme=light] #modal-layer{background:rgba(24,24,34,.4)}
+html[data-theme=light] .modal{background:#fff;border-color:transparent;border-radius:26px;box-shadow:0 30px 90px rgba(24,24,40,.28)}
+html[data-theme=light] .modal h2{color:#1d1d1f;font-weight:700}
+html[data-theme=light] .modal p,html[data-theme=light] .badge-line,html[data-theme=light] .panel-subtitle,html[data-theme=light] #login-status,html[data-theme=light] .panel-status{color:#6e6e78}
+html[data-theme=light] .modal .qr{border:1px solid #e6e6ec;border-radius:12px}
+html[data-theme=light] .source-option,html[data-theme=light] .menu-option{background:#f1f1f5;border-radius:14px}
+html[data-theme=light] .comment-card{background:#f3f3f7;border-color:transparent}
+html[data-theme=light] .comment-card:focus{background:#fff}
+html[data-theme=light] .comment-head{color:#6e6e78}
+html[data-theme=light] .comment-text{color:#2f2f37}
+html[data-theme=light] .comment-actions button{background:#ececf1;color:#55555e}
+html[data-theme=light] .seek-value{color:#1d1d1f}
+html[data-theme=light] .range-input{accent-color:#e5324b}
+/* 正在播放 / 歌词（黑字原文 + 红字翻译）*/
+html[data-theme=light] #app.player-view h1{color:#6e6e78}
+html[data-theme=light] .large-cover{background:linear-gradient(135deg,#e9e9f0,#dcdce6);border-radius:16px;box-shadow:0 30px 60px rgba(30,30,50,.28),0 6px 16px rgba(30,30,50,.12)}
+html[data-theme=light] .large-cover .icon{color:#a2a2b2}
+html[data-theme=light] .player-heading h2{color:#1d1d1f;font-weight:700}
+html[data-theme=light] .player-heading p{color:#55555e}
+html[data-theme=light] .player-album{color:#6e6e78}
+html[data-theme=light] .player-tools button{background:#ececf1;color:#55555e;border-radius:16px}
+html[data-theme=light] .lyric-toolbar button{background:#ececf1;border-color:transparent;color:#55555e;border-radius:26px}
+html[data-theme=light] .lyric-line{color:#8e8e9a;font-weight:600}
+html[data-theme=light] .lyric-line.current{color:#1d1d1f;font-weight:700;letter-spacing:-.6px}
+html[data-theme=light] .lyric-word{color:#8e8e9a}
+html[data-theme=light] .lyric-word.sung{color:#1d1d1f}
+html[data-theme=light] .lyric-line .translation{color:#6e6e78;font-weight:500}
+html[data-theme=light] .lyric-line.current .translation{color:#c7283e}
+html[data-theme=light] .untimed .lyric-line{color:#4a4a55}
+html[data-theme=light] #app.player-view #player-bar{background:transparent;box-shadow:none;border:0}
+/* 其他 */
+html[data-theme=light] #toast{background:#2a2a31;color:#fff;box-shadow:0 8px 25px rgba(30,30,50,.2)}
+html[data-theme=light] .danger{color:#b42318!important}
 html[data-theme=light] .scroll::-webkit-scrollbar-thumb,html[data-theme=light] nav::-webkit-scrollbar-thumb,html[data-theme=light] .modal::-webkit-scrollbar-thumb{background:#cfcfd9}
-.music-feature{display:none}html[data-theme=light] .music-feature{display:flex;align-items:center;min-height:264px;margin:2px 0 27px;padding:27px 31px;border-radius:20px;background:#eeeef2}html[data-theme=light] .feature-copy{flex:1;min-width:0;padding-right:28px}html[data-theme=light] .feature-kicker{font-size:17px;font-weight:600;letter-spacing:2px;color:#c45168}html[data-theme=light] .feature-copy h2{font-size:35px;line-height:1.25;letter-spacing:-.7px;margin:10px 0 12px;font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}html[data-theme=light] .feature-copy p{font-size:21px;color:#6c6c78;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0 0 22px}html[data-theme=light] .feature-copy .primary{padding:10px 24px;min-height:50px;border-radius:25px;font-size:20px}html[data-theme=light] .feature-art{width:204px;height:204px;flex-shrink:0;object-fit:cover;border-radius:10px;box-shadow:0 14px 25px rgba(35,35,55,.22)}
-html[data-theme=light] [data-like-key][aria-pressed=true]{color:#d94b62}
