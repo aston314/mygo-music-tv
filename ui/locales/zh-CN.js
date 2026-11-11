@@ -3,6 +3,7 @@
   'use strict';
   root.MyGoLocales = root.MyGoLocales || {};
   root.MyGoLocales['zh-CN'] = {
+  "播放进度，左右键快退或快进，上下键切换控件": "播放进度，左右键快退或快进，上下键切换控件",
   "为你精选": "为你精选",
   " · 当前": " · 当前",
   " · 当前设备": " · 当前设备",

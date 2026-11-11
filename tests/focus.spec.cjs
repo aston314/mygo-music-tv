@@ -168,8 +168,10 @@ for(const [width,height] of [[960,540],[1280,720],[1920,1080]])test('sidebar, ro
  await page.setViewportSize({width,height});await song(page);await page.keyboard.press('Escape');
  for(const mode of ['expanded','icons']){
   await page.locator('[data-focus="nav-settings"]').click();await page.locator('[data-pref="'+mode+'"]').click();
+  const layout=await page.evaluate(()=>{const r=s=>document.querySelector(s).getBoundingClientRect();return {side:r('#sidebar'),bar:r('#player-bar'),stage:r('#stage')};});
+  expect(layout.side.bottom).toBeCloseTo(layout.stage.bottom,0);expect(layout.bar.left).toBeCloseTo(layout.side.right,0);
   const settings=page.locator('[data-focus="nav-settings"]');await settings.focus();await page.keyboard.press('ArrowDown');await expect(page.locator('#open-player')).toBeFocused();
-  await visibleFocus(page,'#player-bar');await page.keyboard.press('ArrowUp');await expect(settings).toBeFocused();
+  await visibleFocus(page,'#player-bar');await page.keyboard.press('ArrowLeft');await expect(settings).toBeFocused();await page.keyboard.press('ArrowDown');await page.keyboard.press('ArrowUp');await expect(settings).toBeFocused();
   await page.locator('[data-focus="nav-home"]').click();const row=page.locator('[data-track="1"]');await row.focus();
   await page.keyboard.press('ArrowRight');await expect(page.locator('[data-track-more="1"]')).toBeFocused();
   await page.keyboard.press('ArrowLeft');await expect(row).toBeFocused();await page.keyboard.press('ArrowLeft');await expect(page.locator('[data-focus="nav-home"]')).toBeFocused();
@@ -179,7 +181,7 @@ for(const [width,height] of [[960,540],[1280,720],[1920,1080]])test('sidebar, ro
   for(const kind of ['album','show','station','browse']){await expect(page.locator('[data-kind="'+kind+'"]').first()).toBeFocused();await page.keyboard.press('ArrowDown');}
   await expect(page.locator('#open-player')).toBeFocused();
   const before=await(await page.request.get('/api/player')).json();
-  for(const id of ['now-artist','now-like','previous','toggle','next','seek','mode','queue','full-lyrics']){await page.keyboard.press('ArrowRight');await expect(page.locator('[data-focus="'+id+'"]')).toBeFocused();}
+  for(const id of ['now-artist','now-like','previous','toggle','next','seek','mode','queue','full-lyrics']){await page.keyboard.press(id==='mode'?'ArrowDown':'ArrowRight');await expect(page.locator('[data-focus="'+id+'"]')).toBeFocused();}
   await visibleFocus(page,'#player-bar');await page.screenshot({path:testInfo.outputPath('focus-'+mode+'.png')});
   await page.keyboard.press('ArrowLeft');await expect(page.locator('#queue-button')).toBeFocused();
   const after=await(await page.request.get('/api/player')).json();expect(after.seekRevision).toBe(before.seekRevision);expect(after.state).toBe('paused');

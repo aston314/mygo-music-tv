@@ -7,6 +7,10 @@ async function boot(page){
  await page.request.post('/api/player/queue',{data:{action:'clear'}});
  await page.request.post('/api/preferences',{data:{sidebar:'expanded',translation:'on'}});
 }
+async function seekTo(page,ms){
+ const duration=+(await page.locator('#seek').getAttribute('aria-valuemax')),r=await page.locator('#seek .progress-track').boundingBox();
+ await page.mouse.click(r.x+r.width*ms/duration,r.y+r.height/2);
+}
 async function song(page,beforePlayer){
  await boot(page);await page.locator('[data-track="0"]').click();
  await expect.poll(async()=>(await page.request.get('/api/player')).json().then(p=>p.state)).toBe('playing');
@@ -104,9 +108,9 @@ test('lyrics from an earlier song cannot replace current word timing, and seek r
  release();await expect(page.locator('#lyrics')).not.toContainText('STALE LYRIC');
  await expect.poll(async()=>(await page.request.get('/api/player')).json().then(p=>p.state)).toBe('playing');
  await page.locator('#toggle').click();await expect.poll(async()=>(await page.request.get('/api/player')).json().then(p=>p.state)).toBe('paused');
- await page.locator('#seek').click();await page.locator('#seek-range').fill('2000');await page.locator('[data-action="seek-apply"]').click();
+ await seekTo(page,2000);
  await expect(page.locator('.lyric-word.sung')).toHaveCount(2);
- await page.locator('#seek').click();await page.locator('#seek-range').fill('0');await page.locator('[data-action="seek-apply"]').click();
+ await seekTo(page,0);
  await expect(page.locator('.lyric-word.sung')).toHaveCount(0);
 });
 

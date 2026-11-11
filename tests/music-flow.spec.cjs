@@ -68,11 +68,17 @@ test('player credits connect artist songs, artist albums and album tracks while 
  const after=await(await page.request.get('/api/player')).json();expect(after.generation).toBe(before.generation);expect(after.media).toBe(before.media);expect(after.state).toBe('paused');
 });
 
-test('focused seek shows a circular progress thumb and retains its remote adjustment dialog',async({page})=>{
+test('focused seek shows a circular thumb and adjusts inline without a dialog',async({page})=>{
  await song(page);await page.locator('#seek').focus();
  const style=await page.locator('#seek').evaluate(n=>{const s=getComputedStyle(n),dot=n.querySelector('.progress-thumb'),d=getComputedStyle(dot),r=dot.getBoundingClientRect();return {outline:s.outlineStyle,shadow:s.boxShadow,background:s.backgroundColor,radius:d.borderRadius,width:r.width,height:r.height};});
  expect(style.outline).toBe('none');expect(style.shadow).toBe('none');expect(style.background).toBe('rgba(0, 0, 0, 0)');expect(style.width).toBe(style.height);expect(style.radius).toBe('50%');
- await page.keyboard.press('Enter');await expect(page.locator('#seek-range')).toBeVisible();await page.keyboard.press('Escape');await expect(page.locator('#seek')).toBeFocused();
+ await page.keyboard.press('Enter');await expect(page.locator('#modal-layer')).toBeHidden();
+ const before=await(await page.request.get('/api/player')).json();
+ await page.keyboard.press('ArrowRight');await expect.poll(async()=>(await(await page.request.get('/api/player')).json()).seekRevision).toBe(before.seekRevision+1);
+ await expect(page.locator('#seek')).toBeFocused();await expect(page.locator('#modal-layer')).toBeHidden();
+ await page.keyboard.press('ArrowLeft');await expect.poll(async()=>(await(await page.request.get('/api/player')).json()).seekRevision).toBe(before.seekRevision+2);
+ await page.keyboard.press('ArrowDown');await expect(page.locator('#queue-button')).toBeFocused();
+ await page.keyboard.press('ArrowUp');await expect(page.locator('#seek')).toBeFocused();
 });
 
 test('collaborations offer every credited artist and return to the same footer control',async({page})=>{
@@ -90,7 +96,9 @@ test('playing credits and their account keep the original source after browsing 
  await page.route('**/sources/fixture/call/account',route=>route.fulfill({json:{id:'first-user',name:'播放源账号'}}));
  await page.route('**/sources/second/call/account',route=>route.fulfill({json:{id:'second-user',name:'浏览源账号'}}));
  await page.route('**/sources/second/call/home',route=>route.fulfill({json:{sections:[]}}));
- await song(page);await page.keyboard.press('Escape');await page.locator('#source-switch').click();await page.locator('[data-source="second"]').click();await expect(page.locator('#account-name')).toHaveText('浏览源账号');
+ await song(page);await expect(page.locator('#account-button')).toBeHidden();
+ await page.locator('#lyrics-button').click();await expect(page.locator('#account-button')).toBeHidden();await page.keyboard.press('Escape');
+ await page.keyboard.press('Escape');await page.locator('#source-switch').click();await page.locator('[data-source="second"]').click();await expect(page.locator('#account-name')).toHaveText('浏览源账号');
  await page.locator('#now-artist').click();await expect(page.locator('#page-title')).toHaveText('The Examples');await expect(page.locator('#account-name')).toHaveText('播放源账号');
  await page.locator('[data-detail-section="albums"]').click();await page.locator('[data-kind="album"]').click();await expect(page.locator('#page-title')).toHaveText('First Album');await expect(page.locator('[data-track]')).toHaveCount(3);
  await page.keyboard.press('Escape');await page.keyboard.press('Escape');await expect(page.locator('#account-name')).toHaveText('浏览源账号');await expect(page.locator('#now-artist')).toBeFocused();
