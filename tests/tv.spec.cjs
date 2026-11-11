@@ -9,6 +9,7 @@ test('page script parses on the Android 6 JavaScript baseline', () => {
 });
 
 test('fixed canvas scales without rearranging, and remote focus remains visible', async ({ page }) => {
+  await page.route('**/api/catalog', route => route.fulfill({ json:{ entries:[0,1,2].map(i => ({repository:'fixture/source-' + i,name:'Source ' + i})) } }));
   await boot(page);
   for (const size of [[960, 540], [1280, 720], [1920, 1080]]) {
     await page.setViewportSize({ width:size[0], height:size[1] });
@@ -16,6 +17,8 @@ test('fixed canvas scales without rearranging, and remote focus remains visible'
     expect(Math.round((await page.locator('#stage').boundingBox()).height)).toBe(size[1]);
     await page.locator('[data-focus="nav-market"]').click();
     await expect(page.locator('[data-catalog="0"]')).toBeVisible();
+    const cards = await page.locator('[data-catalog]').evaluateAll(nodes => nodes.map(n => ({top:n.getBoundingClientRect().top,left:n.getBoundingClientRect().left})));
+    expect(cards).toHaveLength(3); expect(cards[0].top).toBeCloseTo(cards[2].top, 1); expect(cards[2].left).toBeGreaterThan(cards[1].left);
     await page.locator('[data-catalog="0"]').focus(); await page.keyboard.press('ArrowDown');
     expect(await page.evaluate(() => document.activeElement.hasAttribute('data-focus'))).toBe(true);
     const r = await page.evaluate(() => { const r = document.activeElement.getBoundingClientRect(); return { top:r.top,bottom:r.bottom }; });
