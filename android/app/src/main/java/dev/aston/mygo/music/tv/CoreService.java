@@ -25,15 +25,17 @@ public final class CoreService extends Service {
     private ExoPlayer player;
     private MediaSession session;
     private volatile boolean stopped;
-    private String base, error, media = "";
+    private String base, media = "";
+    private String notificationTrack;
+    private volatile int errorResource;
     private long generation = -1, seekRevision = -1, lastEventAt;
     private boolean applying;
     static CoreService get() { return current; }
     String pageURL() { return client == null ? null : base + "/?token=" + client.token; }
-    String error() { return error; }
+    String error() { return errorResource == 0 ? null : Appearance.text(this,errorResource); }
 
     @Override public void onCreate() {
-        super.onCreate(); current = this; startForeground(1, notification("正在启动音乐服务"));
+        super.onCreate(); current = this; startForeground(1, notification(Appearance.text(this,R.string.service_starting)));
         player = new ExoPlayer.Builder(this).build();
         player.setAudioAttributes(new AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).build(), true);
         player.setHandleAudioBecomingNoisy(true);
@@ -55,11 +57,15 @@ public final class CoreService extends Service {
     }
     private Notification notification(String text) {
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        if (Build.VERSION.SDK_INT >= 26) nm.createNotificationChannel(new NotificationChannel(CHANNEL, "音乐播放", NotificationManager.IMPORTANCE_LOW));
+        if (Build.VERSION.SDK_INT >= 26) nm.createNotificationChannel(new NotificationChannel(CHANNEL, Appearance.text(this,R.string.playback_channel), NotificationManager.IMPORTANCE_LOW));
         Intent open = new Intent(this, MainActivity.class);
         PendingIntent pi = PendingIntent.getActivity(this, 0, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this, CHANNEL) : new Notification.Builder(this);
         return b.setSmallIcon(android.R.drawable.ic_media_play).setContentTitle("MyGo Music TV").setContentText(text).setContentIntent(pi).setOngoing(true).build();
+    }
+    void refreshAppearance() {
+        if(stopped)return;
+        ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).notify(1,notification(notificationTrack==null?Appearance.text(this,R.string.playing_music):notificationTrack));
     }
     private void startCore() {
         File ready = new File(getFilesDir(), "core-ready.json");
@@ -81,13 +87,13 @@ public final class CoreService extends Service {
                 Thread.sleep(120);
             }
             if (!stopped) throw new IOException("Core readiness timed out");
-        } catch (Exception e) { if (!stopped) { error = "音乐服务启动失败，请重试"; announce(); if (core != null) core.destroy(); } }
+        } catch (Exception e) { if (!stopped) { errorResource = R.string.service_failed; announce(); if (core != null) core.destroy(); } }
     }
     private void announce() { sendBroadcast(new Intent(STATUS).setPackage(getPackageName())); }
     private void poll() {
         if (stopped || client == null) return;
         try { JSONObject state = client.request("GET", "/api/player", null); main.post(() -> apply(state)); }
-        catch (Exception e) { error = "音乐服务连接中断，请重启"; announce(); }
+        catch (Exception e) { errorResource = R.string.service_disconnected; announce(); }
     }
     private void apply(JSONObject s) {
         if (stopped) return;
@@ -101,7 +107,7 @@ public final class CoreService extends Service {
                 JSONArray queue = s.optJSONArray("queue"); JSONObject t = queue == null ? null : queue.optJSONObject(s.optInt("index"));
                 MediaMetadata meta = new MediaMetadata.Builder().setTitle(t == null ? "MyGo Music TV" : t.optString("name")).build();
                 player.setMediaItem(new MediaItem.Builder().setUri(base + path).setMediaId(String.valueOf(gen)).setMediaMetadata(meta).build()); player.prepare();
-                ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).notify(1, notification(t == null ? "正在播放音乐" : t.optString("name")));
+                notificationTrack=t==null?null:t.optString("name");refreshAppearance();
             }
             if (!media.isEmpty() && seek != seekRevision) { seekRevision = seek; player.seekTo(s.optLong("position")); }
             if (s.optString("state").equals("idle")) { player.stop(); media = ""; }

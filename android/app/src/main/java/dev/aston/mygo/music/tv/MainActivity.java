@@ -2,7 +2,6 @@ package dev.aston.mygo.music.tv;
 
 import android.app.*;
 import android.content.*;
-import android.graphics.Color;
 import android.os.*;
 import android.view.*;
 import android.view.inputmethod.InputMethodManager;
@@ -14,7 +13,7 @@ import java.net.URI;
 public final class MainActivity extends Activity {
     private WebView web;
     private FrameLayout root;
-    private TextView status;
+    private TextView status, version;
     private LinearLayout startup;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean loaded, destroyed, editing, exitVisible;
@@ -22,8 +21,8 @@ public final class MainActivity extends Activity {
     private final BroadcastReceiver receiver = new BroadcastReceiver() { @Override public void onReceive(Context c, Intent i) { connect(); } };
     @Override public void onCreate(Bundle state) {
         super.onCreate(state); immersive();
-        root = new FrameLayout(this); root.setBackgroundColor(Color.rgb(16,22,25)); setContentView(root);
-        web = new WebView(this); web.setBackgroundColor(Color.rgb(16,22,25));
+        root = new FrameLayout(this); root.setBackgroundColor(Appearance.background(this)); setContentView(root);
+        web = new WebView(this); web.setBackgroundColor(Appearance.background(this));
         WebSettings settings = web.getSettings(); settings.setJavaScriptEnabled(true); settings.setDomStorageEnabled(true); settings.setAllowFileAccess(false); settings.setAllowContentAccess(false); settings.setMediaPlaybackRequiresUserGesture(false); settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         if (BuildConfig.DEBUG) WebView.setWebContentsDebuggingEnabled(true);
         web.addJavascriptInterface(new Bridge(), "Android");
@@ -39,14 +38,15 @@ public final class MainActivity extends Activity {
     private void startCore() { Intent i = new Intent(this, CoreService.class); if (Build.VERSION.SDK_INT >= 26) startForegroundService(i); else startService(i); }
     private void showStartup() {
         if (startup != null) root.removeView(startup);
-        startup = new LinearLayout(this); startup.setOrientation(LinearLayout.VERTICAL); startup.setGravity(Gravity.CENTER); startup.setBackgroundColor(Color.rgb(16,22,25));
+        startup = new LinearLayout(this); startup.setOrientation(LinearLayout.VERTICAL); startup.setGravity(Gravity.CENTER); startup.setBackgroundColor(Appearance.background(this));
         FrameLayout logo = new FrameLayout(this); int size = dp(94);
         ProgressBar ring = new ProgressBar(this); logo.addView(ring, new FrameLayout.LayoutParams(-1,-1));
-        ImageView note = new ImageView(this); note.setImageResource(R.drawable.startup_music);
+        ImageView note = new ImageView(this); note.setImageResource(R.drawable.startup_music); note.setColorFilter(Appearance.foreground(this));
+        ring.setIndeterminateTintList(android.content.res.ColorStateList.valueOf(Appearance.foreground(this)));
         FrameLayout.LayoutParams noteParams = new FrameLayout.LayoutParams(dp(56),dp(56),Gravity.CENTER);
         logo.addView(note,noteParams); startup.addView(logo,new LinearLayout.LayoutParams(size,size));
-        status = new TextView(this); status.setText("正在启动 MyGo Music TV…"); status.setTextColor(Color.WHITE); status.setTextSize(18); status.setGravity(Gravity.CENTER); LinearLayout.LayoutParams statusParams = new LinearLayout.LayoutParams(-2,dp(46)); statusParams.topMargin=dp(16); startup.addView(status,statusParams);
-        TextView version = new TextView(this); version.setText("版本 " + BuildConfig.VERSION_NAME); version.setTextColor(Color.rgb(135,148,145)); version.setTextSize(13); startup.addView(version);
+        status = new TextView(this); status.setText(Appearance.text(this,R.string.app_starting)); status.setTextColor(Appearance.foreground(this)); status.setTextSize(18); status.setGravity(Gravity.CENTER); LinearLayout.LayoutParams statusParams = new LinearLayout.LayoutParams(-2,dp(46)); statusParams.topMargin=dp(16); startup.addView(status,statusParams);
+        version = new TextView(this); version.setText(String.format(Appearance.text(this,R.string.version_label),BuildConfig.VERSION_NAME)); version.setTextColor(Appearance.muted(this)); version.setTextSize(13); startup.addView(version);
         root.addView(startup,new FrameLayout.LayoutParams(-1,-1));
     }
     private int dp(int value) { return (int)(getResources().getDisplayMetrics().density * value); }
@@ -55,7 +55,7 @@ public final class MainActivity extends Activity {
         if (service != null && service.pageURL() != null) { loaded = true; web.loadUrl(service.pageURL()); return; }
         if (service != null && service.error() != null) {
             status.setText(service.error());
-            if (startup.getChildCount() == 3) { Button retry = new Button(this); retry.setText("重试"); retry.setOnClickListener(v -> { stopService(new Intent(this, CoreService.class)); showStartup(); startCore(); handler.postDelayed(this::connect, 500); }); startup.addView(retry); retry.requestFocus(); }
+            if (startup.getChildCount() == 3) { Button retry = new Button(this); retry.setText(Appearance.text(this,R.string.retry)); retry.setOnClickListener(v -> { stopService(new Intent(this, CoreService.class)); showStartup(); startCore(); handler.postDelayed(this::connect, 500); }); startup.addView(retry); retry.requestFocus(); }
         } else handler.postDelayed(this::connect, 250);
     }
     private boolean trusted(String url) { try { CoreService s = CoreService.get(); if (s == null || s.pageURL() == null) return false; URI a = new URI(url), b = new URI(s.pageURL()); return "http".equals(a.getScheme()) && a.getHost().equals(b.getHost()) && a.getPort() == b.getPort(); } catch (Exception e) { return false; } }
@@ -79,10 +79,21 @@ public final class MainActivity extends Activity {
     private void finishEditing() { editing = false; ((InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(web.getWindowToken(),0); }
     private void confirmExit() {
         if (destroyed || exitVisible) return; exitVisible=true; ++backSequence;
-        AlertDialog dialog = new AlertDialog.Builder(this).setTitle("退出 MyGo Music TV？").setMessage("退出后停止播放音乐").setNegativeButton("取消",(d,w)->{}).setPositiveButton("退出",(d,w)->{ finishEditing(); stopService(new Intent(this, CoreService.class)); finish(); }).create();
+        AlertDialog dialog = new AlertDialog.Builder(this,Appearance.light(this)?android.R.style.Theme_Material_Light_Dialog_Alert:android.R.style.Theme_Material_Dialog_Alert).setTitle(Appearance.text(this,R.string.exit_title)).setMessage(Appearance.text(this,R.string.exit_message)).setNegativeButton(Appearance.text(this,R.string.cancel),(d,w)->{}).setPositiveButton(Appearance.text(this,R.string.exit),(d,w)->{ finishEditing(); stopService(new Intent(this, CoreService.class)); finish(); }).create();
         dialog.setOnDismissListener(d->{exitVisible=false;immersive();}); dialog.setOnShowListener(d->dialog.getButton(AlertDialog.BUTTON_NEGATIVE).requestFocus()); dialog.show();
     }
     private final class Bridge {
+        @JavascriptInterface public String appearance() { return Appearance.json(MainActivity.this); }
+        @JavascriptInterface public void applyAppearance(String theme, String language) {
+            if (!Appearance.valid(theme,language)) return;
+            handler.post(()->{
+                if(destroyed) return;
+                Appearance.save(MainActivity.this,theme,language);
+                root.setBackgroundColor(Appearance.background(MainActivity.this));web.setBackgroundColor(Appearance.background(MainActivity.this));
+                if(startup!=null) { startup.setBackgroundColor(Appearance.background(MainActivity.this));status.setTextColor(Appearance.foreground(MainActivity.this));version.setText(String.format(Appearance.text(MainActivity.this,R.string.version_label),BuildConfig.VERSION_NAME)); }
+                CoreService service=CoreService.get();if(service!=null)service.refreshAppearance();
+            });
+        }
         @JavascriptInterface public boolean nativePlayer() { return true; }
         @JavascriptInterface public void uiReady() { handler.post(()->{if(!destroyed && startup!=null){root.removeView(startup);startup=null;web.requestFocus();}}); }
         @JavascriptInterface public void confirmExit() { handler.post(MainActivity.this::confirmExit); }

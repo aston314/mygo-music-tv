@@ -9,12 +9,14 @@ import (
 var manifest []byte
 
 type Config struct {
-	DisplayName                string `json:"displayName"`
-	ApplicationID              string `json:"applicationId"`
-	VersionName                string `json:"versionName"`
-	VersionCode                int    `json:"versionCode"`
-	PluginCatalogURL           string `json:"pluginCatalogUrl"`
-	PluginCompatibilityVersion string `json:"pluginCompatibilityVersion"`
+	SupportedLocales           []string `json:"supportedLocales"`
+	DefaultLocale              string   `json:"defaultLocale"`
+	DisplayName                string   `json:"displayName"`
+	ApplicationID              string   `json:"applicationId"`
+	VersionName                string   `json:"versionName"`
+	VersionCode                int      `json:"versionCode"`
+	PluginCatalogURL           string   `json:"pluginCatalogUrl"`
+	PluginCompatibilityVersion string   `json:"pluginCompatibilityVersion"`
 }
 
 func App() Config {

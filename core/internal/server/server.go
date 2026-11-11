@@ -67,15 +67,24 @@ func New(data, mode, token string) (*Server, error) {
 	cfg := product.App()
 	plugin.SetAppVersion(cfg.PluginCompatibilityVersion)
 	plugin.PublicRepositoriesOnly()
-	i18n.SetLanguage(i18n.Chinese)
+	settingsPath := filepath.Join(data, "preferences.json")
+	settings := defaultPreferences()
+	if b, e := os.ReadFile(settingsPath); e == nil {
+		var saved map[string]string
+		if json.Unmarshal(b, &saved) == nil {
+			for k, v := range saved {
+				if validPreference(k, v) {
+					settings[k] = v
+				}
+			}
+		}
+	}
+	i18n.SetLanguage(settings["language"])
 	m, e := sources.New(filepath.Join(data, "instances"))
 	if e != nil {
 		return nil, e
 	}
-	s := &Server{sources: m, catalog: catalog.New(cfg.PluginCatalogURL, filepath.Join(data, "catalog.json")), media: newMedia(), mode: mode, token: token, mux: http.NewServeMux(), settingsPath: filepath.Join(data, "preferences.json"), settings: map[string]string{}}
-	if b, e := os.ReadFile(s.settingsPath); e == nil {
-		_ = json.Unmarshal(b, &s.settings)
-	}
+	s := &Server{sources: m, catalog: catalog.New(cfg.PluginCatalogURL, filepath.Join(data, "catalog.json")), media: newMedia(), mode: mode, token: token, mux: http.NewServeMux(), settingsPath: settingsPath, settings: settings}
 	s.player = newPlayer(s, filepath.Join(data, "player-settings.json"))
 	if mode != "real" {
 		s.fixtureDir = filepath.Join(data, "fixture")
@@ -88,6 +97,22 @@ func New(data, mode, token string) (*Server, error) {
 	}
 	s.routes()
 	return s, nil
+}
+func defaultPreferences() map[string]string {
+	return map[string]string{"sidebar": "expanded", "translation": "on", "theme": "dark", "language": "zh-CN"}
+}
+func validPreference(key, value string) bool {
+	switch key {
+	case "sidebar":
+		return value == "expanded" || value == "icons"
+	case "translation":
+		return value == "on" || value == "off"
+	case "theme":
+		return value == "dark" || value == "light"
+	case "language":
+		return value == "zh-CN" || value == "zh-TW"
+	}
+	return false
 }
 func (s *Server) extractFixture() error {
 	return fs.WalkDir(examples.Files, "demo-plugin", func(path string, d fs.DirEntry, e error) error {
@@ -334,7 +359,7 @@ func (s *Server) routes() {
 			return
 		}
 		for k, v := range q {
-			if !(k == "sidebar" && (v == "expanded" || v == "icons") || k == "translation" && (v == "on" || v == "off")) {
+			if !validPreference(k, v) {
 				failure(w, 400, errors.New("无效偏好设置"))
 				return
 			}
@@ -358,6 +383,7 @@ func (s *Server) routes() {
 			return
 		}
 		s.settings = next
+		i18n.SetLanguage(next["language"])
 		respond(w, next)
 	})
 	s.mux.Handle("/media/", s.media)

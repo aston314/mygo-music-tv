@@ -18,5 +18,10 @@
   "playerAdapter": "media3",
   "privateRepository": "aston314/mygo-music-tv",
   "publicReleaseRepository": null,
-  "updateManifestUrl": null
+  "updateManifestUrl": null,
+  "supportedLocales": [
+    "zh-CN",
+    "zh-TW"
+  ],
+  "defaultLocale": "zh-CN"
 }

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_starting">正在启动 MyGo Music TV…</string>
+    <string name="version_label">版本 %1$s</string>
+    <string name="retry">重试</string>
+    <string name="exit_title">退出 MyGo Music TV？</string>
+    <string name="exit_message">退出后停止播放音乐</string>
+    <string name="cancel">取消</string>
+    <string name="exit">退出</string>
+    <string name="service_starting">正在启动音乐服务</string>
+    <string name="playback_channel">音乐播放</string>
+    <string name="service_failed">音乐服务启动失败，请重试</string>
+    <string name="service_disconnected">音乐服务连接中断，请重启</string>
+    <string name="playing_music">正在播放音乐</string>
+</resources>

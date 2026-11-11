@@ -12,29 +12,34 @@ import (
 
 const (
 	// System is the setting of following the system's language: see Resolve.
-	System  = "system"
-	English = "en"
-	Chinese = "zh-CN"
+	System             = "system"
+	English            = "en"
+	Chinese            = "zh-CN"
+	TraditionalChinese = "zh-TW"
 )
 
 // Languages are those the listener can choose, each named in itself.
 var Languages = []struct{ Code, Name string }{
 	{English, "English"},
 	{Chinese, "简体中文"},
+	{TraditionalChinese, "繁體中文"},
 }
 
 // Resolve is the language to speak for a setting: the one chosen, or for System,
 // the first of those the system prefers that the app has, or else English. All
-// of Chinese reads Chinese: Traditional readers can still read Simplified, which
-// they can't say of English.
+// supported Chinese variants select the corresponding resource catalog.
 func Resolve(setting string, preferred []string) string {
-	if setting == English || setting == Chinese {
+	if setting == English || setting == Chinese || setting == TraditionalChinese {
 		return setting
 	}
 	for _, tag := range preferred {
-		base, _, _ := strings.Cut(strings.ToLower(strings.ReplaceAll(tag, "_", "-")), "-")
+		normalized := strings.ToLower(strings.ReplaceAll(tag, "_", "-"))
+		base, _, _ := strings.Cut(normalized, "-")
 		switch base {
 		case "zh":
+			if strings.Contains(normalized, "hant") || normalized == "zh-tw" || normalized == "zh-hk" || normalized == "zh-mo" {
+				return TraditionalChinese
+			}
 			return Chinese
 		case "en":
 			return English
@@ -48,7 +53,7 @@ var language atomic.Pointer[string]
 // SetLanguage switches the language of what T returns from now on. A language
 // the app doesn't have is English.
 func SetLanguage(code string) {
-	if code != Chinese {
+	if code != Chinese && code != TraditionalChinese {
 		code = English
 	}
 	language.Store(&code)
@@ -64,8 +69,12 @@ func Language() string {
 
 // T returns the text in the listener's language.
 func T(text string) string {
-	if Language() == Chinese {
-		if zh, ok := zhCN[text]; ok {
+	if Language() == Chinese || Language() == TraditionalChinese {
+		catalog := zhCN
+		if Language() == TraditionalChinese {
+			catalog = zhTW
+		}
+		if zh, ok := catalog[text]; ok {
 			return zh
 		}
 	}
@@ -76,8 +85,12 @@ func T(text string) string {
 // word for keeping a name and another for adding an album to the library. The
 // catalog has it as "text|context", and English reads the text.
 func TC(text, context string) string {
-	if Language() == Chinese {
-		if zh, ok := zhCN[text+"|"+context]; ok {
+	if Language() == Chinese || Language() == TraditionalChinese {
+		catalog := zhCN
+		if Language() == TraditionalChinese {
+			catalog = zhTW
+		}
+		if zh, ok := catalog[text+"|"+context]; ok {
 			return zh
 		}
 	}
@@ -121,7 +134,7 @@ func Ago(t, now time.Time) string {
 
 // Date says t's month and day, and day of the week in Today.
 func Date(t time.Time) string {
-	if Language() == Chinese {
+	if Language() == Chinese || Language() == TraditionalChinese {
 		return fmt.Sprintf("%d月%d日", t.Month(), t.Day())
 	}
 	return fmt.Sprintf("%s %d", t.Month(), t.Day())
@@ -129,7 +142,7 @@ func Date(t time.Time) string {
 
 // Today says the day of t, as a page heading does.
 func Today(t time.Time) string {
-	if Language() == Chinese {
+	if Language() == Chinese || Language() == TraditionalChinese {
 		return Date(t) + " " + [...]string{"星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"}[t.Weekday()]
 	}
 	return t.Weekday().String() + ", " + Date(t)
@@ -145,12 +158,12 @@ func Songs(n int) string {
 
 // Count says a count shortly, as people read it in the language.
 func Count(n int) string {
-	if Language() == Chinese {
+	if Language() == Chinese || Language() == TraditionalChinese {
 		switch {
 		case n >= 1e8:
-			return fmt.Sprintf("%.1f亿", float64(n)/1e8)
+			return fmt.Sprintf(chineseUnit("%.1f亿", "%.1f億"), float64(n)/1e8)
 		case n >= 1e4:
-			return fmt.Sprintf("%.1f万", float64(n)/1e4)
+			return fmt.Sprintf(chineseUnit("%.1f万", "%.1f萬"), float64(n)/1e4)
 		}
 		return fmt.Sprint(n)
 	}
@@ -163,4 +176,11 @@ func Count(n int) string {
 		return fmt.Sprintf("%.1fK", float64(n)/1e3)
 	}
 	return fmt.Sprint(n)
+}
+
+func chineseUnit(simplified, traditional string) string {
+	if Language() == TraditionalChinese {
+		return traditional
+	}
+	return simplified
 }

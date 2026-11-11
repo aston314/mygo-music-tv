@@ -5,7 +5,7 @@ const token = 'playwright-only-local-session-0123456789';
 async function boot(page) { await page.goto('/?token=' + token); await expect(page.locator('#app')).toBeVisible(); await expect(page.locator('[data-track="0"]')).toBeVisible(); }
 
 test('page script parses on the Android 6 JavaScript baseline', () => {
-  acorn.parse(fs.readFileSync('ui/app.js', 'utf8'), { ecmaVersion: 5 });
+  for (const file of ['ui/app.js','ui/i18n.js','ui/locales/zh-CN.js','ui/locales/zh-TW.js']) acorn.parse(fs.readFileSync(file, 'utf8'), { ecmaVersion: 5 });
 });
 
 test('fixed canvas scales without rearranging, and remote focus remains visible', async ({ page }) => {
