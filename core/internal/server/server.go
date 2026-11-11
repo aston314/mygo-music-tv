@@ -76,7 +76,7 @@ func New(data, mode, token string) (*Server, error) {
 	if b, e := os.ReadFile(s.settingsPath); e == nil {
 		_ = json.Unmarshal(b, &s.settings)
 	}
-	s.player = &player{server: s, state: Playback{State: "idle", Index: 0, Queue: []music.Track{}}}
+	s.player = newPlayer(s, filepath.Join(data, "player-settings.json"))
 	if mode != "real" {
 		s.fixtureDir = filepath.Join(data, "fixture")
 		if e = s.extractFixture(); e != nil {
@@ -264,6 +264,29 @@ func (s *Server) routes() {
 		_, _ = w.Write(code.PNG())
 	})
 	s.mux.HandleFunc("GET /api/player", func(w http.ResponseWriter, r *http.Request) { respond(w, s.player.snapshot()) })
+	s.mux.HandleFunc("POST /api/player/mode", func(w http.ResponseWriter, r *http.Request) {
+		var q struct{ Mode string }
+		if !decode(w, r, &q) {
+			return
+		}
+		if e := s.player.setMode(q.Mode); e != nil {
+			failure(w, 400, e)
+			return
+		}
+		respond(w, s.player.snapshot())
+	})
+	s.mux.HandleFunc("POST /api/player/queue", func(w http.ResponseWriter, r *http.Request) {
+		var q QueueChange
+		if !decode(w, r, &q) {
+			return
+		}
+		if e := s.player.changeQueue(q); e != nil {
+			failure(w, 400, e)
+			return
+		}
+		respond(w, s.player.snapshot())
+	})
+	s.mux.HandleFunc("GET /api/sources/{id}/lyrics", s.getLyrics)
 	s.mux.HandleFunc("POST /api/player/play", func(w http.ResponseWriter, r *http.Request) {
 		var q struct {
 			Queue []music.Track `json:"queue"`
@@ -295,13 +318,14 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("POST /api/player/event", func(w http.ResponseWriter, r *http.Request) {
 		var q struct {
 			Generation         int64
+			SeekRevision       int64
 			State              string
 			Position, Duration int64
 		}
 		if !decode(w, r, &q) {
 			return
 		}
-		respond(w, map[string]bool{"accepted": s.player.event(q.Generation, q.State, q.Position, q.Duration)})
+		respond(w, map[string]bool{"accepted": s.player.event(q.Generation, q.State, q.Position, q.Duration, q.SeekRevision)})
 	})
 	s.mux.HandleFunc("GET /api/preferences", func(w http.ResponseWriter, r *http.Request) { s.mu.Lock(); defer s.mu.Unlock(); respond(w, s.settings) })
 	s.mux.HandleFunc("POST /api/preferences", func(w http.ResponseWriter, r *http.Request) {
@@ -309,13 +333,22 @@ func (s *Server) routes() {
 		if !decode(w, r, &q) {
 			return
 		}
-		if q["sidebar"] != "expanded" && q["sidebar"] != "icons" {
-			failure(w, 400, errors.New("无效显示模式"))
-			return
+		for k, v := range q {
+			if !(k == "sidebar" && (v == "expanded" || v == "icons") || k == "translation" && (v == "on" || v == "off")) {
+				failure(w, 400, errors.New("无效偏好设置"))
+				return
+			}
 		}
 		s.mu.Lock()
 		defer s.mu.Unlock()
-		b, _ := json.Marshal(q)
+		next := map[string]string{}
+		for k, v := range s.settings {
+			next[k] = v
+		}
+		for k, v := range q {
+			next[k] = v
+		}
+		b, _ := json.Marshal(next)
 		if e := os.WriteFile(s.settingsPath+".part", b, 0600); e != nil {
 			failure(w, 500, e)
 			return
@@ -324,8 +357,8 @@ func (s *Server) routes() {
 			failure(w, 500, e)
 			return
 		}
-		s.settings = q
-		respond(w, q)
+		s.settings = next
+		respond(w, next)
 	})
 	s.mux.Handle("/media/", s.media)
 	s.mux.Handle("/", http.FileServer(http.FS(ui.Files)))

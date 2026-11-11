@@ -26,7 +26,7 @@ public final class CoreService extends Service {
     private MediaSession session;
     private volatile boolean stopped;
     private String base, error, media = "";
-    private long generation = -1, revision = -1, lastEventAt;
+    private long generation = -1, seekRevision = -1, lastEventAt;
     private boolean applying;
     static CoreService get() { return current; }
     String pageURL() { return client == null ? null : base + "/?token=" + client.token; }
@@ -91,10 +91,10 @@ public final class CoreService extends Service {
     }
     private void apply(JSONObject s) {
         if (stopped) return;
-        long gen = s.optLong("generation"), rev = s.optLong("revision"); String path = s.optString("media");
+        long gen = s.optLong("generation"), seek = s.optLong("seekRevision"); String path = s.optString("media");
         applying = true;
         try {
-            if (gen != generation) { generation = gen; revision = -1; player.stop(); player.clearMediaItems(); media = ""; }
+            if (gen != generation) { generation = gen; seekRevision = -1; player.stop(); player.clearMediaItems(); media = ""; }
             if (!path.isEmpty() && !path.equals(media)) {
                 if (!path.matches("/media/[a-f0-9]{48}")) return;
                 media = path;
@@ -103,16 +103,16 @@ public final class CoreService extends Service {
                 player.setMediaItem(new MediaItem.Builder().setUri(base + path).setMediaId(String.valueOf(gen)).setMediaMetadata(meta).build()); player.prepare();
                 ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).notify(1, notification(t == null ? "正在播放音乐" : t.optString("name")));
             }
-            if (rev != revision) { revision = rev; long pos = s.optLong("position"); if (!media.isEmpty() && Math.abs(player.getCurrentPosition() - pos) > 3500) player.seekTo(pos); }
+            if (!media.isEmpty() && seek != seekRevision) { seekRevision = seek; player.seekTo(s.optLong("position")); }
             if (s.optString("state").equals("idle")) { player.stop(); media = ""; }
             else if (!media.isEmpty()) player.setPlayWhenReady(s.optBoolean("wantPlay"));
         } finally { applying = false; }
         if (player.isPlaying() && System.currentTimeMillis() - lastEventAt > 1500) { lastEventAt = System.currentTimeMillis(); event("playing"); }
     }
     private void event(String state) {
-        final long gen = generation, position = player.getCurrentPosition(), duration = Math.max(0, player.getDuration());
+        final long gen = generation, seek = seekRevision, position = player.getCurrentPosition(), duration = Math.max(0, player.getDuration());
         if (client == null || gen < 0 || stopped) return;
-        network.execute(() -> { try { JSONObject e = new JSONObject().put("generation", gen).put("state", state).put("position", position).put("duration", duration); client.request("POST", "/api/player/event", e); } catch (Exception ignored) { } });
+        network.execute(() -> { try { JSONObject e = new JSONObject().put("generation", gen).put("seekRevision", seek).put("state", state).put("position", position).put("duration", duration); client.request("POST", "/api/player/event", e); } catch (Exception ignored) { } });
     }
     @Override public int onStartCommand(Intent intent, int flags, int startId) { return START_NOT_STICKY; }
     @Override public IBinder onBind(Intent intent) { return null; }

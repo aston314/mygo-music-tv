@@ -41,7 +41,10 @@ public final class MainActivity extends Activity {
         if (startup != null) root.removeView(startup);
         startup = new LinearLayout(this); startup.setOrientation(LinearLayout.VERTICAL); startup.setGravity(Gravity.CENTER); startup.setBackgroundColor(Color.rgb(16,22,25));
         FrameLayout logo = new FrameLayout(this); int size = dp(94);
-        ProgressBar ring = new ProgressBar(this); logo.addView(ring, new FrameLayout.LayoutParams(-1,-1)); TextView note = new TextView(this); note.setText("♪"); note.setTextSize(46); note.setTextColor(Color.rgb(182,238,205)); note.setGravity(Gravity.CENTER); logo.addView(note,new FrameLayout.LayoutParams(-1,-1)); startup.addView(logo,new LinearLayout.LayoutParams(size,size));
+        ProgressBar ring = new ProgressBar(this); logo.addView(ring, new FrameLayout.LayoutParams(-1,-1));
+        ImageView note = new ImageView(this); note.setImageResource(R.drawable.startup_music);
+        FrameLayout.LayoutParams noteParams = new FrameLayout.LayoutParams(dp(56),dp(56),Gravity.CENTER);
+        logo.addView(note,noteParams); startup.addView(logo,new LinearLayout.LayoutParams(size,size));
         status = new TextView(this); status.setText("正在启动 MyGo Music TV…"); status.setTextColor(Color.WHITE); status.setTextSize(18); status.setGravity(Gravity.CENTER); LinearLayout.LayoutParams statusParams = new LinearLayout.LayoutParams(-2,dp(46)); statusParams.topMargin=dp(16); startup.addView(status,statusParams);
         TextView version = new TextView(this); version.setText("版本 " + BuildConfig.VERSION_NAME); version.setTextColor(Color.rgb(135,148,145)); version.setTextSize(13); startup.addView(version);
         root.addView(startup,new FrameLayout.LayoutParams(-1,-1));

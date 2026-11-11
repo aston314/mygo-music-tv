@@ -12,27 +12,37 @@ import (
 )
 
 type Playback struct {
-	Generation int64         `json:"generation"`
-	Revision   int64         `json:"revision"`
-	State      string        `json:"state"`
-	Queue      []music.Track `json:"queue"`
-	Index      int           `json:"index"`
-	Media      string        `json:"media,omitempty"`
-	Position   int64         `json:"position"`
-	Duration   int64         `json:"duration"`
-	WantPlay   bool          `json:"wantPlay"`
-	Error      string        `json:"error,omitempty"`
-	Remote     bool          `json:"remote"`
-	Device     string        `json:"device,omitempty"`
+	Generation    int64         `json:"generation"`
+	Revision      int64         `json:"revision"`
+	State         string        `json:"state"`
+	Queue         []music.Track `json:"queue"`
+	Index         int           `json:"index"`
+	Media         string        `json:"media,omitempty"`
+	Position      int64         `json:"position"`
+	Duration      int64         `json:"duration"`
+	WantPlay      bool          `json:"wantPlay"`
+	Error         string        `json:"error,omitempty"`
+	Remote        bool          `json:"remote"`
+	Device        string        `json:"device,omitempty"`
+	Mode          string        `json:"mode"`
+	EntryIDs      []string      `json:"entryIds"`
+	QueueRevision int64         `json:"queueRevision"`
+	PositionAt    int64         `json:"positionAt"`
+	SeekRevision  int64         `json:"seekRevision"`
 }
 type player struct {
 	sync.Mutex
-	state    Playback
-	server   *Server
-	recorded int64
-	remoteMu sync.Mutex
-	remote   *plugin.Plugin
-	closed   bool
+	state       Playback
+	server      *Server
+	recorded    int64
+	remoteMu    sync.Mutex
+	remote      *plugin.Plugin
+	closed      bool
+	modePath    string
+	history     []string
+	historyAt   int
+	bag         []string
+	nextEntries []string
 }
 
 func (p *player) snapshot() Playback {
@@ -40,41 +50,8 @@ func (p *player) snapshot() Playback {
 	defer p.Unlock()
 	s := p.state
 	s.Queue = append([]music.Track{}, s.Queue...)
+	s.EntryIDs = append([]string{}, s.EntryIDs...)
 	return s
-}
-func (p *player) play(queue []music.Track, index int) error {
-	if len(queue) == 0 || len(queue) > 1000 || index < 0 || index >= len(queue) {
-		return errors.New("播放队列无效")
-	}
-	for _, t := range queue {
-		if _, e := p.server.sources.Get(t.Source); e != nil {
-			return e
-		}
-	}
-	p.Lock()
-	if p.closed {
-		p.Unlock()
-		return errors.New("音乐服务正在退出")
-	}
-	old := p.state.Media
-	p.state.Generation++
-	gen := p.state.Generation
-	p.state.Revision++
-	p.state.Queue = append([]music.Track{}, queue...)
-	p.state.Index = index
-	p.state.Media = ""
-	p.state.Position = 0
-	p.state.Duration = queue[index].Duration
-	p.state.WantPlay = true
-	p.state.State = "preparing"
-	p.state.Error = ""
-	p.state.Remote = false
-	p.state.Device = ""
-	p.server.wg.Add(1)
-	p.Unlock()
-	p.server.media.revoke(old)
-	go func() { defer p.server.wg.Done(); p.resolve(gen, queue[index]) }()
-	return nil
 }
 func (p *player) resolve(gen int64, t music.Track) {
 	src, e := p.server.sources.Get(t.Source)
@@ -198,20 +175,20 @@ func (p *player) fail(gen int64, msg string) {
 	}
 }
 func (p *player) control(action string, pos int64) error {
-	s := p.snapshot()
+	var s Playback
 	switch action {
 	case "next":
-		if s.Index+1 < len(s.Queue) {
-			return p.play(s.Queue, s.Index+1)
-		}
-		return nil
+		return p.advance(1, false, 0)
 	case "previous":
-		if s.Index > 0 {
-			return p.play(s.Queue, s.Index-1)
-		}
-		return nil
+		return p.advance(-1, false, 0)
 	case "retry":
-		return p.play(s.Queue, s.Index)
+		p.Lock()
+		defer p.Unlock()
+		if len(p.state.Queue) == 0 {
+			return errors.New("播放队列为空")
+		}
+		p.beginLocked(p.state.Index)
+		return nil
 	case "pause", "resume", "seek", "stop":
 	default:
 		return errors.New("未知播放操作")
@@ -248,6 +225,7 @@ func (p *player) control(action string, pos int64) error {
 		return nil
 	}
 	p.state.Revision++
+	p.state.PositionAt = time.Now().UnixMilli()
 	switch action {
 	case "pause":
 		p.state.WantPlay = false
@@ -265,6 +243,7 @@ func (p *player) control(action string, pos int64) error {
 			pos = p.state.Duration
 		}
 		p.state.Position = pos
+		p.state.SeekRevision++
 	case "stop":
 		p.state.Generation++
 		p.server.media.revoke(p.state.Media)
@@ -284,17 +263,18 @@ func (p *player) close() {
 	p.state.Generation++
 	p.Unlock()
 }
-func (p *player) event(gen int64, state string, pos, duration int64) bool {
+func (p *player) event(gen int64, state string, pos, duration int64, seekAck ...int64) bool {
 	valid := map[string]bool{"playing": true, "paused": true, "buffering": true, "ended": true, "failed": true}
 	if !valid[state] {
 		return false
 	}
 	p.Lock()
-	if gen != p.state.Generation || p.closed {
+	if gen != p.state.Generation || p.closed || p.state.State == "ended" || len(seekAck) > 0 && seekAck[0] != p.state.SeekRevision {
 		p.Unlock()
 		return false
 	}
 	p.state.State = state
+	p.state.PositionAt = time.Now().UnixMilli()
 	if pos >= 0 {
 		p.state.Position = pos
 	}
@@ -314,20 +294,23 @@ func (p *player) event(gen int64, state string, pos, duration int64) bool {
 		p.recorded = gen
 		p.server.wg.Add(1)
 	}
-	s := p.state
+	var track music.Track
+	if record && len(p.state.Queue) > p.state.Index {
+		track = p.state.Queue[p.state.Index]
+	}
 	p.Unlock()
-	if record && len(s.Queue) > s.Index {
+	if record && track.ID != "" {
 		go func() {
 			defer p.server.wg.Done()
-			if src, e := p.server.sources.Get(s.Queue[s.Index].Source); e == nil && src.Can("played") {
-				src.Played(s.Queue[s.Index])
+			if src, e := p.server.sources.Get(track.Source); e == nil && src.Can("played") {
+				src.Played(track)
 			}
 		}()
 	} else if record {
 		p.server.wg.Done()
 	}
-	if state == "ended" && s.Index+1 < len(s.Queue) {
-		_ = p.play(s.Queue, s.Index+1)
+	if state == "ended" {
+		_ = p.advance(1, true, gen)
 	}
 	return true
 }
