@@ -183,7 +183,7 @@
   window.MyGo={back:back,nativeBack:back};
   function exitConfirm(){if(window.Android&&window.Android.confirmExit)window.Android.confirmExit();else dialog('退出 MyGo Music TV？',("<p>"+tr("退出后停止播放音乐。")+"</p>"),button('cancel',tr("取消"))+button('exit',tr("退出"),'primary'));}
   function appClass(){ $('app').className=[state.pref==='icons'?'icons':'',state.page==='player'?'player-view':'',state.page==='player'&&state.lyricFull?'lyrics-full':''].filter(function(x){return x;}).join(' ');renderLyricButton();renderNowLikeVisibility(); }
-  function renderLyricButton(){var n=$('lyrics-button'),full=state.page==='player'&&state.lyricFull,label=full?tr("退出全屏歌词"):tr("全屏歌词");n.disabled=!currentTrack();n.innerHTML=icon(full?'fullscreenExit':'fullscreen');n.setAttribute('aria-pressed',String(full));n.setAttribute('aria-label',label);n.title=label;}
+  function renderLyricButton(){var n=$('lyrics-button'),full=state.page==='player'&&state.lyricFull,label=full?tr("退出全屏歌词"):tr("全屏歌词");n.hidden=state.page!=='player';n.disabled=!currentTrack();n.innerHTML=icon(full?'fullscreenExit':'fullscreen');n.setAttribute('aria-pressed',String(full));n.setAttribute('aria-label',label);n.title=label;}
   function renderNowLikeVisibility(){var t=currentTrack();$('now-like').hidden=state.page==='player'||!t||!can(t.source,t.showId?'likeEpisode':'like');}
   function renderNav(){
     var items=[{id:'home',title:tr("发现音乐"),icon:'home'},{id:'search',title:tr("搜索"),icon:'search'}],added={home:true,search:true};
@@ -563,7 +563,7 @@
     case 'track-like':toggleLike(state.page==='player'&&!state.modal?currentTrack():state.actionTrack,n);break;case 'player-comments':comments(currentTrack());break;case 'track-comments':comments(state.actionTrack);break;case 'player-more':trackMenu(currentTrack());break;
     case 'add-playlist':playlistPicker(state.actionTrack);break;case 'playlist-retry':loadPlaylists(state.pickContext);break;case 'create-for-track':createPlaylist(state.actionTrack);break;case 'create-playlist':createPlaylist(null);break;case 'compose-submit':submitCompose(n);break;
     case 'comments-more':loadComments();break;case 'write-comment':writeComment();break;case 'save-entity':saveEntity(n);break;
-    case 'full-lyrics':if(!currentTrack())break;if(state.page!=='player'){state.lyricFull=true;openPlayer();}else{state.lyricFull=!state.lyricFull;renderPlayerPage();}focusId('full-lyrics');break;case 'translation':case 'translation-setting':toggleTranslation(n);break;case 'lyrics-retry':loadLyrics(true);break;
+    case 'full-lyrics':if(state.page!=='player'||!currentTrack())break;state.lyricFull=!state.lyricFull;renderPlayerPage();focusId('full-lyrics');break;case 'translation':case 'translation-setting':toggleTranslation(n);break;case 'lyrics-retry':loadLyrics(true);break;
     case 'account':login(n.getAttribute('data-account-source'));break;case 'account-retry':login(state.accountTarget);break;case 'account-login':beginLogin(state.accountTarget);break;case 'login':login();break;case 'signout':signOut();break;
     case 'uninstall':dialog('卸载音乐源？',("<p>"+tr("移除插件，保留账号数据以便重新安装。")+"</p>"),button('cancel',tr("取消"))+button('remove-source',tr("卸载"),'primary'));break;
     case 'remove-source':request('DELETE','/api/sources/'+state.source.instanceId,null,function(err){if(err){toast(err);return;}closeModal();state.source=null;loadSources(function(){navigate('home');});});break;

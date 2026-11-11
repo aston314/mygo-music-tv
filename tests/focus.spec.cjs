@@ -98,9 +98,11 @@ test('late comment pages cannot replace a closed panel and short final pages sto
  await expect(page.locator('[data-action="write-comment"]')).toBeFocused();expect(offsets).toEqual([0,1]);
 });
 
-test('fullscreen lyrics are the last footer icon and work directly from browsing',async({page})=>{
+test('fullscreen lyrics appear only on the lyrics page and preserve expand and collapse behavior',async({page})=>{
  await song(page);await page.keyboard.press('Escape');
- const full=page.locator('#lyrics-button');await expect(full).toHaveAttribute('data-focus','full-lyrics');
+ const full=page.locator('#lyrics-button');await expect(full).toBeHidden();
+ await page.locator('#queue-button').focus();await page.keyboard.press('ArrowRight');await expect(page.locator('#queue-button')).toBeFocused();
+ await page.locator('#open-player').click();await expect(full).toBeVisible();await expect(full).toHaveAttribute('data-focus','full-lyrics');
  const expand=await full.locator('path').getAttribute('d');
  await expect(page.locator('.lyric-toolbar [data-action="full-lyrics"]')).toHaveCount(0);
  expect(await full.evaluate(n=>n===n.parentNode.lastElementChild)).toBe(true);
@@ -110,7 +112,8 @@ test('fullscreen lyrics are the last footer icon and work directly from browsing
  await full.click();await expect(full.locator('path')).toHaveAttribute('d',collapse);
  await page.keyboard.press('Escape');await expect(page.locator('.listening')).not.toHaveClass(/lyrics-only/);await expect(full).toHaveAttribute('aria-pressed','false');await expect(full).toBeFocused();
  await expect(full).toHaveAttribute('aria-label','全屏歌词');await expect(full.locator('path')).toHaveAttribute('d',expand);
- await page.keyboard.press('Escape');await expect(full).toBeFocused();await expect(page.locator('#page-title')).not.toHaveText('正在播放');
+ await page.keyboard.press('Escape');await expect(full).toBeHidden();await expect(page.locator('#open-player')).toBeFocused();await expect(page.locator('#page-title')).not.toHaveText('正在播放');
+ for(const nav of ['settings','market','search','home']){await page.locator('[data-focus="nav-'+nav+'"]').click();await expect(full).toBeHidden();}
 });
 
 test('source picker enters the current source and scrolls it into view when it is below the first item',async({page})=>{
@@ -184,9 +187,9 @@ for(const [width,height] of [[960,540],[1280,720],[1920,1080]])test('sidebar, ro
   for(const kind of ['album','show','station','browse']){await expect(page.locator('[data-kind="'+kind+'"]').first()).toBeFocused();await page.keyboard.press('ArrowDown');}
   await expect(page.locator('#open-player')).toBeFocused();
   const before=await(await page.request.get('/api/player')).json();
-  for(const id of ['now-artist','now-like','previous','toggle','next','seek','mode','queue','full-lyrics']){await page.keyboard.press(id==='mode'?'ArrowDown':'ArrowRight');await expect(page.locator('[data-focus="'+id+'"]')).toBeFocused();}
+  for(const id of ['now-artist','now-like','previous','toggle','next','seek','mode','queue']){await page.keyboard.press(id==='mode'?'ArrowDown':'ArrowRight');await expect(page.locator('[data-focus="'+id+'"]')).toBeFocused();}
   await visibleFocus(page,'#player-bar');await page.screenshot({path:testInfo.outputPath('focus-'+mode+'.png')});
-  await page.keyboard.press('ArrowLeft');await expect(page.locator('#queue-button')).toBeFocused();
+  await page.keyboard.press('ArrowRight');await expect(page.locator('#queue-button')).toBeFocused();
   const after=await(await page.request.get('/api/player')).json();expect(after.seekRevision).toBe(before.seekRevision);expect(after.state).toBe('paused');
   await page.keyboard.press('ArrowUp');await expect(page.locator('[data-kind="browse"]').first()).toBeFocused();await visibleFocus(page,'#content');
   await page.locator('#now-artist').click();await expect(page.locator('#page-title')).toHaveText('The Examples');await page.locator('[data-track="0"]').focus();

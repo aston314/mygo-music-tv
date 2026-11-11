@@ -16,7 +16,7 @@
       <div class="timeline"><span id="playback-status" role="status"></span><span id="position">0:00</span><button data-focus="seek" id="seek" role="slider" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" aria-label="播放进度，左右键快退或快进，上下键切换控件" data-i18n-aria-label="播放进度，左右键快退或快进，上下键切换控件" disabled><span class="progress-track"><i id="progress"><b class="progress-thumb"></b></i></span></button><span id="duration">0:00</span></div>
       <button id="mode-button" data-focus="mode" data-action="play-mode" aria-label="播放模式"><span data-icon="sequence"></span></button>
       <button data-focus="queue" id="queue-button" aria-label="播放队列" data-i18n-aria-label="播放队列"><span data-icon="queue"></span></button>
-      <button id="lyrics-button" data-focus="full-lyrics" data-action="full-lyrics" aria-label="全屏歌词" aria-pressed="false" title="全屏歌词" disabled><span data-icon="fullscreen"></span></button>
+      <button hidden id="lyrics-button" data-focus="full-lyrics" data-action="full-lyrics" aria-label="全屏歌词" aria-pressed="false" title="全屏歌词" disabled><span data-icon="fullscreen"></span></button>
     </footer>
   </div><div id="modal-layer" hidden></div><div id="toast" role="status" hidden></div><audio id="audio" preload="metadata"></audio>
 </div><script src="/app.js"></script></body></html>
