@@ -45,7 +45,7 @@
   function icon(name) { return '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + (paths[name] || paths.music) + '</svg>'; }
   var tr = window.MyGoI18n.text;
   var $ = function (id) { return document.getElementById(id); };
-  var state = {page:'home',source:null,sources:[],catalog:[],shown:[],items:[],pageGen:0,modal:null,modalGen:0,modalSerial:0,modalStack:[],returnFocus:'',installed:{},accounts:{},player:null,mode:'real',pref:'expanded',translation:true,theme:window.MyGoI18n.theme,language:window.MyGoI18n.language,stack:[],detail:null,search:'',searchKind:'tracks',jobs:{},likes:{},lyrics:[],lyricKey:'',lyricState:'idle',lyricTimed:true,lyricActive:-2,lyricFull:false,queueRevision:-1};
+  var state = {page:'home',source:null,sources:[],catalog:[],shown:[],items:[],pageGen:0,modal:null,modalGen:0,modalSerial:0,modalStack:[],returnFocus:'',installed:{},updates:{},jobPolls:{},accounts:{},player:null,mode:'real',pref:'expanded',translation:true,theme:window.MyGoI18n.theme,language:window.MyGoI18n.language,stack:[],detail:null,search:'',searchKind:'tracks',jobs:{},likes:{},lyrics:[],lyricKey:'',lyricState:'idle',lyricTimed:true,lyricActive:-2,lyricFull:false,queueRevision:-1};
   var audio = $('audio'), audioGen = -1, mediaPath = '', audioSeek = -1, lastEvent = 0, nativePlayer = !!(window.Android && window.Android.nativePlayer);
   var modeLabels = {sequence:'顺序播放',loop:'列表循环',single:'单曲循环',shuffle:'随机播放'};
   Array.prototype.forEach.call(document.querySelectorAll('[data-icon]'), function (n) { n.innerHTML = icon(n.getAttribute('data-icon')); });
@@ -157,7 +157,7 @@
   function focusLoadedList(){var pending=state.modalEntry;if(!pending||pending.gen!==state.modalGen)return;state.modalEntry=null;var first=modalListEntry();if(first&&activeID()===pending.focus)focusNode(first);}
   function closeModal(all){
     if(!all&&state.modalStack.length){var parent=state.modalStack.pop();state.modal=parent.title;state.modalGen=parent.gen;$('modal-layer').innerHTML='';$('modal-layer').appendChild(parent.node);finishEditing();updateLikeButtons();if(state.modal==='播放队列')paintQueue();if(state.modal==='加入歌单'&&state.pickContext&&(state.pickContext.busy||state.pickContext.dirty))loadPlaylists(state.pickContext);if(!focusId(parent.focus))focusId('cancel');if(state.modal==='歌曲评论'&&state.comments&&state.comments.busy){state.comments.busy=false;state.comments.request=(state.comments.request||0)+1;loadComments();}return;}
-    var login=state.modal==='登录音乐源';state.modal=null;state.modalGen=++state.modalSerial;state.modalStack=[];$('modal-layer').hidden=true;clearTimeout(state.loginTimer);finishEditing();if(login)request('DELETE','/api/login',null,function(){});if(!focusId(state.returnFocus))focusContent();if(state.localeDirty){state.localeDirty=false;refreshLanguage();}
+    var ctx=state.catalogView;if(catalogOpen(ctx)&&ctx.permissionJob){post('/api/jobs/'+ctx.permissionJob+'/confirm',{allow:false},function(){refreshUpdates();});ctx.permissionJob='';}var login=state.modal==='登录音乐源';state.modal=null;state.modalGen=++state.modalSerial;state.modalStack=[];$('modal-layer').hidden=true;clearTimeout(state.loginTimer);finishEditing();if(login)request('DELETE','/api/login',null,function(){});if(!focusId(state.returnFocus))focusContent();if(state.localeDirty){state.localeDirty=false;refreshLanguage();}
   }
 
   function rememberPage(focus){state.stack.push({page:state.page,detail:state.detail,focus:focus||activeID(),scroll:$('content').scrollTop,search:state.search});}
@@ -249,28 +249,137 @@
     if(detail.type==='artist')top+='<div class="detail-tabs">'+['tracks','albums'].map(function(kind){return '<button class="secondary" data-focus="detail-'+kind+'" data-detail-section="'+kind+'" aria-pressed="'+(detail.section===kind)+'">'+(kind==='tracks'?tr("歌曲 · ")+tracks.length:tr("专辑 · ")+albums.length)+'</button>';}).join('')+'</div>';$('content').insertAdjacentHTML('afterbegin',top);afterContent();
   }
   function saveEntity(n){var d=state.detail;if(!d)return;var spec={album:['saveAlbum','saved',tr("收藏专辑")],artist:['followArtist','following',tr("关注歌手")],playlist:['savePlaylist','saved',tr("收藏歌单")],show:['subscribeShow','subscribed',tr("订阅播客")]}[d.type];if(!spec)return;var on=!d.entity[spec[1]];n.disabled=true;callFor(d.source,spec[0],{id:d.item.id,on:on},function(e){if(!document.documentElement.contains(n))return;n.disabled=false;if(e){toast(e);return;}d.entity[spec[1]]=on;n.setAttribute('aria-pressed',String(on));n.innerHTML=icon('heart')+' '+(on?tr("取消")+spec[2].slice(0,2):spec[2]);toast(on?tr("已保存到音乐源账号"):tr("已取消"));focusNode(n);});}
-  function renderMarket(gen,refresh){title(tr("插件市场"),tr("在线音乐源"));$('header-actions').innerHTML=button('refresh-catalog',tr("刷新目录"),'','refresh');loading();api('/api/catalog'+(refresh?'?refresh=1':''),function(e,data){if(gen!==state.pageGen)return;if(e){error(e);return;}state.catalog=data.entries||[];paintCatalog(data.stale,data.message);afterContent();});}
-  function installationBadge(installed){
-    return '<span class="install-badge '+(installed?'installed':'not-installed')+'">'+icon(installed?'check':'download')+(installed?tr("已安装"):tr("未安装"))+'</span>';
+  function renderMarket(gen,refresh){
+    title(tr("插件市场"),tr("在线音乐源"));
+    $('header-actions').innerHTML=button('check-all-updates',tr("检查全部更新"),'','refresh')+button('refresh-catalog',tr("刷新目录"),'','refresh');
+    loading();refreshUpdates();
+    api('/api/catalog'+(refresh?'?refresh=1':''),function(e,data){if(gen!==state.pageGen)return;if(e){error(e);return;}state.catalog=data.entries||[];paintCatalog(data.stale,data.message);afterContent();});
+  }
+  function updateFor(installed){return installed&&state.updates[installed.instanceId];}
+  function installationBadge(installed,update){
+    var available=installed&&update&&update.available;
+    return '<span class="install-badge '+(available?'update-available':installed?'installed':'not-installed')+'">'+icon(available?'refresh':installed?'check':'download')+(available?tr("有更新"):installed?tr("已安装"):tr("未安装"))+'</span>';
+  }
+  function updateBusy(u){return u&&['downloading','installing','awaiting-confirmation'].indexOf(u.state)>=0;}
+  function updateStatus(u){
+    if(!u)return tr("尚未检查更新");
+    return {checking:tr("正在检查更新…"),current:tr("已是最新版本"),available:tr("有新版本可用"),checkFailed:tr("检查失败，请重试"),downloading:tr("正在下载…"),installing:tr("正在安装…"),'awaiting-confirmation':tr("等待确认新增权限"),updateFailed:tr("更新失败，请重试")}[u.state]||tr("尚未检查更新");
+  }
+  function pluginVersion(installed,u){
+    if(!installed)return '';
+    var version=installed.manifest.version||installed.revision||tr("版本未知");
+    return version+(u&&u.available?' → '+u.latestVersion:'');
   }
   function paintCatalog(stale,message){
-    var html=("<div class=\"hero\"><h2>"+tr("你的音乐，不止一种来源。")+"</h2><p>"+tr("选择社区插件，安装后使用熟悉的音乐服务。")+"</p></div>");
+    var html='<div class="hero"><h2>'+tr("你的音乐，不止一种来源。")+'</h2><p>'+tr("选择社区插件，安装后使用熟悉的音乐服务。")+'</p></div>';
     if(stale)html+='<div class="empty-banner">'+esc(message)+'</div>';
-    html+=("<div class=\"section-head\"><h2>"+tr("探索全部插件")+"</h2><span>")+state.catalog.length+(tr(" 个来源")+"</span></div><div class=\"grid\">");
+    html+='<div class="section-head"><h2>'+tr("探索全部插件")+'</h2><span id="market-update-status" role="status"></span></div><div class="grid">';
     state.catalog.forEach(function(entry,index){
-      var installed=!!state.installed[entry.repository.toLowerCase()];
-      var name=entry.name.replace(/^mygo-music-(plugin-)?/i,'');
-      html+='<button class="plugin-card'+(installed?' is-installed':'')+'" data-focus="catalog-'+esc(entry.repository)+'" data-catalog="'+index+'" aria-label="'+esc(name)+(installed?tr("，已安装，查看与更新"):tr("，未安装，查看与安装"))+'">';
-      html+='<span class="card-top"><span class="monogram">'+esc(name.charAt(0).toUpperCase())+'</span>'+installationBadge(installed)+'</span>';
+      var installed=state.installed[entry.repository.toLowerCase()],u=updateFor(installed),name=entry.name.replace(/^mygo-music-(plugin-)?/i,'');
+      html+='<button class="plugin-card'+(installed?' is-installed':'')+'" data-focus="catalog-'+esc(entry.repository)+'" data-catalog="'+index+'">';
+      html+='<span class="card-top"><span class="monogram">'+esc(name.charAt(0).toUpperCase())+'</span>'+installationBadge(installed,u)+'</span>';
       html+='<span class="card-heading"><strong class="card-name">'+esc(name)+'</strong><span class="card-owner">'+esc(entry.repository.split('/')[0])+'</span></span>';
-      html+='<span class="card-description">'+esc(entry.description||tr("社区在线音乐源插件"))+'</span>';
+      html+='<span class="card-description">'+esc(entry.description||tr("社区在线音乐源插件"))+'</span><span class="plugin-version">'+esc(pluginVersion(installed,u))+'</span>';
       html+='<span class="card-bottom"><span>'+(installed?tr("查看与更新"):tr("查看与安装"))+'</span>'+icon('arrow')+'</span></button>';
     });
-    $('content').innerHTML=html+'</div>'+(!state.catalog.length?("<div class=\"state\"><p>"+tr("目录暂无插件，请刷新重试")+"</p></div>"):'');
+    $('content').innerHTML=html+'</div>'+(!state.catalog.length?'<div class="state"><p>'+tr("目录暂无插件，请刷新重试")+'</p></div>':'');
+    patchCatalog();
   }
-  function showCatalog(index){var c=state.catalog[index];if(!c)return;state.selected=c;var installed=state.installed[c.repository.toLowerCase()];modal(c.name,installationBadge(!!installed)+'<p>'+esc(c.description||tr("社区在线音乐源"))+'</p><div class="badge-line">'+esc(c.repository)+(installed?' · '+esc(installed.revision):'')+("</div><p>"+tr("安装后按插件能力提供功能。部分功能需要账号、其他播放设备或平台适配。")+"</p>"),button('cancel',tr("取消"))+button('install',installed?tr("检查并更新"):tr("安装插件"),'primary'));}
-  function install(){var c=state.selected;if(!c)return;if(c.repository==='fixture/demo'){setSource('fixture');return;}var n=$('modal-layer').querySelector('[data-action="install"]');if(n){n.disabled=true;n.textContent=tr("正在下载…");focusId('cancel');}post('/api/plugins/install',{repository:c.repository},function(e,j){if(e){toast(e);if(n){n.disabled=false;n.textContent=tr("重试安装");}return;}pollJob(j.id);});}
-  function pollJob(id){api('/api/jobs/'+id,function(e,j){if(e){toast(e);return;}state.jobs[id]=j;if(j.state==='complete'){loadSources(function(){toast(tr("安装完成"));setSource(j.instanceId);});}else if(j.state==='failed'){dialog('安装未完成','<p>'+esc(j.message)+'</p>',button('cancel',tr("返回"))+button('install',tr("重试"),'primary'));}else setTimeout(function(){pollJob(id);},1000);});}
+  function patchCatalog(){
+    if(state.page==='market'){
+      Array.prototype.forEach.call($('content').querySelectorAll('[data-catalog]'),function(n){
+        var entry=state.catalog[+n.getAttribute('data-catalog')];if(!entry)return;
+        var installed=state.installed[entry.repository.toLowerCase()],u=updateFor(installed),badge=n.querySelector('.install-badge'),fresh=installationBadge(installed,u);
+        if(badge&&badge.outerHTML!==fresh)badge.outerHTML=fresh;
+        n.classList.toggle('is-installed',!!installed);n.classList.toggle('has-update',!!(u&&u.available));
+        n.querySelector('.plugin-version').textContent=pluginVersion(installed,u);
+        n.querySelector('.card-bottom span').textContent=installed?tr("查看与更新"):tr("查看与安装");
+        n.setAttribute('aria-label',entry.name+(u&&u.available?'，'+tr("有更新"):installed?tr("，已安装，查看与更新"):tr("，未安装，查看与安装")));
+      });
+      var checking=false,count=0;
+      Object.keys(state.updates).forEach(function(id){var u=state.updates[id];checking=checking||u.state==='checking';if(u.available)count++;});
+      var status=$('market-update-status');if(status)status.textContent=state.updateError|| (checking?tr("正在检查更新…"):count?count+' '+tr("个插件可更新"):state.catalog.length+tr(" 个来源"));
+      var all=$('header-actions').querySelector('[data-action="check-all-updates"]');if(all){all.setAttribute('aria-busy',String(checking));}
+    }
+    patchCatalogDetail();
+  }
+  function receiveUpdates(list){state.updates={};(list||[]).forEach(function(u){state.updates[u.instanceId]=u;});state.updateError='';patchCatalog();}
+  function refreshUpdates(done){api('/api/plugins/updates',function(e,list){if(!e)receiveUpdates(list);else{state.updateError=tr("更新状态读取失败，请重试");patchCatalog();}if(done)done(e);});}
+  function pollUpdates(){
+    refreshUpdates(function(){var active=false;Object.keys(state.updates).forEach(function(id){var u=state.updates[id];active=active||u.state==='checking'||updateBusy(u);});state.updatesTimer=setTimeout(pollUpdates,active?1500:15000);});
+  }
+  function checkUpdates(all){
+    var installed=!all&&state.selected&&state.installed[state.selected.repository.toLowerCase()];
+    if(!all&&!installed)return;
+    if(!all&&catalogOpen(state.catalogView)){state.catalogView.error='';state.catalogView.job=null;}
+    post('/api/plugins/check-updates',all?{}:{instanceId:installed.instanceId},function(e,list){if(e){toast(e);state.updateError=tr("检查失败，请重试");patchCatalog();return;}receiveUpdates(list);clearTimeout(state.updatesTimer);state.updatesTimer=setTimeout(pollUpdates,700);});
+  }
+  function catalogOpen(ctx){return ctx&&state.modal&&state.modalGen===ctx.gen&&state.catalogView===ctx;}
+  function showCatalog(index){
+    var c=state.catalog[index];if(!c)return;state.selected=c;
+    var installed=state.installed[c.repository.toLowerCase()],u=updateFor(installed);
+    var html='<div class="plugin-detail-body scroll"><div id="catalog-badge">'+installationBadge(installed,u)+'</div><p class="plugin-description">'+esc(c.description||tr("社区在线音乐源"))+'</p><div class="badge-line">'+esc(c.repository)+'</div><p id="catalog-version" class="catalog-version"></p><p id="catalog-update-status" role="status"></p><div id="catalog-permissions"></div><p class="hint plugin-install-hint">'+tr("安装后按插件能力提供功能。部分功能需要账号、其他播放设备或平台适配。")+'</p></div>';
+    var actions=button('cancel',tr("返回"))+button('check-update',tr("检查更新"),'secondary','refresh')+button('retry-job',tr("重试"))+button('confirm-update',tr("确认并更新"),'primary')+button('update-plugin',tr("更新插件"),'primary','download')+button('install',tr("安装插件"),'primary','download');
+    var gen=modal(c.name,html,actions);$('modal-layer').firstChild.className+=' plugin-dialog';
+    state.catalogView={repository:c.repository,gen:gen,job:null,error:'',permissionJob:''};patchCatalogDetail();
+    if(u&&u.jobId)pollJob(u.jobId,state.catalogView);else refreshUpdates();
+  }
+  function patchCatalogDetail(){
+    var ctx=state.catalogView;if(!catalogOpen(ctx))return;var active=document.activeElement;
+    var installed=state.installed[ctx.repository.toLowerCase()],u=updateFor(installed),job=ctx.job;
+    if(!job&&u&&u.jobId&&updateBusy(u)){ctx.job=job={id:u.jobId,operation:'update',state:u.state};pollJob(u.jobId,ctx);}
+    var busy=updateBusy(u)||job&&['downloading','installing','awaiting-confirmation'].indexOf(job.state)>=0;
+    var waiting=job&&job.state==='awaiting-confirmation';
+    $('modal-layer').firstChild.classList.toggle('awaiting-permissions',!!waiting);
+    var badge=$('catalog-badge');badge.innerHTML=installationBadge(installed,u);
+    $('catalog-version').textContent=installed?tr("当前版本：")+pluginVersion(installed,u):'';
+    $('catalog-update-status').textContent=ctx.error|| (job&&job.state==='failed'?(job.operation==='update'?tr("更新失败，请重试"):tr("安装未完成"))+' · '+job.message:job&&busy?(job.message?tr(job.message):updateStatus({state:job.state})):installed?updateStatus(u):'');
+    $('catalog-update-status').title=u&&u.message||'';
+    var layer=$('modal-layer'),check=layer.querySelector('[data-action="check-update"]'),update=layer.querySelector('[data-action="update-plugin"]'),installButton=layer.querySelector('[data-action="install"]'),confirm=layer.querySelector('[data-action="confirm-update"]'),retry=layer.querySelector('[data-action="retry-job"]');
+    check.hidden=!installed;check.disabled=!!(busy||u&&u.state==='checking'||installed&&(installed.instanceId==='fixture'||!installed.revision));
+    update.hidden=!installed||!u||!u.available||waiting;update.disabled=!!busy;update.innerHTML=icon('download')+esc(tr("更新到 ")+ (u?u.latestVersion:''));
+    installButton.hidden=!!installed;installButton.disabled=!!busy;
+    confirm.hidden=!waiting;retry.hidden=!ctx.error||!job;
+    if(!ctx.error)retry.hidden=true;
+    if(waiting&&ctx.permissionJob!==job.id){
+      ctx.permissionJob=job.id;
+      var permissions=job.permissions||{},html='<h3>'+tr("新版本需要新增权限")+'</h3>',index=0;
+      (permissions.network||[]).forEach(function(host){html+='<div class="source-option permission-item" tabindex="0" data-focus="permission-'+index+++'">'+tr("访问域名：")+esc(host)+'</div>';});
+      (permissions.process||[]).forEach(function(program){html+='<div class="source-option permission-item" tabindex="0" data-focus="permission-'+index+++'">'+tr("外部程序声明：")+esc(program)+'</div>';});
+      if((permissions.process||[]).length)html+='<p class="hint">'+tr("电视端仍禁止运行外部程序。")+'</p>';
+      $('catalog-permissions').innerHTML=html;focusId('permission-0');
+    }else if(!waiting){ctx.permissionJob='';$('catalog-permissions').innerHTML='';}
+    if(layer.contains(active)&&(active.hidden||active.disabled))focusId('cancel');
+  }
+  function install(){
+    var ctx=state.catalogView;if(!catalogOpen(ctx))return;
+    ctx.error='';post('/api/plugins/install',{repository:ctx.repository},function(e,j){if(e){if(catalogOpen(ctx)){ctx.error=e;patchCatalogDetail();}else toast(e);return;}ctx.job=j;patchCatalogDetail();pollJob(j.id,ctx);});
+  }
+  function updatePlugin(){
+    var ctx=state.catalogView;if(!catalogOpen(ctx))return;var installed=state.installed[ctx.repository.toLowerCase()],u=updateFor(installed);if(!u||!u.available)return;
+    ctx.error='';post('/api/plugins/update',{instanceId:installed.instanceId,version:u.latestVersion},function(e,j){if(e){if(catalogOpen(ctx)){ctx.error=e;patchCatalogDetail();}else toast(e);return;}ctx.job=j;u.state=j.state;patchCatalog();pollJob(j.id,ctx);});
+  }
+  function confirmUpdate(){
+    var ctx=state.catalogView;if(!catalogOpen(ctx)||!ctx.permissionJob)return;var id=ctx.permissionJob;
+    post('/api/jobs/'+id+'/confirm',{allow:true},function(e,j){if(e){ctx.error=e;patchCatalogDetail();return;}ctx.job=j;patchCatalogDetail();pollJob(id,ctx);});
+  }
+  function pollJob(id,ctx){
+    var existing=state.jobPolls[id];if(existing){existing.context=ctx;return;}
+    var poll=state.jobPolls[id]={context:ctx};
+    function next(){api('/api/jobs/'+id,function(e,j){
+      var owner=poll.context;
+      if(e){delete state.jobPolls[id];if(catalogOpen(owner)){owner.error=tr("任务状态读取失败，请重试");patchCatalogDetail();}return;}
+      state.jobs[id]=j;if(catalogOpen(owner)){owner.job=j;owner.error='';patchCatalogDetail();}
+      if(j.state==='complete'){
+        delete state.jobPolls[id];loadSources(function(err){if(err)return;refreshUpdates();toast(j.operation==='update'?tr("更新完成"):tr("安装完成"));if(j.operation!=='update'&&catalogOpen(owner))setSource(j.instanceId);});
+      }else if(j.state==='awaiting-confirmation'){
+        delete state.jobPolls[id];
+        if(!catalogOpen(owner))post('/api/jobs/'+id+'/confirm',{allow:false},function(){refreshUpdates();});
+      }else if(j.state==='failed'||j.state==='cancelled'){delete state.jobPolls[id];refreshUpdates();}
+      else setTimeout(next,900);
+    });}
+    next();
+  }
   function renderSettings(keepFocus){title(tr("设置"),tr("你的聆听偏好"));var h=("<section class=\"settings-card\"><h2>"+tr("侧边栏显示")+"</h2><button class=\"secondary\" data-focus=\"pref-expanded\" data-pref=\"expanded\" aria-pressed=\"")+(state.pref==='expanded')+("\">"+tr("展开显示")+"</button><button class=\"secondary\" data-focus=\"pref-icons\" data-pref=\"icons\" aria-pressed=\"")+(state.pref==='icons')+("\">"+tr("仅显示图标")+"</button></section><section class=\"settings-card\"><h2>"+tr("播放与歌词")+"</h2>")+button('play-mode',tr(modeLabels[state.player?state.player.mode:'sequence']),'secondary',state.player?state.player.mode:'sequence')+button('translation-setting',state.translation?tr("歌词翻译：开"):tr("歌词翻译：关"),'secondary','lyrics')+'</section>';
     h+=("<section class=\"settings-card appearance-card\"><h2>"+tr("主题")+"</h2><p class=\"hint\">"+tr("选择适合客厅环境的外观")+"</p><div class=\"appearance-choices\">")+appearanceChoice('theme','dark',tr("深色主题"),tr("保留当前深绿风格"),'moon')+appearanceChoice('theme','light',tr("淡色主题"),tr("浅色背景，柔和清晰"),'sun')+'</div></section>';
     h+=("<section class=\"settings-card\"><h2>"+tr("界面语言")+"</h2><button class=\"secondary\" data-focus=\"language-zh-CN\" data-language=\"zh-CN\" aria-pressed=\"")+(state.language==='zh-CN')+("\">"+tr("简体中文")+"</button><button class=\"secondary\" data-focus=\"language-zh-TW\" data-language=\"zh-TW\" aria-pressed=\"")+(state.language==='zh-TW')+("\">"+tr("繁體中文")+"</button><p class=\"hint\">"+tr("仅切换应用界面，歌曲、歌词和评论保留原文。")+"</p></section>");
@@ -420,7 +529,7 @@
     var a=n.getAttribute('data-action')||n.id;
     switch(a){
     case 'source-switch':sourceMenu();break;case 'go-market':state.stack=[];navigate('market');break;case 'go-search':state.stack=[];state.detail=null;navigate('search');break;case 'cancel':closeModal();break;
-    case 'install':install();break;case 'refresh-catalog':renderMarket(++state.pageGen,true);break;case 'retry':navigate(state.page);break;case 'load-more':n.disabled=true;n.textContent=tr("正在加载…");fetchList(true,state.pageGen);break;
+    case 'check-all-updates':checkUpdates(true);break;case 'check-update':checkUpdates(false);break;case 'update-plugin':updatePlugin();break;case 'confirm-update':confirmUpdate();break;case 'retry-job':if(state.catalogView&&state.catalogView.job){state.catalogView.error='';pollJob(state.catalogView.job.id,state.catalogView);patchCatalogDetail();}break;case 'install':install();break;case 'refresh-catalog':renderMarket(++state.pageGen,true);break;case 'retry':navigate(state.page);break;case 'load-more':n.disabled=true;n.textContent=tr("正在加载…");fetchList(true,state.pageGen);break;
     case 'feature-play':play(state.featureTrack);break;case 'play-all':play(0);break;case 'toggle':toggle();break;case 'previous':control('previous');break;case 'next':control('next');break;case 'seek':seekMenu();break;case 'open-player':openPlayer();break;case 'player-back':case 'detail-back':back();break;
     case 'now-artist':openTrackArtist();break;case 'now-album':var albumTrack=currentTrack();if(albumTrack)openEntity(albumTrack.album,'album',albumTrack.source);break;case 'now-like':toggleLike(currentTrack(),n);break;
     case 'queue-button':queue();break;case 'play-mode':modeMenu();break;case 'queue-clear':dialog('清空播放队列？',("<p>"+tr("将停止当前播放并移除全部歌曲。")+"</p>"),button('cancel',tr("取消"))+button('queue-clear-confirm',tr("清空"),'primary'),{nest:true});break;
@@ -439,6 +548,6 @@
     case 'exit-confirm':exitConfirm();break;case 'exit':control('stop');closeModal();toast(tr("播放已停止（浏览器预览）"));break;
     }
   });
-  function start(){window.MyGoI18n.localize(document);var boot=++state.boot;$('startup-retry').hidden=true;api('/health',function(err){if(err){$('startup-status').textContent=tr("核心连接失败，请重试");$('startup-retry').hidden=false;$('startup-retry').focus();return;}api('/api/config',function(e,conf){if(e){$('startup-status').textContent=e;$('startup-retry').hidden=false;return;}state.mode=conf.mode;api('/api/preferences',function(prefError,prefs){if(prefError){$('startup-status').textContent=prefError;$('startup-retry').hidden=false;return;}applyAppearance(prefs||{});state.pref=prefs&&prefs.sidebar==='icons'?'icons':'expanded';state.translation=!prefs||prefs.translation!=='off';appClass();loadSources(function(sourceError){if(sourceError){$('startup-status').textContent=tr("音乐源加载失败，请重试");$('startup-retry').hidden=false;return;}$('startup').hidden=true;$('app').hidden=false;navigate(state.sources.length?'home':'market');clearInterval(state.poll);state.poll=setInterval(pollPlayer,600);pollPlayer();if(window.Android&&window.Android.uiReady)window.Android.uiReady();});});});});}
+  function start(){window.MyGoI18n.localize(document);var boot=++state.boot;$('startup-retry').hidden=true;api('/health',function(err){if(err){$('startup-status').textContent=tr("核心连接失败，请重试");$('startup-retry').hidden=false;$('startup-retry').focus();return;}api('/api/config',function(e,conf){if(e){$('startup-status').textContent=e;$('startup-retry').hidden=false;return;}state.mode=conf.mode;api('/api/preferences',function(prefError,prefs){if(prefError){$('startup-status').textContent=prefError;$('startup-retry').hidden=false;return;}applyAppearance(prefs||{});state.pref=prefs&&prefs.sidebar==='icons'?'icons':'expanded';state.translation=!prefs||prefs.translation!=='off';appClass();loadSources(function(sourceError){if(sourceError){$('startup-status').textContent=tr("音乐源加载失败，请重试");$('startup-retry').hidden=false;return;}$('startup').hidden=true;$('app').hidden=false;navigate(state.sources.length?'home':'market');clearInterval(state.poll);state.poll=setInterval(pollPlayer,600);pollPlayer();clearTimeout(state.updatesTimer);pollUpdates();if(window.Android&&window.Android.uiReady)window.Android.uiReady();});});});});}
   state.boot=0;$('startup-retry').onclick=start;start();
 }());

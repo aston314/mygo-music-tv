@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -66,6 +67,40 @@ func TestRapidTrackSwitch(t *testing.T) {
 		time.Sleep(time.Millisecond)
 	}
 	t.Fatal("second resolve never became ready")
+}
+
+func TestPluginUpdateGuardPreservesPlayback(t *testing.T) {
+	s := newTest(t)
+	s.player.Lock()
+	s.player.state = Playback{State: "playing", Queue: []music.Track{{ID: "song", Source: "online"}}, Index: 0, Generation: 42, Media: "/media/existing", Position: 1500, WantPlay: true}
+	s.player.Unlock()
+	before := s.player.snapshot()
+	release, err := s.player.guardPluginUpdate("online")
+	if err != nil {
+		t.Fatal(err)
+	}
+	release()
+	if !reflect.DeepEqual(before, s.player.snapshot()) {
+		t.Fatal("activation guard changed playback")
+	}
+	for _, state := range []Playback{
+		{State: "preparing", Queue: before.Queue},
+		{State: "playing", Queue: before.Queue, Remote: true},
+		{State: "paused", Queue: before.Queue, Remote: true},
+	} {
+		s.player.Lock()
+		s.player.state = state
+		s.player.Unlock()
+		if release, err = s.player.guardPluginUpdate("online"); err == nil {
+			release()
+			t.Fatal("allowed replacement during source-dependent playback")
+		}
+		release, err = s.player.guardPluginUpdate("another-source")
+		if err != nil {
+			t.Fatal(err)
+		}
+		release()
+	}
 }
 
 // Range streaming preserves seek support and strips all source credentials on cross-host redirects.

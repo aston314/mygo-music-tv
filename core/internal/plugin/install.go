@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -47,9 +46,9 @@ type Origin struct {
 
 // Release is what a repository offers to install.
 type Release struct {
-	Repo    string
-	Version string // the tag, or the commit
-	url     string // of the archive
+	Repo    string `json:"repo"`
+	Version string `json:"version"` // the tag, or the commit
+	URL     string `json:"url"`     // of the archive
 }
 
 // Pending is a plugin downloaded and checked, waiting for the listener to say
@@ -171,56 +170,11 @@ func findGitHubToken() string {
 // withToken is whether GitHub's API is asked with the listener's token.
 func withToken() bool { return !tokenRefused.Load() && githubToken() != "" }
 
-// githubSend gets url, as the listener when it's GitHub's API and they have a
-// token, which goes nowhere else. One GitHub refuses is dropped, and the request
-// sent again without it.
-func githubSend(url, accept string) (*http.Response, error) {
-	token := ""
-	if strings.HasPrefix(url, githubAPI+"/") && withToken() {
-		token = githubToken()
-	}
-	for {
-		req, err := http.NewRequest("GET", url, nil)
-		if err != nil {
-			return nil, err
-		}
-		req.Header.Set("User-Agent", "mygo-music")
-		if accept != "" {
-			req.Header.Set("Accept", accept)
-		}
-		if token != "" {
-			req.Header.Set("Authorization", "Bearer "+token)
-		}
-		res, err := installClient.Do(req)
-		if err != nil || token == "" || res.StatusCode != http.StatusUnauthorized {
-			return res, err
-		}
-		res.Body.Close()
-		log.Print("GitHub refused the token; going on without it")
-		tokenRefused.Store(true)
-		token = ""
-	}
-}
-
-func githubGet(path string, out any) (status int, err error) {
-	res, err := githubSend(githubAPI+path, "application/vnd.github+json")
-	if err != nil {
-		return 0, err
-	}
-	defer res.Body.Close()
-	switch res.StatusCode {
-	case http.StatusOK:
-		return res.StatusCode, json.NewDecoder(res.Body).Decode(out)
-	case http.StatusNotFound:
-		return res.StatusCode, nil
-	case http.StatusForbidden, http.StatusTooManyRequests:
-		return res.StatusCode, errors.New("GitHub says to slow down; try again in a while")
-	}
-	return res.StatusCode, fmt.Errorf("GitHub answered %s", res.Status)
-}
-
 // Latest finds what a repository offers now.
-func Latest(repo string) (*Release, error) {
+func Latest(repo string) (*Release, error) { return LatestContext(context.Background(), repo) }
+
+// LatestContext checks metadata without downloading the archive.
+func LatestContext(ctx context.Context, repo string) (*Release, error) {
 	var rel struct {
 		Tag    string `json:"tag_name"`
 		Zip    string `json:"zipball_url"`
@@ -230,7 +184,7 @@ func Latest(repo string) (*Release, error) {
 			API  string `json:"url"`
 		} `json:"assets"`
 	}
-	status, err := githubGet("/repos/"+repo+"/releases/latest", &rel)
+	status, err := githubGetContext(ctx, "/repos/"+repo+"/releases/latest", &rel)
 	if err != nil {
 		return nil, err
 	}
@@ -247,20 +201,20 @@ func Latest(repo string) (*Release, error) {
 				url = rel.Assets[at].API
 			}
 		}
-		return &Release{Repo: repo, Version: rel.Tag, url: url}, nil
+		return &Release{Repo: repo, Version: rel.Tag, URL: url}, nil
 	}
 	// No release: the latest commit of its default branch.
 	var commit struct {
 		SHA string `json:"sha"`
 	}
-	status, err = githubGet("/repos/"+repo+"/commits/HEAD", &commit)
+	status, err = githubGetContext(ctx, "/repos/"+repo+"/commits/HEAD", &commit)
 	if err != nil {
 		return nil, err
 	}
 	if status != http.StatusOK || commit.SHA == "" {
 		return nil, ErrNoRepo
 	}
-	return &Release{Repo: repo, Version: commit.SHA[:min(len(commit.SHA), 12)], url: githubAPI + "/repos/" + repo + "/zipball/" + commit.SHA}, nil
+	return &Release{Repo: repo, Version: commit.SHA[:min(len(commit.SHA), 12)], URL: githubAPI + "/repos/" + repo + "/zipball/" + commit.SHA}, nil
 }
 
 // pickAsset chooses the zip for a platform: the one named for it, or else one
@@ -302,7 +256,11 @@ func Fetch(repo, dir string) (*Pending, error) {
 // FetchRelease is Fetch of a release Latest found already, without asking GitHub
 // again what there is.
 func FetchRelease(rel *Release, dir string) (*Pending, error) {
-	return pending(dir, func(tmp string) (*Pending, error) { return fetchInto(rel, tmp) })
+	return FetchReleaseContext(context.Background(), rel, dir)
+}
+
+func FetchReleaseContext(ctx context.Context, rel *Release, dir string) (*Pending, error) {
+	return pending(dir, func(tmp string) (*Pending, error) { return fetchInto(ctx, rel, tmp) })
 }
 
 // pending makes a plugin waiting to be installed, in a folder of its own in dir
@@ -325,9 +283,9 @@ func pending(dir string, into func(tmp string) (*Pending, error)) (*Pending, err
 	return p, nil
 }
 
-func fetchInto(rel *Release, tmp string) (*Pending, error) {
+func fetchInto(ctx context.Context, rel *Release, tmp string) (*Pending, error) {
 	archive := filepath.Join(tmp, "archive.zip")
-	if err := download(rel.url, archive); err != nil {
+	if err := downloadContext(ctx, rel.URL, archive); err != nil {
 		return nil, err
 	}
 	unpacked := filepath.Join(tmp, "unpacked")
@@ -454,36 +412,6 @@ func copyFile(from, to string, perm os.FileMode, limit int64) (int64, error) {
 		return n, err
 	}
 	return n, out.Close()
-}
-
-func download(url, path string) error {
-	// An asset from the API comes as itself with this, and as its description
-	// without; a zipball refuses it.
-	accept := ""
-	if strings.Contains(url, "/releases/assets/") {
-		accept = "application/octet-stream"
-	}
-	res, err := githubSend(url, accept)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("downloading the plugin: %s", res.Status)
-	}
-	f, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	n, err := io.Copy(f, io.LimitReader(res.Body, maxArchive+1))
-	if err != nil {
-		return err
-	}
-	if n > maxArchive {
-		return errors.New("the plugin's archive is too large")
-	}
-	return f.Close()
 }
 
 // unzip unpacks an archive into dir, refusing anything that would land outside
@@ -627,7 +555,10 @@ func (p *Pending) Discard() { os.RemoveAll(p.tmp) }
 // replaces, if any, whose data stays. A plugin of that name from elsewhere stays
 // too: the new one can't take its name, and what it signed in to. One from this
 // machine is from nowhere, as one dropped in is, and replaces only such.
-func (p *Pending) Install(dir string) error {
+func (p *Pending) Install(dir string) error { return p.InstallValidated(dir, nil) }
+
+// InstallValidated keeps the previous code until validation succeeds. Data is outside this transaction.
+func (p *Pending) InstallValidated(dir string, validate func() error) error {
 	defer os.RemoveAll(p.tmp)
 	target := filepath.Join(dir, p.Manifest.ID)
 	if _, err := os.Stat(target); err == nil {
@@ -659,6 +590,19 @@ func (p *Pending) Install(dir string) error {
 			os.Rename(old, target)
 		}
 		return err
+	}
+	if validate != nil {
+		if err := validate(); err != nil {
+			if e := os.RemoveAll(target); e != nil {
+				return fmt.Errorf("%w; rollback: %v", err, e)
+			}
+			if hadOne {
+				if e := os.Rename(old, target); e != nil {
+					return fmt.Errorf("%w; rollback: %v", err, e)
+				}
+			}
+			return err
+		}
 	}
 	return nil
 }

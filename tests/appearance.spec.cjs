@@ -64,7 +64,7 @@ for(const theme of ['dark','light'])for(const language of ['zh-CN','zh-TW'])test
  await page.locator('[data-focus="nav-market"]').click();await expect(page.locator('[data-catalog="0"] .card-name')).toHaveText('发现音乐');
  await expect(page.locator('[data-catalog="0"] .install-badge')).toHaveText(traditional?'已安裝':'已安装');
  await page.locator('[data-catalog="0"]').click();await expect(page.locator('.modal h2')).toHaveText('发现音乐');
- await expect(page.locator('[data-action="install"]')).toHaveText(traditional?'檢查並更新':'检查并更新');
+ await expect(page.locator('[data-action="check-update"]')).toHaveText(traditional?'檢查更新':'检查更新');
  await page.keyboard.press('Escape');await page.locator('[data-focus="nav-search"]').click();await expect(page.locator('#search-input')).toHaveAttribute('placeholder',traditional?'歌曲、歌手、專輯':'歌曲、歌手、专辑');
  await page.locator('#source-switch').click();await expect(page.locator('.modal h2')).toHaveText(traditional?'選擇音樂源':'选择音乐源');await expect(page.locator('[data-source="fixture"]')).toBeFocused();
  await page.screenshot({path:info.outputPath(theme+'-'+language+'-modal.png')});

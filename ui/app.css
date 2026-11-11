@@ -172,3 +172,24 @@ html[data-theme=light] #app.player-view #player-bar{background:transparent;box-s
 html[data-theme=light] #toast{background:#2a2a31;color:#fff;box-shadow:0 8px 25px rgba(30,30,50,.2)}
 html[data-theme=light] .danger{color:#b42318!important}
 html[data-theme=light] .scroll::-webkit-scrollbar-thumb,html[data-theme=light] nav::-webkit-scrollbar-thumb,html[data-theme=light] .modal::-webkit-scrollbar-thumb{background:#cfcfd9}
+
+/* Plugin update state is patched in place to preserve TV focus and scrolling. */
+.plugin-version{display:block;min-height:26px;margin:6px 0;font-size:17px;line-height:26px;color:#b4c7bc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.install-badge.update-available{background:#f5d394;border-color:#f5d394;color:#563600}
+.catalog-version{font-size:23px;font-weight:600;line-height:1.5}
+#catalog-update-status{min-height:30px;line-height:1.5;color:#b4c7bc;overflow-wrap:break-word}
+#catalog-permissions{max-height:190px;overflow:auto;padding:6px}
+.permission-item{display:block;width:100%;margin-bottom:8px;overflow-wrap:break-word}
+#market-update-status{font-size:17px;max-width:390px;text-align:right}
+html[data-theme=light] .plugin-version,html[data-theme=light] #catalog-update-status{color:#6e6e78}
+html[data-theme=light] .install-badge.update-available{background:#fff1d6;color:#8a5400;border-color:transparent}
+.plugin-dialog{display:flex;flex-direction:column;overflow:hidden}
+.plugin-dialog h2,.plugin-dialog .actions{flex-shrink:0}
+.plugin-detail-body{min-height:0;overflow-y:auto;padding:4px 6px 8px;margin:0 -6px}
+.plugin-dialog #catalog-permissions{max-height:none;overflow:visible;padding:6px}
+.plugin-dialog .actions{margin-top:16px}
+.plugin-dialog .actions button{white-space:nowrap}
+.plugin-dialog .plugin-detail-body>p{margin:12px 0;font-size:20px;line-height:1.5}
+.plugin-dialog .catalog-version{font-size:23px}
+.plugin-dialog #catalog-permissions h3{font-size:23px;margin:14px 0 12px}
+.awaiting-permissions .plugin-description,.awaiting-permissions .plugin-install-hint{display:none}

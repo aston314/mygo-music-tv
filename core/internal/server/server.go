@@ -95,6 +95,10 @@ func New(data, mode, token string) (*Server, error) {
 			return nil, e
 		}
 	}
+	m.GuardUpdate = s.player.guardPluginUpdate
+	if mode == "real" {
+		m.StartUpdateChecks()
+	}
 	s.routes()
 	return s, nil
 }
@@ -212,6 +216,49 @@ func (s *Server) routes() {
 			return
 		}
 		j, e := s.sources.Start(q.Repository)
+		if e != nil {
+			failure(w, 400, e)
+			return
+		}
+		respond(w, j)
+	})
+	s.mux.HandleFunc("GET /api/plugins/updates", func(w http.ResponseWriter, r *http.Request) { respond(w, s.sources.Updates()) })
+	s.mux.HandleFunc("POST /api/plugins/check-updates", func(w http.ResponseWriter, r *http.Request) {
+		var q struct {
+			InstanceID string `json:"instanceId"`
+		}
+		if !decode(w, r, &q) {
+			return
+		}
+		if e := s.sources.CheckUpdates(q.InstanceID, true); e != nil {
+			failure(w, 400, e)
+			return
+		}
+		respond(w, s.sources.Updates())
+	})
+	s.mux.HandleFunc("POST /api/plugins/update", func(w http.ResponseWriter, r *http.Request) {
+		var q struct {
+			InstanceID string `json:"instanceId"`
+			Version    string `json:"version"`
+		}
+		if !decode(w, r, &q) {
+			return
+		}
+		j, e := s.sources.StartUpdate(q.InstanceID, q.Version)
+		if e != nil {
+			failure(w, 400, e)
+			return
+		}
+		respond(w, j)
+	})
+	s.mux.HandleFunc("POST /api/jobs/{id}/confirm", func(w http.ResponseWriter, r *http.Request) {
+		var q struct {
+			Allow bool `json:"allow"`
+		}
+		if !decode(w, r, &q) {
+			return
+		}
+		j, e := s.sources.ConfirmUpdate(r.PathValue("id"), q.Allow)
 		if e != nil {
 			failure(w, 400, e)
 			return

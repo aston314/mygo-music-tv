@@ -27,6 +27,7 @@ test('fixed canvas scales without rearranging, and remote focus remains visible'
 });
 
 test('market modal traps directional focus and returns to the same card', async ({ page }) => {
+  await page.route('**/api/catalog*',route=>route.fulfill({json:{entries:[{repository:'community/uninstalled',name:'Community'}]}}));
   await boot(page); await page.locator('[data-focus="nav-market"]').click();
   const card = page.locator('[data-catalog="0"]'); await card.click();
   await expect(page.locator('[data-action="cancel"]')).toBeFocused();
@@ -64,7 +65,7 @@ test('market marks installation by repository and keeps status badges readable a
   }
   await installed.click();
   await expect(page.locator('#modal-layer .install-badge')).toHaveText('已安装');
-  await expect(page.locator('[data-action="install"]')).toHaveText('检查并更新');
+  await expect(page.locator('[data-action="check-update"]')).toHaveText('检查更新');
   await page.keyboard.press('Escape');
   await expect(installed).toBeFocused();
   await available.click();

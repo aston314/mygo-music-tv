@@ -314,3 +314,15 @@ func (p *player) event(gen int64, state string, pos, duration int64, seekAck ...
 	}
 	return true
 }
+
+// The manager holds its lock before acquiring the player lock. Activation never
+// changes playback; preparing and remote sessions must finish before replacement.
+func (p *player) guardPluginUpdate(id string) (func(), error) {
+	p.Lock()
+	s := p.state
+	if s.Index >= 0 && s.Index < len(s.Queue) && s.Queue[s.Index].Source == id && (s.State == "preparing" || s.Remote && s.State != "idle" && s.State != "ended" && s.State != "failed") {
+		p.Unlock()
+		return nil, errors.New("此音乐源正在准备播放或控制远端设备，请结束播放后重试更新")
+	}
+	return p.Unlock, nil
+}

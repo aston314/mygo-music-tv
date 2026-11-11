@@ -64,7 +64,7 @@ GitHub 私有仓库 [aston314/mygo-music-tv](https://github.com/aston314/mygo-mu
 
 ## 协议入口
 
-核心只绑定 loopback。API 使用 HttpOnly 会话 Cookie 或本机 bearer 凭证，并校验浏览器 Origin。`/health` 明确返回 readiness 与能力；`/api/catalog` 管理目录；`/api/plugins/install` 和 `/api/jobs/{id}` 管理安装；`/api/sources/{instance}/call/{method}` 保持 Source 协议（登录/stream 走专用入口）；`/api/player/*` 管理规范化播放状态；`/media/{lease}` 提供可撤销媒体流。
+核心只绑定 loopback。API 使用 HttpOnly 会话 Cookie 或本机 bearer 凭证，并校验浏览器 Origin。`/health` 明确返回 readiness 与能力；`/api/catalog` 管理目录；`/api/plugins/install` 和 `/api/jobs/{id}` 管理安装；`/api/plugins/updates`、`check-updates` 与 `update` 管理插件检查和更新，详见[插件更新及国内下载回退](docs/plugin-updates.md)；`/api/sources/{instance}/call/{method}` 保持 Source 协议（登录/stream 走专用入口）；`/api/player/*` 管理规范化播放状态；`/media/{lease}` 提供可撤销媒体流。
 
 ## 许可证
 

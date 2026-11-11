@@ -1,6 +1,7 @@
 package sources
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -20,7 +21,7 @@ func TestRepositoryIsolation(t *testing.T) {
 		if e != nil {
 			t.Fatal(e)
 		}
-		m.fetch = func(repo, dir string) (*plugin.Pending, error) {
+		m.fetch = func(ctx context.Context, repo, dir string) (*plugin.Pending, error) {
 			p, e := plugin.Open(fixture, dir)
 			if e == nil {
 				p.Repo = repo
