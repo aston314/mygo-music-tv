@@ -43,9 +43,9 @@ test('failed saves retain the active appearance and rapid choices persist in ord
  await expect(page.locator('html')).toHaveAttribute('data-theme','dark');await expect(page.locator('button[data-theme="dark"]')).toHaveAttribute('aria-pressed','true');
  await page.unroute('**/api/preferences');let release;const gate=new Promise(resolve=>release=resolve);let count=0;
  await page.route('**/api/preferences',async route=>{if(route.request().method()==='POST'&&++count===1)await gate;await route.continue();});
- await page.locator('button[data-theme="light"]').click();await page.locator('button[data-theme="dark"]').click();await page.locator('#open-player').focus();release();
+ await page.locator('button[data-theme="light"]').click();await page.locator('button[data-theme="dark"]').click();await page.locator('[data-focus="nav-home"]').click();await page.locator('#open-player').focus();release();
  await expect.poll(()=>count).toBe(2);await expect.poll(async()=>(await(await page.request.get('/api/preferences')).json()).theme).toBe('dark');
- await expect(page.locator('#open-player')).toBeFocused();await expect(page.locator('#page-title')).toHaveText('设置');
+ await expect(page.locator('#open-player')).toBeFocused();await expect(page.locator('[data-focus="nav-home"]')).toHaveClass('active');
 });
 
 for(const theme of ['dark','light'])for(const language of ['zh-CN','zh-TW'])test(theme+' / '+language+' keeps TV layout and source content intact',async({page},info)=>{
@@ -78,7 +78,7 @@ test('Traditional lyrics, nested queue and comments retain original music text a
  const before=await(await page.request.get('/api/player')).json();await page.locator('#toggle').click();
  await settings(page);await choose(page,'theme','light');await choose(page,'language','zh-TW');
  const after=await(await page.request.get('/api/player')).json();expect(after.generation).toBe(before.generation);expect(after.media).toBe(before.media);
- await page.locator('#open-player').click();await expect(page.locator('.lyric-line')).toHaveText('音乐，歌词保持原样');
+ await page.locator('[data-focus="nav-home"]').click();await page.locator('#open-player').click();await expect(page.locator('.lyric-line')).toHaveText('音乐，歌词保持原样');
  await expect(page.locator('[data-action="translation"]')).toHaveCount(0);
  await expect(page.locator('[data-focus="player-album"]')).toContainText('專輯 · ');
  await page.locator('#queue-button').click();await expect(page.locator('.modal h2')).toHaveText('播放佇列');await expect(page.locator('[data-queue-jump]').first()).toBeFocused();

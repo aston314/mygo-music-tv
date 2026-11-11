@@ -25,7 +25,7 @@
 .lyric-line:not(.current) .lyric-word{color:inherit}.comment-author{max-width:72%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 .page-heading{flex:1;min-width:0;padding-right:16px}.page-heading h1{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.header-tools{display:flex;align-items:center;flex-shrink:0;max-width:65%}#header-actions{flex-shrink:0}#account-button{height:52px;max-width:228px;min-width:100px;padding:10px 14px;margin-left:16px;border-color:#3c574b;text-align:left;font-size:20px;white-space:nowrap}#account-button .icon{width:25px;height:25px;margin-right:9px}#account-name{display:inline-block;max-width:160px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}.account-stale{color:#d4ceaa}.detail-tabs{display:flex;margin:8px 0 18px}.detail-tabs button{margin-right:14px}.detail-head h2{overflow-wrap:break-word;word-wrap:break-word}
-.now-meta .credit-link{display:block;width:100%;height:27px;min-height:27px;padding:1px 3px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:18px;line-height:23px;color:#b8d1bb;border-radius:5px}.now-meta strong{line-height:28px}.credit-link:disabled{opacity:1;cursor:default}.credit-link{text-decoration:none}#now-album{font-size:17px;color:#9fbba4}#now-like{width:48px;height:54px;flex-shrink:0;margin-left:8px}#now-like .icon{width:27px;height:27px}[data-like-key][aria-pressed=true] .icon{fill:currentColor}.player-heading .credit-link{display:block;max-width:100%;width:100%;height:28px;padding:0 8px;line-height:26px;font-size:inherit;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.now-meta .credit-link{display:block;width:100%;height:27px;min-height:27px;padding:1px 3px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:18px;line-height:23px;color:#b8d1bb;border-radius:5px}.now-meta strong{line-height:28px}.credit-link:disabled{opacity:1;cursor:default}.credit-link{text-decoration:none}#now-album{font-size:17px;color:#9fbba4}#now-like{width:48px;height:54px;flex-shrink:0;margin-left:8px}#now-like .icon{width:27px;height:27px}[data-like-key][aria-pressed=true] .icon{fill:currentColor}.player-heading .credit-link{display:inline-block;vertical-align:top;max-width:100%;width:auto;height:28px;padding:0 8px;line-height:26px;font-size:inherit;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .timeline{position:relative;height:100%}#playback-status{position:absolute;left:4px;right:4px;top:13px;min-width:0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:16px;color:#b2c9b6;line-height:20px}.progress-track i{position:relative}.progress-thumb{position:absolute;right:0;top:50%;width:12px;height:12px;transform:translate(50%,-50%);border-radius:50%;background:#b9edcb}#seek:focus{outline:none;box-shadow:none;background:transparent;border-color:transparent}#seek:focus .progress-thumb{width:16px;height:16px;box-shadow:0 0 0 4px #11221b,0 0 0 7px #b7f5d7}#seek:focus .progress-track{background:#598164}
 #lyrics-button{height:56px;width:56px;flex-shrink:0;margin-left:12px;color:#c5dfc9}.comment-card:focus{background:#2c4935}.comment-card{outline-offset:0}.comment-actions:empty{display:none}
 .centered-modal{display:flex;flex-direction:column;text-align:center;overflow:hidden}.centered-modal h2,.centered-modal .actions{flex-shrink:0}.centered-modal .actions{justify-content:center}.centered-modal .actions button{margin:0 7px}#login-status{max-height:430px;min-height:0;padding:7px 12px;overflow-y:auto;border-radius:10px;font-size:21px;line-height:1.6;color:#b6cbb8;word-break:break-word}#login-status .qr{margin:12px auto 18px}#login-status p{max-width:620px;margin:0 auto 12px}
@@ -51,11 +51,14 @@ html[data-theme=light] .grid{margin-left:0;margin-right:0;padding-top:12px;paddi
 .timeline-controls{display:flex;align-items:center;flex:1;min-width:0;height:100%}
 .player-view:not(.lyrics-full) .record-column{padding-bottom:232px}
 .player-view:not(.lyrics-full) #player-bar{height:212px}
-.player-view:not(.lyrics-full) .timeline{height:92px;display:block}
+.player-view:not(.lyrics-full) .timeline{height:92px;display:block;width:100%;max-width:100%;min-width:0}
 .player-view:not(.lyrics-full) #playback-status{position:static;display:block;margin:14px 4px 10px;line-height:20px;height:20px}
 .player-view:not(.lyrics-full) .timeline-controls{height:48px}
 .player-view:not(.lyrics-full) #seek{height:48px}
 .player-view:not(.lyrics-full) .progress-track{top:22px}
+
+#app.without-player main{bottom:0}
+#app.without-player ~ #toast{bottom:24px}
 
 /* Shared button content avoids inline SVG/text baseline offsets and old button-flex quirks. */
 .button-content{display:flex;align-items:center;justify-content:center;min-width:0}

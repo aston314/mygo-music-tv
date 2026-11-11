@@ -53,7 +53,7 @@ test('player uses SVG, centers lyrics, supports translation/fullscreen, and rest
  await expect(page.locator('[data-action="translation"]')).toHaveCount(0);
  await page.keyboard.press('Escape');await page.locator('[data-focus="nav-settings"]').click();
  await page.locator('[data-action="translation-setting"]').click();await expect(page.locator('[data-action="translation-setting"]')).toHaveText('歌词翻译：关');
- await page.locator('#open-player').click();await expect(page.locator('#lyrics .translation')).toHaveCount(0);
+ await page.locator('[data-focus="nav-home"]').click();await page.locator('#open-player').click();await expect(page.locator('#lyrics .translation')).toHaveCount(0);
  await page.locator('[data-action="full-lyrics"]').click();
  await expect(page.locator('.listening')).toHaveClass(/lyrics-only/);
  await page.keyboard.press('Escape');await expect(page.locator('.listening')).not.toHaveClass(/lyrics-only/);

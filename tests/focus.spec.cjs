@@ -162,9 +162,10 @@ test('a delayed sidebar preference save cannot pull focus back from the footer',
  await page.route('**/api/preferences',async route=>{if(route.request().method()!=='POST')return route.continue();started=true;await gate;const response=await route.fetch();await route.fulfill({response});});
  await page.locator('[data-pref="icons"]').click();await expect.poll(()=>started).toBe(true);
  await page.keyboard.press('ArrowLeft');await expect(page.locator('[data-pref="expanded"]')).toBeFocused();await page.keyboard.press('ArrowLeft');
- await expect(page.locator('[data-focus="nav-settings"]')).toBeFocused();await page.keyboard.press('ArrowDown');await expect(page.locator('#open-player')).toBeFocused();
+ await expect(page.locator('[data-focus="nav-settings"]')).toBeFocused();await page.keyboard.press('ArrowDown');await expect(page.locator('[data-focus="nav-settings"]')).toBeFocused();
+ await page.locator('[data-focus="nav-home"]').click();await page.locator('#open-player').focus();
  release();await expect(page.locator('#app')).toHaveClass('icons');await expect(page.locator('#open-player')).toBeFocused();
- await page.keyboard.press('ArrowUp');await expect(page.locator('[data-focus="nav-settings"]')).toBeFocused();
+ await page.keyboard.press('ArrowLeft');expect(await page.evaluate(()=>document.querySelector('#nav').contains(document.activeElement))).toBe(true);
 });
 
 for(const [width,height] of [[960,540],[1280,720],[1920,1080]])test('sidebar, rows and footer form reversible focus paths at '+width+'x'+height,async({page},testInfo)=>{
@@ -172,6 +173,7 @@ for(const [width,height] of [[960,540],[1280,720],[1920,1080]])test('sidebar, ro
  for(const mode of ['expanded','icons']){
   await page.locator('[data-focus="nav-settings"]').click();await page.locator('[data-pref="'+mode+'"]').click();
   await expect(page.locator('[data-pref="'+mode+'"]')).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('#player-bar')).toBeHidden();await page.locator('[data-focus="nav-home"]').click();
   const layout=await page.evaluate(()=>{const r=s=>document.querySelector(s).getBoundingClientRect();return {side:r('#sidebar'),bar:r('#player-bar'),stage:r('#stage')};});
   expect(layout.side.bottom).toBeCloseTo(layout.stage.bottom,0);expect(layout.bar.left).toBeCloseTo(layout.side.right,0);
   const settings=page.locator('[data-focus="nav-settings"]');await settings.focus();await page.keyboard.press('ArrowDown');await expect(page.locator('#open-player')).toBeFocused();
@@ -214,7 +216,7 @@ for(const [width,height] of [[960,540],[1280,720],[1920,1080]])test('lyrics view
 });
 
 test('icon sidebar has a source symbol and keeps radio and settings drawings within their SVG bounds',async({page})=>{
- await boot(page);await page.locator('[data-focus="nav-settings"]').click();await page.locator('[data-pref="icons"]').click();await expect(page.locator('#app')).toHaveClass('icons');
+ await boot(page);await page.locator('[data-focus="nav-settings"]').click();await page.locator('[data-pref="icons"]').click();await expect(page.locator('#app')).toHaveClass('icons without-player');
  await expect(page.locator('.source-icon svg')).toBeVisible();await expect(page.locator('.source-dot')).toBeHidden();
  const settings=await page.locator('[data-focus="nav-settings"]').boundingBox(),nav=await page.locator('#nav').boundingBox();
  expect(settings.y).toBeGreaterThanOrEqual(nav.y);expect(settings.y+settings.height).toBeLessThanOrEqual(nav.y+nav.height);
