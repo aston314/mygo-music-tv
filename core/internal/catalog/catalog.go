@@ -40,10 +40,56 @@ func New(address, path string) *Catalog {
 	c := &Catalog{URL: address, Path: path, Client: &http.Client{Timeout: 25 * time.Second}}
 	if b, err := os.ReadFile(path); err == nil {
 		_ = json.Unmarshal(b, &c.saved)
+		for i := range c.saved.Entries {
+			c.saved.Entries[i].Description = cleanCachedDescription(c.saved.Entries[i].Description)
+		}
 	}
 	return c
 }
+
+// Older snapshots included the directory's adjacent install/repository buttons.
+// Only remove their trailing label pair; GitHub mentions in prose stay intact.
+func cleanCachedDescription(value string) string {
+	value = strings.TrimSpace(value)
+	for _, labels := range []string{"安装 GitHub", "安裝 GitHub", "Install GitHub"} {
+		if value == labels {
+			return ""
+		}
+		value = strings.TrimSuffix(value, " "+labels)
+	}
+	return value
+}
+func installLink(n *html.Node) bool {
+	if n.Type != html.ElementNode || n.Data != "a" {
+		return false
+	}
+	u, err := url.Parse(attr(n, "href"))
+	return err == nil && u.Scheme == "mygo-music" && u.Host == "install-plugin"
+}
+func directoryAction(n *html.Node) bool {
+	if installLink(n) {
+		return true
+	}
+	if n.Type != html.ElementNode || n.Data != "a" || n.Parent == nil {
+		return false
+	}
+	u, err := url.Parse(attr(n, "href"))
+	if err != nil || !strings.EqualFold(u.Hostname(), "github.com") {
+		return false
+	}
+	// The GitHub action sits beside the install link. Keep repository titles
+	// and meaningful GitHub links elsewhere in the description.
+	for sibling := n.Parent.FirstChild; sibling != nil; sibling = sibling.NextSibling {
+		if installLink(sibling) {
+			return true
+		}
+	}
+	return false
+}
 func text(n *html.Node) string {
+	if directoryAction(n) {
+		return ""
+	}
 	if n.Type == html.TextNode {
 		return n.Data
 	}
