@@ -30,6 +30,7 @@
     close:'<path d="m5 5 14 14M5 19 19 5"/>',
     check:'<path d="m4 12 5 5L21 5"/>',
     plus:'<path d="M12 4v16M4 12h16"/>',
+    download:'<path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/>',
     comment:'<path d="M3 3h18v14H9l-6 4zM7 8h10m-10 4h7"/>',
     like:'<path d="M8 21H3V10h5m0 11h10a2 2 0 0 0 2-2l2-7a2 2 0 0 0-2-2h-6l1-5c.5-3-3-4-4-1l-3 6z"/>',
     trash:'<path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/>',
@@ -235,8 +236,25 @@
   }
   function saveEntity(n){var d=state.detail;if(!d)return;var spec={album:['saveAlbum','saved','收藏专辑'],artist:['followArtist','following','关注歌手'],playlist:['savePlaylist','saved','收藏歌单'],show:['subscribeShow','subscribed','订阅播客']}[d.type];if(!spec)return;var on=!d.entity[spec[1]];n.disabled=true;callFor(d.source,spec[0],{id:d.item.id,on:on},function(e){if(!document.documentElement.contains(n))return;n.disabled=false;if(e){toast(e);return;}d.entity[spec[1]]=on;n.setAttribute('aria-pressed',String(on));n.innerHTML=icon('heart')+' '+(on?'取消'+spec[2].slice(0,2):spec[2]);toast(on?'已保存到音乐源账号':'已取消');focusNode(n);});}
   function renderMarket(gen,refresh){title('插件市场','在线音乐源');$('header-actions').innerHTML=button('refresh-catalog','刷新目录','','refresh');loading();api('/api/catalog'+(refresh?'?refresh=1':''),function(e,data){if(gen!==state.pageGen)return;if(e){error(e);return;}state.catalog=data.entries||[];paintCatalog(data.stale,data.message);afterContent();});}
-  function paintCatalog(stale,message){var html='<div class="hero"><h2>你的音乐，不止一种来源。</h2><p>选择社区插件，安装后使用熟悉的音乐服务。</p></div>';if(stale)html+='<div class="empty-banner">'+esc(message)+'</div>';html+='<div class="section-head"><h2>探索全部插件</h2><span>'+state.catalog.length+' 个来源</span></div><div class="grid">';state.catalog.forEach(function(c,i){var installed=state.installed[c.repository.toLowerCase()],name=c.name.replace(/^mygo-music-(plugin-)?/i,'');html+='<button class="plugin-card" data-focus="catalog-'+esc(c.repository)+'" data-catalog="'+i+'"><span class="card-top"><span class="monogram">'+esc(name.charAt(0).toUpperCase())+'</span><span><strong class="card-name">'+esc(name)+'</strong><span class="card-owner">'+esc(c.repository.split('/')[0])+'</span></span></span><span class="card-description">'+esc(c.description||'社区在线音乐源插件')+'</span><span class="card-bottom"><span>'+(installed?'已安装':'查看与安装')+'</span>'+icon('arrow')+'</span></button>';});$('content').innerHTML=html+'</div>'+(!state.catalog.length?'<div class="state"><p>目录暂无插件，请刷新重试</p></div>':'');}
-  function showCatalog(index){var c=state.catalog[index];if(!c)return;state.selected=c;var installed=state.installed[c.repository.toLowerCase()];modal(c.name,'<p>'+esc(c.description||'社区在线音乐源')+'</p><div class="badge-line">'+esc(c.repository)+(installed?' · '+esc(installed.revision):'')+'</div><p>安装后按插件能力提供功能。部分功能需要账号、其他播放设备或平台适配。</p>',button('cancel','取消')+button('install',installed?'检查并更新':'安装插件','primary'));}
+  function installationBadge(installed){
+    return '<span class="install-badge '+(installed?'installed':'not-installed')+'">'+icon(installed?'check':'download')+(installed?'已安装':'未安装')+'</span>';
+  }
+  function paintCatalog(stale,message){
+    var html='<div class="hero"><h2>你的音乐，不止一种来源。</h2><p>选择社区插件，安装后使用熟悉的音乐服务。</p></div>';
+    if(stale)html+='<div class="empty-banner">'+esc(message)+'</div>';
+    html+='<div class="section-head"><h2>探索全部插件</h2><span>'+state.catalog.length+' 个来源</span></div><div class="grid">';
+    state.catalog.forEach(function(entry,index){
+      var installed=!!state.installed[entry.repository.toLowerCase()];
+      var name=entry.name.replace(/^mygo-music-(plugin-)?/i,'');
+      html+='<button class="plugin-card'+(installed?' is-installed':'')+'" data-focus="catalog-'+esc(entry.repository)+'" data-catalog="'+index+'" aria-label="'+esc(name)+(installed?'，已安装，查看与更新':'，未安装，查看与安装')+'">';
+      html+='<span class="card-top"><span class="monogram">'+esc(name.charAt(0).toUpperCase())+'</span>'+installationBadge(installed)+'</span>';
+      html+='<span class="card-heading"><strong class="card-name">'+esc(name)+'</strong><span class="card-owner">'+esc(entry.repository.split('/')[0])+'</span></span>';
+      html+='<span class="card-description">'+esc(entry.description||'社区在线音乐源插件')+'</span>';
+      html+='<span class="card-bottom"><span>'+(installed?'查看与更新':'查看与安装')+'</span>'+icon('arrow')+'</span></button>';
+    });
+    $('content').innerHTML=html+'</div>'+(!state.catalog.length?'<div class="state"><p>目录暂无插件，请刷新重试</p></div>':'');
+  }
+  function showCatalog(index){var c=state.catalog[index];if(!c)return;state.selected=c;var installed=state.installed[c.repository.toLowerCase()];modal(c.name,installationBadge(!!installed)+'<p>'+esc(c.description||'社区在线音乐源')+'</p><div class="badge-line">'+esc(c.repository)+(installed?' · '+esc(installed.revision):'')+'</div><p>安装后按插件能力提供功能。部分功能需要账号、其他播放设备或平台适配。</p>',button('cancel','取消')+button('install',installed?'检查并更新':'安装插件','primary'));}
   function install(){var c=state.selected;if(!c)return;if(c.repository==='fixture/demo'){setSource('fixture');return;}var n=$('modal-layer').querySelector('[data-action="install"]');if(n){n.disabled=true;n.textContent='正在下载…';focusId('cancel');}post('/api/plugins/install',{repository:c.repository},function(e,j){if(e){toast(e);if(n){n.disabled=false;n.textContent='重试安装';}return;}pollJob(j.id);});}
   function pollJob(id){api('/api/jobs/'+id,function(e,j){if(e){toast(e);return;}state.jobs[id]=j;if(j.state==='complete'){loadSources(function(){toast('安装完成');setSource(j.instanceId);});}else if(j.state==='failed'){modal('安装未完成','<p>'+esc(j.message)+'</p>',button('cancel','返回')+button('install','重试','primary'));}else setTimeout(function(){pollJob(id);},1000);});}
   function renderSettings(){title('设置','你的聆听偏好');var h='<section class="settings-card"><h2>侧边栏显示</h2><button class="secondary" data-focus="pref-expanded" data-pref="expanded" aria-pressed="'+(state.pref==='expanded')+'">展开显示</button><button class="secondary" data-focus="pref-icons" data-pref="icons" aria-pressed="'+(state.pref==='icons')+'">仅显示图标</button></section><section class="settings-card"><h2>播放与歌词</h2>'+button('play-mode',modeLabels[state.player?state.player.mode:'sequence'],'secondary',state.player?state.player.mode:'sequence')+button('translation-setting',state.translation?'歌词翻译：开':'歌词翻译：关','secondary','lyrics')+'</section>';

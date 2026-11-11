@@ -34,6 +34,44 @@ test('market modal traps directional focus and returns to the same card', async 
   await page.keyboard.press('Escape'); await expect(page.locator('#modal-layer')).toBeHidden(); await expect(card).toBeFocused();
 });
 
+test('market marks installation by repository and keeps status badges readable across TV sizes', async ({ page }, testInfo) => {
+  await page.route('**/api/catalog*', route => route.fulfill({ json:{ entries:[
+    { repository:'Fixture/Demo', name:'客厅音乐', description:'已安装的在线音乐源。' },
+    { repository:'another/demo', name:'客厅音乐', description:'同名的另一个社区音乐源。' },
+    { repository:'community/long-source', name:'名字很长的在线音乐来源示例', description:'社区在线音乐源插件。' }
+  ] } }));
+  await boot(page);
+  await page.locator('[data-focus="nav-market"]').click();
+  const installed = page.locator('[data-catalog="0"]');
+  const available = page.locator('[data-catalog="1"]');
+  await expect(installed.locator('.install-badge')).toHaveText('已安装');
+  await expect(available.locator('.install-badge')).toHaveText('未安装');
+  await expect(page.locator('.plugin-card.is-installed')).toHaveCount(1);
+  await expect(installed.locator('.card-bottom')).toHaveText('查看与更新');
+  await expect(available.locator('.card-bottom')).toHaveText('查看与安装');
+  for (const [width,height] of [[960,540],[1280,720],[1920,1080]]) {
+    await page.setViewportSize({width,height});
+    const badges = await page.locator('.plugin-card .install-badge').evaluateAll(nodes => nodes.map(node => {
+      const card = node.closest('.plugin-card').getBoundingClientRect();
+      const badge = node.getBoundingClientRect();
+      return { clipped:node.scrollWidth > node.clientWidth, inside:badge.left >= card.left && badge.right <= card.right && badge.top >= card.top && badge.bottom <= card.bottom };
+    }));
+    expect(badges.every(badge => !badge.clipped && badge.inside)).toBe(true);
+    await installed.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(available).toBeFocused();
+    if (width === 1280) await page.screenshot({path:testInfo.outputPath('market-status.png')});
+  }
+  await installed.click();
+  await expect(page.locator('#modal-layer .install-badge')).toHaveText('已安装');
+  await expect(page.locator('[data-action="install"]')).toHaveText('检查并更新');
+  await page.keyboard.press('Escape');
+  await expect(installed).toBeFocused();
+  await available.click();
+  await expect(page.locator('#modal-layer .install-badge')).toHaveText('未安装');
+  await expect(page.locator('[data-action="install"]')).toHaveText('安装插件');
+});
+
 test('search result can start actual fixture audio and changes queue on ended', async ({ page }) => {
   await boot(page); await page.locator('[data-focus="nav-search"]').click();
   await page.locator('#search-input').fill('song'); await page.locator('[data-focus="search-submit"]').click();

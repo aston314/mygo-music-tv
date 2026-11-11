@@ -19,3 +19,11 @@
 #app.player-view.lyrics-full main{bottom:104px}.player-view.lyrics-full #player-bar{left:160px;bottom:8px;width:960px;height:88px;flex-wrap:nowrap;align-items:center;padding:0 10px}.player-view.lyrics-full .transport{width:auto;margin:0 14px}.player-view.lyrics-full .timeline{height:88px;flex:1}.player-view.lyrics-full #playback-status{top:8px}.player-view.lyrics-full .lyric-column{margin-left:0}#app.player-view.lyrics-full ~ #toast{bottom:112px;left:50%;max-width:1000px}
 
 .lyric-window:not(.untimed){-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 5%,#000 88%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 5%,#000 88%,transparent 100%)}
+
+.plugin-card .card-top{justify-content:space-between;margin-bottom:12px}
+.card-heading{display:block;min-width:0;margin-bottom:12px}
+.install-badge{display:inline-flex;align-items:center;flex-shrink:0;padding:3px 10px;border:1px solid #536b60;border-radius:9px;font-size:17px;line-height:26px;white-space:nowrap;color:#b4c7bc;background:#24362e}
+.install-badge .icon{width:19px;height:19px;margin-right:6px}
+.install-badge.installed{color:#173a29;background:#b9edcf;border-color:#b9edcf}
+.plugin-card.is-installed{background:#20382c;border-color:#648e74}
+.plugin-card.is-installed:focus{background:#294b3b}
