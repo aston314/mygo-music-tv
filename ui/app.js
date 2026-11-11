@@ -280,7 +280,7 @@
   function appearanceChoice(key,value,label,hint,ico){return '<button class="appearance-choice secondary" data-focus="'+key+'-'+value+'" data-'+key+'="'+value+'" aria-pressed="'+(state[key]===value)+'"><span class="theme-swatch '+value+'">'+icon(ico)+'</span><span><strong>'+esc(label)+'</strong><small>'+esc(hint)+'</small></span><span class="choice-check">'+icon('check')+'</span></button>';}
   function syncAppearanceChoices(){['theme','language'].forEach(function(key){Array.prototype.forEach.call(document.querySelectorAll('button[data-'+key+']'),function(n){n.setAttribute('aria-pressed',String(n.getAttribute('data-'+key)===state[key]));});});}
   function applyAppearance(prefs){
-    state.theme=prefs.theme==='light'?'light':'dark';state.language=prefs.language==='zh-TW'?'zh-TW':'zh-CN';
+    state.theme=prefs.theme==='dark'?'dark':'light';state.language=prefs.language==='zh-TW'?'zh-TW':'zh-CN';
     window.MyGoI18n.apply(state.theme,state.language);window.MyGoI18n.localize(document);syncAppearanceChoices();
     if(window.Android&&window.Android.applyAppearance)window.Android.applyAppearance(state.theme,state.language);
   }

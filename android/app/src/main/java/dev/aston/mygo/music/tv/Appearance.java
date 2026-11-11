@@ -12,8 +12,8 @@ final class Appearance {
     private static String value(Context context,String key,String fallback) { return context.getSharedPreferences("appearance",Context.MODE_PRIVATE).getString(key,fallback); }
     static boolean valid(String theme,String language) { return ("dark".equals(theme)||"light".equals(theme))&&("zh-CN".equals(language)||"zh-TW".equals(language)); }
     static void save(Context context,String theme,String language) { if(valid(theme,language))context.getSharedPreferences("appearance",Context.MODE_PRIVATE).edit().putString("theme",theme).putString("language",language).apply(); }
-    static String json(Context context) { try { return new JSONObject().put("theme",value(context,"theme","dark")).put("language",value(context,"language","zh-CN")).toString(); } catch(Exception ignored) { return "{}"; } }
-    static boolean light(Context context) { return "light".equals(value(context,"theme","dark")); }
+    static String json(Context context) { try { return new JSONObject().put("theme",light(context)?"light":"dark").put("language",value(context,"language","zh-CN")).toString(); } catch(Exception ignored) { return "{}"; } }
+    static boolean light(Context context) { return !"dark".equals(value(context,"theme","light")); }
     static int background(Context context) { return light(context)?Color.rgb(248,248,250):Color.rgb(16,22,25); }
     static int foreground(Context context) { return light(context)?Color.rgb(229,50,75):Color.rgb(198,245,223); }
     static int muted(Context context) { return light(context)?Color.rgb(110,110,120):Color.rgb(135,148,145); }

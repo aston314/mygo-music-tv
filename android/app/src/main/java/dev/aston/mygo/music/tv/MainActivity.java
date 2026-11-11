@@ -20,6 +20,7 @@ public final class MainActivity extends Activity {
     private long backSequence;
     private final BroadcastReceiver receiver = new BroadcastReceiver() { @Override public void onReceive(Context c, Intent i) { connect(); } };
     @Override public void onCreate(Bundle state) {
+        setTheme(Appearance.light(this)?android.R.style.Theme_Material_Light_NoActionBar:android.R.style.Theme_Material_NoActionBar);
         super.onCreate(state); immersive();
         root = new FrameLayout(this); root.setBackgroundColor(Appearance.background(this)); setContentView(root);
         web = new WebView(this); web.setBackgroundColor(Appearance.background(this));

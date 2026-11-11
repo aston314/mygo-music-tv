@@ -39,7 +39,7 @@ func TestAppearancePreferencesPersistAndRejectInvalidUpdates(t *testing.T) {
 	}
 	defer func() { i18n.SetLanguage(i18n.Chinese) }()
 	prefs := preferenceRequest(t, s, "", 200)
-	if prefs["theme"] != "dark" || prefs["language"] != "zh-CN" {
+	if prefs["theme"] != "light" || prefs["language"] != "zh-CN" {
 		t.Fatal(prefs)
 	}
 	prefs = preferenceRequest(t, s, `{"theme":"light","language":"zh-TW","sidebar":"icons"}`, 200)
@@ -75,9 +75,17 @@ func TestAppearancePreferencesPersistAndRejectInvalidUpdates(t *testing.T) {
 	}
 }
 
-func TestOldOrCorruptPreferencesUseSafeDefaults(t *testing.T) {
+func TestPreferencesUseLightDefaultsAndPreserveSavedThemes(t *testing.T) {
 	defer func() { i18n.SetLanguage(i18n.Chinese) }()
-	for _, body := range []string{`{"sidebar":"icons","translation":"off"}`, `{"theme":"invalid","language":"en","obsolete":"x"}`, `null`, `{"theme":"light",broken}`} {
+	for _, tc := range []struct{ body, theme string }{
+		{`{"sidebar":"icons","translation":"off"}`, "light"},
+		{`{"theme":"invalid","language":"en","obsolete":"x"}`, "light"},
+		{`null`, "light"},
+		{`{"theme":"light",broken}`, "light"},
+		{`{"theme":"dark"}`, "dark"},
+		{`{"theme":"light"}`, "light"},
+	} {
+		body := tc.body
 		t.Run(body, func(t *testing.T) {
 			dir := t.TempDir()
 			if err := os.WriteFile(filepath.Join(dir, "preferences.json"), []byte(body), 0600); err != nil {
@@ -89,7 +97,7 @@ func TestOldOrCorruptPreferencesUseSafeDefaults(t *testing.T) {
 			}
 			defer s.Close()
 			prefs := preferenceRequest(t, s, "", 200)
-			if prefs["theme"] != "dark" || prefs["language"] != "zh-CN" || len(prefs) != 4 {
+			if prefs["theme"] != tc.theme || prefs["language"] != "zh-CN" || len(prefs) != 4 {
 				t.Fatal(prefs)
 			}
 			if strings.Contains(body, `"icons"`) && prefs["sidebar"] != "icons" {

@@ -99,7 +99,7 @@ func New(data, mode, token string) (*Server, error) {
 	return s, nil
 }
 func defaultPreferences() map[string]string {
-	return map[string]string{"sidebar": "expanded", "translation": "on", "theme": "dark", "language": "zh-CN"}
+	return map[string]string{"sidebar": "expanded", "translation": "on", "theme": "light", "language": "zh-CN"}
 }
 func validPreference(key, value string) bool {
 	switch key {

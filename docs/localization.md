@@ -1,6 +1,6 @@
 # 主题与语言
 
-设置支持深色 / 淡色主题和简体中文 / 繁体中文。Go 的 `preferences.json` 保存 `theme`（`dark` / `light`）和 `language`（`zh-CN` / `zh-TW`）；校验、写入成功后界面才切换。旧配置默认深色、简体中文。
+设置支持深色 / 淡色主题和简体中文 / 繁体中文。Go 的 `preferences.json` 保存 `theme`（`dark` / `light`）和 `language`（`zh-CN` / `zh-TW`）；校验、写入成功后界面才切换。首次启动、缺少或无效的主题配置默认淡色、简体中文，已有的有效主题选择继续保留。网页首帧和 Android 启动页使用相同的淡色默认值。
 
 ## 独立语言资源
 

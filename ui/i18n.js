@@ -1,9 +1,9 @@
 (function (root) {
   'use strict';
-  var catalogs = root.MyGoLocales || {}, current = 'zh-CN', theme = 'dark';
+  var catalogs = root.MyGoLocales || {}, current = 'zh-CN', theme = 'light';
   function text(key) { var selected = catalogs[current] || {}, fallback = catalogs['zh-CN'] || {}; return Object.prototype.hasOwnProperty.call(selected,key) ? selected[key] : Object.prototype.hasOwnProperty.call(fallback,key) ? fallback[key] : key; }
   function apply(nextTheme,nextLanguage) {
-    theme = nextTheme === 'light' ? 'light' : 'dark';current = nextLanguage === 'zh-TW' ? 'zh-TW' : 'zh-CN';
+    theme = nextTheme === 'dark' ? 'dark' : 'light';current = nextLanguage === 'zh-TW' ? 'zh-TW' : 'zh-CN';
     document.documentElement.setAttribute('data-theme',theme);document.documentElement.lang=current;
     root.MyGoI18n.theme=theme;root.MyGoI18n.language=current;
     try { root.localStorage.setItem('mygo.appearance',JSON.stringify({theme:theme,language:current})); } catch (_) { }
