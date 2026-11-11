@@ -30,6 +30,8 @@
 
 /* Appearance choices share the same fixed TV focus graph in both themes. */
 .appearance-choices{display:flex}.appearance-choice.secondary{display:flex;align-items:center;width:calc(50% - 6px);padding:16px;text-align:left;border:1px solid #547363}.appearance-choice.secondary:last-child{margin-right:0}.theme-swatch{display:flex;align-items:center;justify-content:center;flex-shrink:0;width:54px;height:54px;border-radius:12px;margin-right:15px;border:1px solid #709582}.theme-swatch.dark{background:#14271f;color:#c6f5df}.theme-swatch.light{background:#f8f7f3;color:#626d5c}.theme-swatch .icon{width:29px;height:29px}.appearance-choice strong{display:block;font-size:22px;font-weight:500}.appearance-choice small{display:block;font-size:17px;line-height:1.5;color:#b1c8b9;margin-top:5px}.choice-check{margin-left:auto;padding-left:8px;visibility:hidden}.choice-check .icon{width:25px;height:25px}.appearance-choice[aria-pressed=true] .choice-check{visibility:visible}
+/* Leave space inside scrolling grids for the supplied card scale and focus ring. */
+html[data-theme=light] .grid{margin-left:0;margin-right:0;padding-top:12px;padding-bottom:14px}
 /* ==========================================================================
    MyGo 淡色主题 v2 —— 替换 app.css 中从 "/* Explicit fallbacks..." 注释起到文件末尾的全部内容
    （.appearance-choices 那段深浅共用的基础样式保留不动）
