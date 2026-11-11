@@ -171,6 +171,7 @@ for(const [width,height] of [[960,540],[1280,720],[1920,1080]])test('sidebar, ro
  await page.setViewportSize({width,height});await song(page);await page.keyboard.press('Escape');
  for(const mode of ['expanded','icons']){
   await page.locator('[data-focus="nav-settings"]').click();await page.locator('[data-pref="'+mode+'"]').click();
+  await expect(page.locator('[data-pref="'+mode+'"]')).toHaveAttribute('aria-pressed','true');
   const layout=await page.evaluate(()=>{const r=s=>document.querySelector(s).getBoundingClientRect();return {side:r('#sidebar'),bar:r('#player-bar'),stage:r('#stage')};});
   expect(layout.side.bottom).toBeCloseTo(layout.stage.bottom,0);expect(layout.bar.left).toBeCloseTo(layout.side.right,0);
   const settings=page.locator('[data-focus="nav-settings"]');await settings.focus();await page.keyboard.press('ArrowDown');await expect(page.locator('#open-player')).toBeFocused();

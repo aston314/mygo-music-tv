@@ -75,7 +75,7 @@
   function button(id,label,cls,ico){return '<button data-focus="'+esc(id)+'" data-action="'+esc(id)+'" class="'+(cls||'secondary')+(ico?' icon-label':'')+'">'+(ico?icon(ico):'')+esc(label)+'</button>';}
   function tool(id,label,ico){return '<button data-focus="'+esc(id)+'" data-action="'+esc(id)+'" aria-label="'+esc(label)+'" title="'+esc(label)+'">'+icon(ico)+'</button>';}
   function canvasScale(){var root=document.documentElement;return Math.min((root.clientWidth||innerWidth)/1280,(root.clientHeight||innerHeight)/720);}
-  function scale(){var root=document.documentElement,w=root.clientWidth||innerWidth,h=root.clientHeight||innerHeight,s=canvasScale();$('stage').style.transform='scale('+s+')';$('stage').style.left=(w-1280*s)/2+'px';$('stage').style.top=(h-720*s)/2+'px';}
+  function scale(){var root=document.documentElement,w=root.clientWidth||innerWidth,h=root.clientHeight||innerHeight,s=canvasScale(),stage=$('stage');if(!(s>0))return;stage.style.width=(w/s)+'px';stage.style.height=(h/s)+'px';stage.style.transform='scale('+s+')';stage.style.left='0px';stage.style.top='0px';}
   window.addEventListener('resize',scale);scale();
   function closest(n,selector){while(n&&n!==document){if(n.matches&&n.matches(selector))return n;n=n.parentNode;}return null;}
   function focusables(){var root=state.modal?$('modal-layer'):$('app');return Array.prototype.filter.call(root.querySelectorAll('[data-focus]'),function(n){return !n.disabled&&n.getClientRects().length>0;});}

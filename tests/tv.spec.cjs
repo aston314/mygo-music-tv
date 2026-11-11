@@ -30,6 +30,32 @@ test('Android WebView canvas uses the visible viewport despite overflowing layou
   } finally { await context.close(); }
 });
 
+test('non-16:9 viewports expand the logical canvas to fill the screen without stretching', async ({ browser }) => {
+  for (const [width,height,isMobile,dpr] of [[928,696,false,1],[1280,800,false,1],[960,720,true,2],[1920,800,false,2]]) {
+    const context = await browser.newContext({viewport:{width,height},isMobile,deviceScaleFactor:dpr});
+    try {
+      const page = await context.newPage(); await boot(page);
+      const geometry = await page.evaluate(() => {
+        const stage=document.getElementById('stage'),r=stage.getBoundingClientRect();
+        return {canvas:[r.left,r.top,r.width,r.height],logical:[stage.offsetWidth,stage.offsetHeight]};
+      });
+      expect(geometry.canvas[0]).toBeCloseTo(0,1); expect(geometry.canvas[1]).toBeCloseTo(0,1);
+      expect(geometry.canvas[2]).toBeCloseTo(width,0); expect(geometry.canvas[3]).toBeCloseTo(height,0);
+      expect(geometry.logical[0]).toBeGreaterThanOrEqual(1280); expect(geometry.logical[1]).toBeGreaterThanOrEqual(720);
+      await page.locator('[data-focus="nav-settings"]').focus(); await page.keyboard.press('ArrowDown');
+      await expect(page.locator('#open-player')).toBeFocused();
+      const footer=await page.locator('#open-player').boundingBox(); expect(footer.x+footer.width).toBeLessThanOrEqual(width);
+      expect(footer.y+footer.height).toBeLessThanOrEqual(height);
+      if(width===1280&&height===800){
+        await page.locator('[data-focus="nav-market"]').click(); await page.locator('[data-catalog="0"]').click();
+        const modal=await page.locator('#modal-layer .modal').boundingBox();
+        expect(modal.x).toBeGreaterThanOrEqual(0);expect(modal.y).toBeGreaterThanOrEqual(0);
+        expect(modal.x+modal.width).toBeLessThanOrEqual(width);expect(modal.y+modal.height).toBeLessThanOrEqual(height);
+      }
+    } finally { await context.close(); }
+  }
+});
+
 test('fixed canvas scales without rearranging, and remote focus remains visible', async ({ page }) => {
   await page.route('**/api/catalog', route => route.fulfill({ json:{ entries:[0,1,2].map(i => ({repository:'fixture/source-' + i,name:'Source ' + i})) } }));
   await boot(page);
@@ -39,7 +65,8 @@ test('fixed canvas scales without rearranging, and remote focus remains visible'
     expect(Math.round((await page.locator('#stage').boundingBox()).height)).toBe(size[1]);
     await page.locator('[data-focus="nav-market"]').click();
     await expect(page.locator('[data-catalog="0"]')).toBeVisible();
-    const cards = await page.locator('[data-catalog]').evaluateAll(nodes => nodes.map(n => ({top:n.getBoundingClientRect().top,left:n.getBoundingClientRect().left})));
+    // Compare layout positions: the focused card has a decorative scale transform.
+    const cards = await page.locator('[data-catalog]').evaluateAll(nodes => nodes.map(n => ({top:n.offsetTop,left:n.offsetLeft})));
     expect(cards).toHaveLength(3); expect(cards[0].top).toBeCloseTo(cards[2].top, 1); expect(cards[2].left).toBeGreaterThan(cards[1].left);
     await page.locator('[data-catalog="0"]').focus(); await page.keyboard.press('ArrowDown');
     expect(await page.evaluate(() => document.activeElement.hasAttribute('data-focus'))).toBe(true);
