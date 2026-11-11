@@ -64,7 +64,7 @@ test('comments paginate, keep reading position, expand and recover after failed 
  const like=page.locator('[data-comment-like="0"]');await page.route('**/call/likeComment',route=>route.fulfill({status:422,json:{error:'请重新登录'}}));
  await like.click();await expect(like).toHaveAttribute('aria-pressed','false');await expect(page.locator('#toast')).toHaveText('请重新登录');
  await page.unroute('**/call/likeComment');await like.click();await expect(like).toHaveAttribute('aria-pressed','true');
- await page.locator('[data-action="comments-more"]').click();await expect(page.locator('.comment-card')).toHaveCount(3);
+ await page.locator('[data-comment-index="1"]').focus();await page.keyboard.press('ArrowDown');await expect(page.locator('.comment-card')).toHaveCount(3);
  await page.keyboard.press('Escape');await expect(page.locator('[data-action="player-comments"]')).toBeFocused();
  const p=await(await page.request.get('/api/player')).json();expect(p.state).toBe('paused');
 });

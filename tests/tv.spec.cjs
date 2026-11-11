@@ -73,7 +73,8 @@ test('legacy remote keys respect sidebar boundaries and return from detail to th
   await page.evaluate(() => document.activeElement.dispatchEvent(new KeyboardEvent('keydown', {keyCode:40,bubbles:true})));
   await expect(page.locator('[data-focus="nav-search"]')).toBeFocused();
   const settings = page.locator('[data-focus="nav-settings"]');
-  await settings.focus(); await page.keyboard.press('ArrowDown'); await expect(settings).toBeFocused();
+  await settings.focus(); await page.keyboard.press('ArrowDown'); await expect(page.locator('#open-player')).toBeFocused();
+  await page.keyboard.press('ArrowUp'); await expect(settings).toBeFocused();
   await home.click();
   const album = page.locator('[data-kind="album"]').first();
   await album.click(); await expect(page.locator('[data-action="play-all"]')).toBeVisible();
