@@ -85,7 +85,8 @@
   function directionTarget(nodes,active,dir){var r=active.getBoundingClientRect(),cx=(r.left+r.right)/2,cy=(r.top+r.bottom)/2,best=null,score=Infinity,s=Math.min(innerWidth/1280,innerHeight/720),horizontal=dir==='ArrowLeft'||dir==='ArrowRight';
     nodes.forEach(function(n){if(n===active||n.contains(active)||active.contains(n))return;var t=n.getBoundingClientRect(),dx=(t.left+t.right)/2-cx,dy=(t.top+t.bottom)/2-cy,forward=dir==='ArrowRight'?dx:dir==='ArrowLeft'?-dx:dir==='ArrowDown'?dy:-dy;if(forward<3*s)return;if(horizontal&&(dir==='ArrowLeft'?t.right>r.left+4*s:t.left<r.right-4*s))return;var across=horizontal?Math.abs(dy):Math.abs(dx),val=forward+across*4;if(val<score){score=val;best=n;}});return best;
   }
-  function focusSidebar(){if(focusId('nav-'+state.page))return;if(focusId(state.navFocus))return;if(focusId('nav-home'))return;focusId('source-switch');}
+  function focusSidebar(){state.sidebarFooterReturn=null;if(focusId('nav-'+state.page))return;if(focusId(state.navFocus))return;if(focusId('nav-home'))return;focusId('source-switch');}
+  function focusSidebarNear(active){var nav=$('nav'),box=nav.getBoundingClientRect(),r=active.getBoundingClientRect(),center=(r.top+r.bottom)/2,best=null,distance=Infinity;inRoot(nav).forEach(function(n){var t=n.getBoundingClientRect();if(t.bottom<=box.top||t.top>=box.bottom)return;var d=Math.abs((t.top+t.bottom)/2-center);if(d<distance){best=n;distance=d;}});if(best){state.sidebarFooterReturn={id:best.getAttribute('data-focus'),gen:state.pageGen};focusNode(best);}else focusSidebar();}
   function enterContent(){if(state.contentFocus&&state.contentFocus.gen===state.pageGen&&focusId(state.contentFocus.id))return;focusContent();}
   function enterFooter(active,target){state.footerReturn={id:active.getAttribute('data-focus'),gen:state.pageGen};focusId(target||'now');}
   function movePlayerControls(active,dir){
@@ -97,7 +98,7 @@
   }
   function moveFooter(active,dir){
     if(state.page==='player'&&!state.lyricFull&&currentTrack()){movePlayerControls(active,dir);return;}
-    if(dir==='ArrowLeft'&&active.id==='open-player'&&state.page!=='player'){focusSidebar();return;}
+    if(dir==='ArrowLeft'&&active.id==='open-player'&&state.page!=='player'){focusSidebarNear(active);return;}
     if(dir==='ArrowUp'&&active.id==='seek'){focusId('toggle');return;}
     if(dir==='ArrowDown'&&active.id==='seek'){focusId('mode');return;}
     if(dir==='ArrowUp'&&active.id==='mode'&&focusId('seek'))return;
@@ -115,7 +116,7 @@
     if(!state.modal&&nav.contains(active)){
       var entries=Array.prototype.slice.call(nav.querySelectorAll('[data-focus]')),at=entries.indexOf(active);
       if(dir==='ArrowUp'||dir==='ArrowDown'){var next=entries[at+(dir==='ArrowDown'?1:-1)];if(next)focusNode(next);else if(dir==='ArrowUp')focusId('source-switch');else enterFooter(active);return;}
-      if(dir==='ArrowRight'){if(active.getBoundingClientRect().top>=$('player-bar').getBoundingClientRect().top)enterFooter(active);else enterContent();return;}if(dir==='ArrowLeft')return;
+      if(dir==='ArrowRight'){if(state.sidebarFooterReturn&&state.sidebarFooterReturn.gen===state.pageGen&&state.sidebarFooterReturn.id===activeID()||active.getBoundingClientRect().top>=$('player-bar').getBoundingClientRect().top)enterFooter(active);else enterContent();return;}if(dir==='ArrowLeft')return;
     }
     if(!state.modal&&active.id==='source-switch'){if(dir==='ArrowDown')focusNode(nav.querySelector('[data-focus]'));else if(dir==='ArrowRight')enterContent();return;}
     if(!state.modal&&$('player-bar').contains(active)){moveFooter(active,dir);return;}

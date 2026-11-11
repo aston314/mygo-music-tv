@@ -8,7 +8,9 @@ async function boot(page){
  await page.request.post('/api/preferences',{data:{sidebar:'expanded',translation:'on'}});
 }
 async function seekTo(page,ms){
- const duration=+(await page.locator('#seek').getAttribute('aria-valuemax')),r=await page.locator('#seek .progress-track').boundingBox();
+ const duration=(await(await page.request.get('/api/player')).json()).duration;
+ await expect(page.locator('#seek')).toHaveAttribute('aria-valuemax',String(duration));
+ const r=await page.locator('#seek .progress-track').boundingBox();
  await page.mouse.click(r.x+r.width*ms/duration,r.y+r.height/2);
 }
 async function song(page,beforePlayer){

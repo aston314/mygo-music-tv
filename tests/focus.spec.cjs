@@ -173,6 +173,9 @@ for(const [width,height] of [[960,540],[1280,720],[1920,1080]])test('sidebar, ro
   const settings=page.locator('[data-focus="nav-settings"]');await settings.focus();await page.keyboard.press('ArrowDown');await expect(page.locator('#open-player')).toBeFocused();
   await visibleFocus(page,'#player-bar');await page.keyboard.press('ArrowLeft');await expect(settings).toBeFocused();await page.keyboard.press('ArrowDown');await page.keyboard.press('ArrowUp');await expect(settings).toBeFocused();
   await page.locator('[data-focus="nav-home"]').click();const row=page.locator('[data-track="1"]');await row.focus();
+  const nearest=await page.locator('#open-player').evaluate(n=>{const r=n.getBoundingClientRect(),nav=document.querySelector('#nav').getBoundingClientRect();return [...document.querySelectorAll('#nav [data-focus]')].filter(x=>{const t=x.getBoundingClientRect();return t.bottom>nav.top&&t.top<nav.bottom;}).sort((a,b)=>{const x=a.getBoundingClientRect(),y=b.getBoundingClientRect(),c=(r.top+r.bottom)/2;return Math.abs((x.top+x.bottom)/2-c)-Math.abs((y.top+y.bottom)/2-c);})[0].getAttribute('data-focus');});
+  await page.locator('#open-player').focus();await page.keyboard.press('ArrowLeft');await expect(page.locator('[data-focus="'+nearest+'"]')).toBeFocused();
+  await page.keyboard.press('ArrowRight');await expect(page.locator('#open-player')).toBeFocused();await row.focus();
   await page.keyboard.press('ArrowRight');await expect(page.locator('[data-track-more="1"]')).toBeFocused();
   await page.keyboard.press('ArrowLeft');await expect(row).toBeFocused();await page.keyboard.press('ArrowLeft');await expect(page.locator('[data-focus="nav-home"]')).toBeFocused();
   await page.keyboard.press('ArrowRight');await expect(row).toBeFocused();
