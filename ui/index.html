@@ -7,12 +7,13 @@
       <button id="source-switch" class="source-switch" data-focus="source-switch" aria-label="切换音乐源"><span class="source-dot"></span><span id="source-name">选择音乐源</span><span data-icon="chevronDown"></span></button>
       <nav id="nav" aria-label="主导航"></nav>
     </aside>
-    <main><header><div><span id="eyebrow">MYGO MUSIC</span><h1 id="page-title">发现音乐</h1></div><div id="header-actions"></div></header><div id="content" class="scroll"></div></main>
+    <main><header><div class="page-heading"><span id="eyebrow">MYGO MUSIC</span><h1 id="page-title">发现音乐</h1></div><div class="header-tools"><div id="header-actions"></div><button id="account-button" data-focus="account" data-action="account" hidden><span data-icon="artist"></span><span id="account-name">账号</span></button></div></header><div id="content" class="scroll"></div></main>
     <footer id="player-bar" aria-label="播放控制">
       <button class="now-cover" data-focus="now" id="open-player" aria-label="打开播放与歌词"><span data-icon="music"></span></button>
-      <div class="now-meta"><strong id="now-title">音乐，即将响起</strong><span id="now-artist">选择音乐，开始聆听</span></div>
+      <div class="now-meta"><strong id="now-title">音乐，即将响起</strong><button id="now-artist" class="credit-link" data-focus="now-artist" data-action="now-artist" disabled>选择音乐，开始聆听</button><button id="now-album" class="credit-link" data-focus="now-album" data-action="now-album" hidden></button></div>
+      <button id="now-like" data-focus="now-like" data-action="now-like" data-like-label="no" aria-label="喜欢这首歌" aria-pressed="false" hidden><span data-icon="heart"></span></button>
       <div class="transport"><button data-focus="previous" id="previous" aria-label="上一首"><span data-icon="previous"></span></button><button class="play-button" data-focus="toggle" id="toggle" aria-label="播放"><span data-icon="play"></span></button><button data-focus="next" id="next" aria-label="下一首"><span data-icon="next"></span></button></div>
-      <div class="timeline"><span id="position">0:00</span><button data-focus="seek" id="seek" aria-label="调整播放进度"><span class="progress-track"><i id="progress"></i></span></button><span id="duration">0:00</span></div>
+      <div class="timeline"><span id="playback-status" role="status"></span><span id="position">0:00</span><button data-focus="seek" id="seek" aria-label="调整播放进度"><span class="progress-track"><i id="progress"><b class="progress-thumb"></b></i></span></button><span id="duration">0:00</span></div>
       <button id="mode-button" data-focus="mode" data-action="play-mode" aria-label="播放模式"><span data-icon="sequence"></span></button>
       <button data-focus="queue" id="queue-button" aria-label="播放队列"><span data-icon="queue"></span></button>
     </footer>
