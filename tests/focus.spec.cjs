@@ -101,11 +101,56 @@ test('late comment pages cannot replace a closed panel and short final pages sto
 test('fullscreen lyrics are the last footer icon and work directly from browsing',async({page})=>{
  await song(page);await page.keyboard.press('Escape');
  const full=page.locator('#lyrics-button');await expect(full).toHaveAttribute('data-focus','full-lyrics');
+ const expand=await full.locator('path').getAttribute('d');
  await expect(page.locator('.lyric-toolbar [data-action="full-lyrics"]')).toHaveCount(0);
  expect(await full.evaluate(n=>n===n.parentNode.lastElementChild)).toBe(true);
  await full.click();await expect(page.locator('.listening')).toHaveClass(/lyrics-only/);await expect(full).toHaveAttribute('aria-pressed','true');await expect(full).toBeFocused();
+ await expect(full).toHaveAttribute('aria-label','退出全屏歌词');const collapse=await full.locator('path').getAttribute('d');expect(collapse).not.toBe(expand);
+ await full.click();await expect(page.locator('.listening')).not.toHaveClass(/lyrics-only/);await expect(full.locator('path')).toHaveAttribute('d',expand);await expect(full).toBeFocused();
+ await full.click();await expect(full.locator('path')).toHaveAttribute('d',collapse);
  await page.keyboard.press('Escape');await expect(page.locator('.listening')).not.toHaveClass(/lyrics-only/);await expect(full).toHaveAttribute('aria-pressed','false');await expect(full).toBeFocused();
+ await expect(full).toHaveAttribute('aria-label','全屏歌词');await expect(full.locator('path')).toHaveAttribute('d',expand);
  await page.keyboard.press('Escape');await expect(full).toBeFocused();await expect(page.locator('#page-title')).not.toHaveText('正在播放');
+});
+
+test('source picker enters the current source and scrolls it into view when it is below the first item',async({page})=>{
+ await page.route('**/api/sources',async route=>{const response=await route.fetch(),[s]=await response.json();await route.fulfill({json:[s,...Array.from({length:8},(_,i)=>({...s,instanceId:'extra-'+i,repository:'fixture/source-'+i,manifest:{...s.manifest,name:'音乐源 '+i}}))]});});
+ await page.route('**/sources/extra-*/call/home',route=>route.fulfill({json:{sections:[]}}));
+ await page.route('**/sources/extra-*/call/account',route=>route.fulfill({json:null}));
+ await boot(page);await page.locator('#source-switch').click();await expect(page.locator('[data-source="fixture"]')).toBeFocused();
+ await page.locator('[data-source="extra-7"]').click();await expect(page.locator('#source-name')).toHaveText('音乐源 7');
+ for(const [width,height] of [[960,540],[1280,720],[1920,1080]]){
+  await page.setViewportSize({width,height});await page.locator('#source-switch').click();
+  const current=page.locator('[data-source="extra-7"]');await expect(current).toBeFocused();await expect(current).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('[data-source="fixture"]')).toHaveAttribute('aria-pressed','false');await visibleFocus(page,'.modal');
+  await page.keyboard.press('ArrowUp');await expect(page.locator('[data-source="extra-6"]')).toBeFocused();await page.keyboard.press('Escape');await expect(page.locator('#source-switch')).toBeFocused();
+ }
+});
+
+test('QR login centers instructions and keeps long prompts scrollable without hiding Cancel',async({page},testInfo)=>{
+ let prompt='请使用音乐服务手机 App 扫描二维码，在手机上确认登录。',qr='fixture-login',failed=false,polls=0,cancelled=0;
+ await page.route('**/call/account',route=>route.fulfill({json:null}));
+ await page.route('**/api/login/fixture',route=>route.fulfill({json:{ok:true}}));
+ await page.route('**/api/login',route=>{if(route.request().method()==='DELETE'){cancelled++;return route.fulfill({json:{ok:true}});}polls++;return route.fulfill({json:failed?{state:'failed',message:prompt}:{state:'waiting',prompt:{qr,text:prompt}}});});
+ await page.route('**/api/login/qr?*',route=>route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240"><rect width="240" height="240" fill="white"/></svg>'}));
+ await boot(page);await page.locator('#account-button').click();await expect(page.locator('#login-status .qr')).toBeVisible();
+ const cancel=page.locator('#modal-layer [data-action="cancel"]');await expect(cancel).toBeFocused();
+ for(const [width,height] of [[960,540],[1280,720],[1920,1080]]){
+  await page.setViewportSize({width,height});
+  const layout=await page.locator('#login-status').evaluate(n=>{const r=n.getBoundingClientRect(),q=n.querySelector('img').getBoundingClientRect(),p=n.querySelector('p');return {center:(r.left+r.right)/2,qrCenter:(q.left+q.right)/2,align:getComputedStyle(p).textAlign};});
+  expect(layout.qrCenter).toBeCloseTo(layout.center,1);expect(layout.align).toBe('center');await visibleFocus(page,'#stage');
+ }
+ await page.setViewportSize({width:1280,height:720});prompt='扫描二维码后，请在手机上确认授权；如果二维码过期，请取消后重新登录。'.repeat(45);
+ await expect(page.locator('#login-status p')).toHaveText(prompt);await expect(cancel).toBeFocused();await visibleFocus(page,'#stage');
+ expect(await page.locator('.modal').evaluate(n=>n.scrollHeight<=n.clientHeight)).toBe(true);
+ await page.keyboard.press('ArrowUp');await expect(page.locator('#login-status')).toBeFocused();await page.keyboard.press('ArrowDown');
+ await expect.poll(()=>page.locator('#login-status').evaluate(n=>n.scrollTop)).toBeGreaterThan(0);
+ const before=polls;await expect.poll(()=>polls).toBeGreaterThan(before);await expect(page.locator('#login-status')).toBeFocused();
+ for(let i=0;i<60&&await page.locator('#login-status').evaluate(n=>n===document.activeElement);i++)await page.keyboard.press('ArrowDown');
+ await expect(cancel).toBeFocused();await visibleFocus(page,'#stage');await page.screenshot({path:testInfo.outputPath('long-login-prompt.png')});
+ qr='';prompt='请在手机上确认登录';await expect(page.locator('#login-status .qr')).toHaveCount(0);await expect(page.locator('#login-status p')).toHaveText(prompt);
+ failed=true;prompt='登录已过期，请取消后重试。';await expect(page.locator('#login-status p')).toHaveText(prompt);await visibleFocus(page,'#stage');
+ await page.keyboard.press('Escape');await expect(page.locator('#account-button')).toBeFocused();await expect.poll(()=>cancelled).toBe(1);
 });
 
 test('a delayed sidebar preference save cannot pull focus back from the footer',async({page})=>{
@@ -143,4 +188,31 @@ for(const [width,height] of [[960,540],[1280,720],[1920,1080]])test('sidebar, ro
   await page.keyboard.press('ArrowLeft');expect(await page.evaluate(()=>document.querySelector('#nav').contains(document.activeElement))).toBe(true);
   await page.keyboard.press('ArrowRight');await expect(page.locator('[data-track="0"]')).toBeFocused();await page.keyboard.press('Escape');
  }
+});
+
+for(const [width,height] of [[960,540],[1280,720],[1920,1080]])test('lyrics view keeps controls on the left and offers reversible remote paths at '+width+'x'+height,async({page})=>{
+ await page.setViewportSize({width,height});await song(page);
+ await expect(page.locator('#open-player')).toBeHidden();await expect(page.locator('.now-meta')).toBeHidden();
+ const bounds=await page.evaluate(()=>{const rect=s=>document.querySelector(s).getBoundingClientRect();return {controls:rect('#player-bar'),lyrics:rect('.lyric-column'),tools:rect('.player-tools'),stage:rect('#stage')};});
+ expect(bounds.controls.right).toBeLessThan(bounds.lyrics.left);expect(bounds.controls.top).toBeGreaterThanOrEqual(bounds.tools.bottom);expect(bounds.lyrics.bottom).toBeGreaterThan(bounds.controls.bottom-2);
+ await page.locator('#toggle').focus();await page.keyboard.press('ArrowDown');await expect(page.locator('#seek')).toBeFocused();await page.keyboard.press('ArrowDown');await expect(page.locator('#queue-button')).toBeFocused();
+ await page.keyboard.press('ArrowRight');await expect(page.locator('#lyrics-button')).toBeFocused();await page.keyboard.press('ArrowRight');await expect(page.locator('[data-focus="translation"]')).toBeFocused();
+ await page.keyboard.press('ArrowLeft');await expect(page.locator('#toggle')).toBeFocused();await page.keyboard.press('ArrowUp');expect(await page.evaluate(()=>document.querySelector('.record-column').contains(document.activeElement))).toBe(true);
+ await page.locator('#lyrics-button').click();await expect(page.locator('.record-column')).toBeHidden();await visibleFocus(page,'#stage');
+ await page.keyboard.press('Escape');await expect(page.locator('#lyrics-button')).toBeFocused();await visibleFocus(page,'#player-bar');
+ await page.keyboard.press('Escape');await expect(page.locator('#open-player')).toBeVisible();await expect(page.locator('.now-meta')).toBeVisible();
+ const decorations=await page.locator('.credit-link').evaluateAll(nodes=>nodes.filter(n=>n.getClientRects().length).map(n=>getComputedStyle(n).textDecorationLine));expect(decorations.every(x=>x==='none')).toBe(true);
+});
+
+test('icon sidebar has a source symbol and keeps radio and settings drawings within their SVG bounds',async({page})=>{
+ await boot(page);await page.locator('[data-focus="nav-settings"]').click();await page.locator('[data-pref="icons"]').click();await expect(page.locator('#app')).toHaveClass('icons');
+ await expect(page.locator('.source-icon svg')).toBeVisible();await expect(page.locator('.source-dot')).toBeHidden();
+ const settings=await page.locator('[data-focus="nav-settings"]').boundingBox(),nav=await page.locator('#nav').boundingBox();
+ expect(settings.y).toBeGreaterThanOrEqual(nav.y);expect(settings.y+settings.height).toBeLessThanOrEqual(nav.y+nav.height);
+ for(const selector of ['.source-icon svg','[data-focus="nav-stations"] svg','[data-focus="nav-settings"] svg']){
+  const box=await page.locator(selector).evaluate(n=>{const r=n.getBBox();return {left:r.x,top:r.y,right:r.x+r.width,bottom:r.y+r.height};});
+  expect(box.left).toBeGreaterThanOrEqual(1);expect(box.top).toBeGreaterThanOrEqual(1);expect(box.right).toBeLessThanOrEqual(23);expect(box.bottom).toBeLessThanOrEqual(23);
+ }
+ await page.locator('[data-focus="nav-stations"]').focus();await visibleFocus(page,'#nav');
+ await page.locator('[data-focus="nav-settings"]').click();await page.locator('[data-pref="expanded"]').click();
 });

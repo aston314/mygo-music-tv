@@ -34,28 +34,37 @@ test('late account response cannot replace the newly selected source account',as
  await expect(page.locator('#account-name')).toHaveText('第二账号');
 });
 
-test('footer favorites show saved state with a filled heart and sync with the player without hiding metadata',async({page})=>{
+test('favorites appear once on the lyrics page and keep their saved state across navigation and track changes',async({page})=>{
  let liked=true,fail=true;
  await page.route('**/call/isLiked',route=>{const ids=route.request().postDataJSON().ids;return route.fulfill({json:Object.fromEntries(ids.map(id=>[id,id==='t1'&&liked]))});});
  await page.route('**/call/like',route=>{if(fail)return route.fulfill({status:422,json:{error:'收藏失败'}});liked=route.request().postDataJSON().on;return route.fulfill({json:null});});
  await song(page);const heart=page.locator('#now-like');
+ await expect(heart).toBeHidden();await expect(page.locator('[data-focus="player-like"]')).toBeVisible();
  await expect(page.locator('#now-artist')).toHaveText('The Examples');await expect(page.locator('#now-album')).toContainText('First Album');
+ await page.keyboard.press('Escape');await expect(heart).toBeVisible();
  await expect(heart).toHaveAttribute('aria-pressed','true');expect(await heart.locator('svg').evaluate(n=>getComputedStyle(n).fill)).not.toBe('none');
  await heart.click();await expect(page.locator('#toast')).toHaveText('收藏失败');await expect(heart).toHaveAttribute('aria-pressed','true');
  fail=false;await heart.click();await expect(heart).toHaveAttribute('aria-pressed','false');
+ await page.locator('#open-player').click();await expect(heart).toBeHidden();
  await expect(page.locator('[data-focus="player-like"]')).toHaveAttribute('aria-pressed','false');
  await page.locator('[data-focus="player-like"]').click();await expect(heart).toHaveAttribute('aria-pressed','true');
+ await page.keyboard.press('Escape');await expect(heart).toBeVisible();await expect(heart).toHaveAttribute('aria-pressed','true');
+ await page.locator('#open-player').click();await expect(heart).toBeHidden();
  await page.locator('#next').click();await expect(page.locator('#now-title')).toHaveText('Song 2');await expect(heart).toHaveAttribute('aria-pressed','false');
+ await expect(heart).toBeHidden();await page.locator('#toggle').focus();await page.keyboard.press('ArrowDown');await expect(page.locator('#seek')).toBeFocused();
+ await page.keyboard.press('Escape');await expect(heart).toBeVisible();await expect(heart).toHaveAttribute('aria-pressed','false');
 });
 
 test('player credits connect artist songs, artist albums and album tracks while preserving audio and return focus',async({page})=>{
  await song(page);const before=await(await page.request.get('/api/player')).json();
- await page.locator('#now-artist').click();await expect(page.locator('#page-title')).toHaveText('The Examples');await expect(page.locator('[data-track]')).toHaveCount(3);
+ await page.locator('[data-focus="player-artist"]').click();await expect(page.locator('#page-title')).toHaveText('The Examples');await expect(page.locator('[data-track]')).toHaveCount(3);
+ await expect(page.locator('#content h2')).toHaveCount(0);
  await page.locator('[data-detail-section="albums"]').click();await expect(page.locator('[data-kind="album"]')).toHaveCount(1);
  const album=page.locator('[data-kind="album"]');await album.click();await expect(page.locator('#page-title')).toHaveText('First Album');await expect(page.locator('[data-track]')).toHaveCount(3);
+ await expect(page.locator('#content h2')).toHaveCount(0);
  await page.keyboard.press('Escape');await expect(page.locator('[data-detail-section="albums"]')).toHaveAttribute('aria-pressed','true');await expect(album).toBeFocused();
- await page.keyboard.press('Escape');await expect(page.locator('.player-heading')).toBeVisible();await expect(page.locator('#now-artist')).toBeFocused();
- await page.locator('#now-album').click();await expect(page.locator('#page-title')).toHaveText('First Album');await page.keyboard.press('Escape');await expect(page.locator('#now-album')).toBeFocused();
+ await page.keyboard.press('Escape');await expect(page.locator('.player-heading')).toBeVisible();await expect(page.locator('[data-focus="player-artist"]')).toBeFocused();
+ await page.locator('[data-focus="player-album"]').click();await expect(page.locator('#page-title')).toHaveText('First Album');await page.keyboard.press('Escape');await expect(page.locator('[data-focus="player-album"]')).toBeFocused();
  const after=await(await page.request.get('/api/player')).json();expect(after.generation).toBe(before.generation);expect(after.media).toBe(before.media);expect(after.state).toBe('paused');
 });
 
@@ -71,9 +80,9 @@ test('collaborations offer every credited artist and return to the same footer c
  const t={...p.queue[0],artists:[{id:'a1',name:'歌手一'},{id:'a2',name:'歌手二'}]};
  await page.request.post('/api/player/play',{data:{queue:[t],index:0}});await expect(page.locator('#now-artist')).toHaveText('歌手一 / 歌手二');
  let artistID;await page.route('**/call/artist',async route=>{artistID=route.request().postDataJSON().id;await route.fulfill({json:{artist:{id:artistID,name:'歌手二'},tracks:[],albums:[]}});});
- await page.locator('#now-artist').click();await expect(page.locator('[data-credit-artist]')).toHaveCount(2);await page.locator('[data-credit-artist="1"]').click();
+ await page.locator('[data-focus="player-artist"]').click();await expect(page.locator('[data-credit-artist]')).toHaveCount(2);await page.locator('[data-credit-artist="1"]').click();
  await expect(page.locator('#page-title')).toHaveText('歌手二');expect(artistID).toBe('a2');
- await page.keyboard.press('Escape');await expect(page.locator('#now-artist')).toBeFocused();
+ await page.keyboard.press('Escape');await expect(page.locator('[data-focus="player-artist"]')).toBeFocused();
 });
 
 test('playing credits and their account keep the original source after browsing another source',async({page})=>{
