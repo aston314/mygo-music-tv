@@ -20,7 +20,7 @@ public final class CoreService extends Service {
     private static volatile CoreService current;
     private final Handler main = new Handler(Looper.getMainLooper());
     private final ScheduledExecutorService network = Executors.newSingleThreadScheduledExecutor();
-    private Process core;
+    private java.lang.Process core;
     private volatile CoreClient client;
     private ExoPlayer player;
     private MediaSession session;
