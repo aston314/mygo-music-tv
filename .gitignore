@@ -1,0 +1,11 @@
+.DS_Store
+.data/
+build/
+.tools/
+android/.gradle/
+android/local.properties
+android/app/build/
+android/app/src/main/jniLibs/
+*.log
+node_modules/
+tests/results/

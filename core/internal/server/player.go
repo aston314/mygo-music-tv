@@ -1,0 +1,203 @@
+package server
+
+import (
+	"errors"
+	"path/filepath"
+	"strings"
+	"sync"
+	"time"
+
+	"mygo-music-tv/core/internal/music"
+)
+
+type Playback struct {
+	Generation int64         `json:"generation"`
+	Revision   int64         `json:"revision"`
+	State      string        `json:"state"`
+	Queue      []music.Track `json:"queue"`
+	Index      int           `json:"index"`
+	Media      string        `json:"media,omitempty"`
+	Position   int64         `json:"position"`
+	Duration   int64         `json:"duration"`
+	WantPlay   bool          `json:"wantPlay"`
+	Error      string        `json:"error,omitempty"`
+}
+type player struct {
+	sync.Mutex
+	state    Playback
+	server   *Server
+	recorded int64
+}
+
+func (p *player) snapshot() Playback {
+	p.Lock()
+	defer p.Unlock()
+	s := p.state
+	s.Queue = append([]music.Track{}, s.Queue...)
+	return s
+}
+func (p *player) play(queue []music.Track, index int) error {
+	if len(queue) == 0 || len(queue) > 1000 || index < 0 || index >= len(queue) {
+		return errors.New("播放队列无效")
+	}
+	for _, t := range queue {
+		if _, e := p.server.sources.Get(t.Source); e != nil {
+			return e
+		}
+	}
+	p.Lock()
+	old := p.state.Media
+	p.state.Generation++
+	gen := p.state.Generation
+	p.state.Revision++
+	p.state.Queue = append([]music.Track{}, queue...)
+	p.state.Index = index
+	p.state.Media = ""
+	p.state.Position = 0
+	p.state.Duration = queue[index].Duration
+	p.state.WantPlay = true
+	p.state.State = "preparing"
+	p.state.Error = ""
+	p.Unlock()
+	p.server.media.revoke(old)
+	p.server.wg.Add(1)
+	go func() { defer p.server.wg.Done(); p.resolve(gen, queue[index]) }()
+	return nil
+}
+func (p *player) resolve(gen int64, t music.Track) {
+	src, e := p.server.sources.Get(t.Source)
+	if e != nil {
+		p.fail(gen, e.Error())
+		return
+	}
+	if src.Info().Playback == music.PlaybackRemote {
+		p.fail(gen, "此插件控制远端设备，请使用来源中的远端控制功能")
+		return
+	}
+	stream, e := src.Stream(t.ID, "high")
+	if e != nil {
+		p.fail(gen, e.Error())
+		return
+	}
+	fixture := t.Source == "fixture" && p.server.mode != "real"
+	address := stream.URL
+	if fixture && strings.HasPrefix(address, "file://") {
+		local, ok := music.PathOf(address)
+		if !ok || filepath.Clean(local) != filepath.Join(p.server.fixtureDir, "tone.mp3") {
+			p.fail(gen, "预览媒体无效")
+			return
+		}
+		address = local
+	} else if !strings.HasPrefix(address, "https://") && !strings.HasPrefix(address, "http://") {
+		p.fail(gen, "此播放分支需要平台适配，当前仅支持 HTTP 音频流")
+		return
+	}
+	p.Lock()
+	defer p.Unlock()
+	if p.state.Generation != gen {
+		return
+	}
+	p.state.Media = p.server.media.add(address, stream.Headers, 6*time.Hour, fixture)
+	p.state.State = "ready"
+	p.state.Revision++
+}
+func (p *player) fail(gen int64, msg string) {
+	p.Lock()
+	defer p.Unlock()
+	if p.state.Generation == gen {
+		p.state.State = "failed"
+		p.state.Error = msg
+		p.state.WantPlay = false
+		p.state.Revision++
+	}
+}
+func (p *player) control(action string, pos int64) error {
+	s := p.snapshot()
+	switch action {
+	case "next":
+		if s.Index+1 < len(s.Queue) {
+			return p.play(s.Queue, s.Index+1)
+		}
+		return nil
+	case "previous":
+		if s.Index > 0 {
+			return p.play(s.Queue, s.Index-1)
+		}
+		return nil
+	case "retry":
+		return p.play(s.Queue, s.Index)
+	case "pause", "resume", "seek", "stop":
+	default:
+		return errors.New("未知播放操作")
+	}
+	p.Lock()
+	defer p.Unlock()
+	p.state.Revision++
+	switch action {
+	case "pause":
+		p.state.WantPlay = false
+		p.state.State = "paused"
+	case "resume":
+		p.state.WantPlay = true
+		if p.state.Media != "" {
+			p.state.State = "ready"
+		}
+	case "seek":
+		if pos < 0 {
+			pos = 0
+		}
+		if p.state.Duration > 0 && pos > p.state.Duration {
+			pos = p.state.Duration
+		}
+		p.state.Position = pos
+	case "stop":
+		p.state.Generation++
+		p.server.media.revoke(p.state.Media)
+		p.state.Media = ""
+		p.state.WantPlay = false
+		p.state.State = "idle"
+	}
+	return nil
+}
+func (p *player) event(gen int64, state string, pos, duration int64) bool {
+	valid := map[string]bool{"playing": true, "paused": true, "buffering": true, "ended": true, "failed": true}
+	if !valid[state] {
+		return false
+	}
+	p.Lock()
+	if gen != p.state.Generation {
+		p.Unlock()
+		return false
+	}
+	p.state.State = state
+	if pos >= 0 {
+		p.state.Position = pos
+	}
+	if duration > 0 {
+		p.state.Duration = duration
+	}
+	if state == "failed" {
+		p.state.Error = "音频播放失败，请重试或切换音乐源"
+		p.state.WantPlay = false
+	}
+	if state == "ended" {
+		p.state.WantPlay = false
+	}
+	// Only the first confirmed playing event records listening history.
+	record := state == "playing" && p.recorded != gen
+	if record {
+		p.recorded = gen
+	}
+	s := p.state
+	p.Unlock()
+	if record && len(s.Queue) > s.Index {
+		if src, e := p.server.sources.Get(s.Queue[s.Index].Source); e == nil && src.Can("played") {
+			p.server.wg.Add(1)
+			go func() { defer p.server.wg.Done(); src.Played(s.Queue[s.Index]) }()
+		}
+	}
+	if state == "ended" && s.Index+1 < len(s.Queue) {
+		_ = p.play(s.Queue, s.Index+1)
+	}
+	return true
+}

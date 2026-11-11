@@ -1,0 +1,151 @@
+// Package catalog discovers repositories from the official directory's install links.
+package catalog
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"io"
+	"net/http"
+	"net/url"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+	"time"
+
+	"golang.org/x/net/html"
+	"mygo-music-tv/core/internal/plugin"
+)
+
+type Entry struct {
+	Repository  string `json:"repository"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+type Snapshot struct {
+	Entries   []Entry   `json:"entries"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	Stale     bool      `json:"stale"`
+	Message   string    `json:"message,omitempty"`
+}
+type Catalog struct {
+	mu        sync.Mutex
+	URL, Path string
+	Client    *http.Client
+	saved     Snapshot
+}
+
+func New(address, path string) *Catalog {
+	c := &Catalog{URL: address, Path: path, Client: &http.Client{Timeout: 25 * time.Second}}
+	if b, err := os.ReadFile(path); err == nil {
+		_ = json.Unmarshal(b, &c.saved)
+	}
+	return c
+}
+func text(n *html.Node) string {
+	if n.Type == html.TextNode {
+		return n.Data
+	}
+	var b strings.Builder
+	for a := n.FirstChild; a != nil; a = a.NextSibling {
+		b.WriteString(text(a))
+		b.WriteByte(' ')
+	}
+	return strings.Join(strings.Fields(b.String()), " ")
+}
+func attr(n *html.Node, name string) string {
+	for _, a := range n.Attr {
+		if a.Key == name {
+			return a.Val
+		}
+	}
+	return ""
+}
+func Parse(r io.Reader) ([]Entry, error) {
+	doc, err := html.Parse(r)
+	if err != nil {
+		return nil, err
+	}
+	var out []Entry
+	seen := map[string]bool{}
+	var walk func(*html.Node)
+	walk = func(n *html.Node) {
+		if n.Type == html.ElementNode && n.Data == "a" {
+			u, e := url.Parse(attr(n, "href"))
+			if e == nil && u.Scheme == "mygo-music" && u.Host == "install-plugin" {
+				repo, e := plugin.ParseRepo(u.Query().Get("repo"))
+				key := strings.ToLower(repo)
+				if e == nil && !seen[key] {
+					seen[key] = true
+					name := strings.Split(repo, "/")[1]
+					description := ""
+					// Semantic card containers may change styling without changing discovery.
+					card := n.Parent
+					for a := n.Parent; a != nil && a.Data != "body"; a = a.Parent {
+						if a.Data == "article" || a.Data == "li" {
+							card = a
+							break
+						}
+					}
+					if card != nil {
+						description = text(card)
+						if len([]rune(description)) > 320 {
+							description = string([]rune(description)[:320])
+						}
+					}
+					out = append(out, Entry{repo, name, description})
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			walk(c)
+		}
+	}
+	walk(doc)
+	if len(out) == 0 {
+		return nil, errors.New("官方目录未包含有效安装链接，请稍后重试")
+	}
+	return out, nil
+}
+func (c *Catalog) Get(ctx context.Context, refresh bool) (Snapshot, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if !refresh && len(c.saved.Entries) > 0 && time.Since(c.saved.UpdatedAt) < 30*time.Minute {
+		return c.saved, nil
+	}
+	req, err := http.NewRequestWithContext(ctx, "GET", c.URL, nil)
+	var entries []Entry
+	if err == nil {
+		req.Header.Set("User-Agent", "MyGoMusicTV/0.1")
+		var res *http.Response
+		res, err = c.Client.Do(req)
+		if err == nil {
+			defer res.Body.Close()
+			if res.StatusCode != 200 {
+				err = errors.New("官方目录暂时不可用")
+			} else {
+				entries, err = Parse(io.LimitReader(res.Body, 8<<20))
+			}
+		}
+	}
+	if err != nil {
+		if len(c.saved.Entries) > 0 {
+			s := c.saved
+			s.Stale = true
+			s.Message = "刷新失败，显示最近成功获取的目录"
+			return s, nil
+		}
+		return Snapshot{}, err
+	}
+	s := Snapshot{Entries: entries, UpdatedAt: time.Now().UTC()}
+	if b, e := json.Marshal(s); e == nil {
+		if e = os.MkdirAll(filepath.Dir(c.Path), 0700); e == nil {
+			if e = os.WriteFile(c.Path+".part", b, 0600); e == nil {
+				_ = os.Rename(c.Path+".part", c.Path)
+			}
+		}
+	}
+	c.saved = s
+	return s, nil
+}

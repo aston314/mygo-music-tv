@@ -1,0 +1,6 @@
+{
+  "name": "mygo-music-tv-checks",
+  "private": true,
+  "scripts": {"test": "playwright test", "check": "node --check ui/app.js"},
+  "devDependencies": {"@playwright/test": "1.56.1", "acorn": "8.15.0"}
+}

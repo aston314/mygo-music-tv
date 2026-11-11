@@ -1,0 +1,97 @@
+# MyGo Music TV 迁移方案（讨论稿）
+
+日期：2026-11-11。本文记录已确认的范围、移植建议及临时验证结果；尚未实现 TV 应用，也未生成或验证 APK。
+
+## 已确认的产品范围
+
+- Android TV，Java 平台壳 + Go 核心 + WebView 界面。
+- 1280×720 固定逻辑画布；不按设备宽度重排布局。在其他物理尺寸上整体等比缩放、居中，必要时留边。
+- 不做本地曲库、目录扫描、本地文件播放或本地音乐授权入口。
+- 保留 MyGo Music 的插件与在线音乐源生态。
+- App 内置插件市场，从 https://music.egoist.dev/zh/plugins 动态获取全部目录条目，用户选择后自动下载安装。
+- 目录收录、安装成功、运行时兼容和账号/播放验证分别记录；未验证的插件不得标为可播放。
+
+## 上游基线
+
+- MyGo Music 正式版 v0.1.22，commit `1af0d8efd77fdf630c27cfc635f12e9cb089ce10`。
+- 插件运行时：`github.com/MoeForge/moejs v0.1.0-alpha.11`，纯 Go。
+- 复用候选：`internal/music` 的协议类型与 Source 接口、`internal/plugin` 的运行时/宿主/安装器、歌词解析和插件翻译。
+- 不迁入桌面 `internal/app`、`mygo/audio`、本地曲库及桌面系统集成。
+- 本应用版本与上游插件兼容版本分别管理。`minAppVersion` 以实际支持的上游协议版本按数字比较，不能使用本应用的 0.1.0 或字符串比较冒充兼容。
+- 沿用上游许可证与归属说明；分发策略在发布阶段处理。
+
+来源：[上游 release](https://github.com/egoist/mygo-music/releases/tag/v0.1.22)、[插件协议](https://github.com/egoist/mygo-music/blob/v0.1.22/README.md)、[moejs](https://github.com/MoeForge/moejs/tree/v0.1.0-alpha.11)。
+
+## 三层职责与插件宿主
+
+Java 壳启动并监督 Go，使用动态 loopback 端口，等待 `/health` 就绪后加载 WebView；负责系统媒体会话、音频焦点、平台播放器、前后台生命周期及确认退出。纯音乐的后台播放是明确的产品能力，不能因页面切换或灭屏误停；确认退出及任务移除按明确策略释放播放器与核心。
+
+Go 保存插件、账号、会话和设置，运行 JS/TS，提供目录、安装任务、音乐源 API、媒体与封面代理和播放队列。API、Cookie、签名和上游媒体 URL 不交给页面实现。原生播放器获得短期本机媒体租约；WebView 获得曲目及规范化的播放状态。账号隔离与跨域重定向时的请求头规则继续由 Go 保证。
+
+WebView 渲染首页、搜索、歌单、歌词、播放队列、插件市场及设置。页面根据插件导出的 capabilities 显示功能，使用统一遥控器/键盘/鼠标焦点路由，支持加载、错误、空数据、重试和迟到响应丢弃。浏览器预览与 Android 使用同一 HTTP 契约。
+
+保留 `search`、`home`、`browse`、`playlist`、`lyrics`、`stream`、账号及 `remote*` 等插件函数的名字、参数和 JSON 形状。在线源的服务端协议仍在各插件中，不另行在 Go 或页面重写每个音乐平台。
+
+| 宿主能力 | 移植策略 |
+| --- | --- |
+| JS/TS、Promise、timer、fetch、URL | 在 Go 中沿用 moejs；独立插件实例、超时、资源限制与网络权限 |
+| storage、setting、翻译、crypto | 在 Go 中保留，按安装实例隔离 |
+| signInPrompt | Go 产生登录会话，TV 展示二维码与状态；退出/取消/超时结束会话 |
+| openURL、waitForRedirect | 由平台适配；手机扫码不能直接复用指向电视 loopback 的 OAuth 回调，需逐插件确认 |
+| webSignIn | 独立登录容器与会话，不把主应用桥暴露给远端网页；需验证设备 WebView 与服务端登录政策 |
+| spawn | 保留协议入口，但不执行桌面二进制；按插件验证并增加明确的 Android helper 或原生能力适配 |
+| stream | Go 解析并保管 URL/headers，Range 与流媒体能力经播放器验证 |
+| remote* | 保留远端控制语义；可能需要其他播放设备，不能当作电视本地音频流 |
+
+纯音乐的 ready/playing/buffering/paused/ended/failed 事件来自实际音频播放器；不套用视频首帧判定。每次切歌带 generation/session ID，旧 resolve、旧进度和旧 ended 不得修改新曲目或造成双重播放。
+
+## 插件市场与自动安装
+
+目录抓取器是随 App 提供的核心模块，而非需要先安装的音乐源插件，避免初次安装依赖另一个插件。
+
+本次 HTTP 获取的页面 HTML 已包含 `mygo-music://install-plugin?repo=owner/repo` 链接。以这些安装链接为结构化发现依据，提取 repo、标题与说明并按仓库地址去重；不依赖页面 CSS 类名，也不在 App 内嵌浏览器执行整个站点。保留来源 URL 与最近成功更新时间；抓取失败时显示可用缓存和重试，不能把成功缓存替换为空列表。页面未来变更导致提取为空时按解析失败处理。
+
+抓取目录不逐条查询 GitHub API。选中安装或检查更新时，才解析该仓库的正式 release：优先 Android ABI 对应包或通用包，无合适资产时按上游规则评估源代码包。下载后检查真实 manifest、主脚本、最低兼容版本、网络/进程能力、压缩包路径与大小，并编译但不执行插件代码。仅根目录 `HEAD/plugin.json` 返回 404 不能判定插件失效，正式包可能具有不同布局。
+
+正常操作路径：选择条目 → 查看作者/版本/功能说明并安装 → 下载/校验/编译/登记 → 切换到该来源；需要账号时进入该来源的登录。安装在独立任务中进行，支持重试，失败保留原可用版本；更新先准备新版本，通过后切换并保留回滚依据。权限新增时在更新详情里明确展示。
+
+所有官方目录条目均展示，包括依赖本地曲库或桌面能力的插件；本应用不为它们新增本地曲库。对这类条目解释当前可用范围，不能静默过滤或声称全部兼容。
+
+## 同名与同 ID 插件
+
+本次目录中存在十组重复 manifest ID，包括 `netease`、`qqmusic`、`qishui`、`apple-music` 等。同一个 ID 不能作为全局安装目录或账号数据主键。
+
+安装实例使用规范化仓库地址派生的稳定键，保存 `instanceId / repository / manifestId / installedRevision / capabilities / verification`。插件原 manifest ID 保持不变；包装层把对 UI 和队列暴露的 source 身份映射为实例键。插件目录和 dataDir 按实例分别存放，登录与宿主回调也携带实例身份。允许不同作者的同类插件并存；同一仓库的升级才替换同一实例。移除插件默认不删除账号数据，清理数据为单独操作。
+
+## 目录现场证据
+
+从用户提供页面的 HTML 去重得到 62 个仓库，61 个可读取当前默认分支根目录 manifest。42 个 manifest 为 stream 播放且未声明 process；19 个声明 process；4 个是 remote 播放，这 4 个包含在 19 个 process 声明中。以上只是声明统计，不是兼容性或可播放率。
+
+- `egoist/mygo-music-youtube-music` 的 README 明确依赖 ffmpeg、yt-dlp，后备流程还要求其他 JS runtime，需单独适配。
+- `GentleM4dman/mygo-music-bilibili` 有直出 m4a/FLAC 与 ffmpeg WAV 分支；仅根据 process 声明禁用整款插件会误判，需按实际分支验证。
+- `InkCitrus/mygo-music-apple-music` 使用 macOS osascript 远端控制，不能直接移植为 Android 本地播放。
+- `yiyiSmallti/mygo-qishui` 的根目录 HEAD manifest 本次返回 404，需要继续检查正式发布包，不能从目录删除。
+
+机器可读的声明快照见 [plugin-catalog-2026-11-11.json](evidence/plugin-catalog-2026-11-11.json)。这些数据来自当前 HEAD，随上游变化，只代表本次检查。
+
+## 临时移植验证
+
+在 `/tmp` 独立副本中抽出上游 plugin、music 与 i18n，去除安装器对 local 包只为常量 `local.ID` 产生的依赖，保留该保留字。使用本机 Go 1.27.1（上游完整应用要求 1.27.3），未修改目标应用源码或全局 Go module 缓存。
+
+- 原依赖下 `CGO_ENABLED=0 GOOS=android GOARCH=arm64 go build ./internal/plugin` 通过。
+- 原依赖下 `CGO_ENABLED=0 GOOS=android GOARCH=amd64 go build ./internal/plugin` 通过。
+- 原依赖下 Android ARMv7 包编译失败：moejs URL 模块的 `w.n > 1<<32-1` 对 32 位 int 产生编译期溢出。
+- 临时本地 replace 副本将比较改为 `uint64(w.n) > 1<<32-1` 后，Android ARMv7 包编译通过；补丁见 [moejs-arm32.patch](patches/moejs-arm32.patch)。
+- `go test -race ./internal/plugin ./internal/music ./internal/i18n` 通过。i18n 的全应用目录检查依赖桌面文本数量，首次仅抽出三个包时失败；补充供 AST 扫描的上游 app 源码后通过，未编译或移植该桌面 UI。
+- 补丁后的 `go test -race ./webapi/internal/whatwgurl` 通过。
+
+交叉编译对象是 Go 包，不是 Android 可执行程序或 APK；未证明设备 API 兼容性、启动、登录、后台播放或任何真实音乐源播放。ARMv7 最终可执行文件的 Android NDK/链接要求及三种 ABI 的设备验证仍需执行。
+
+## 建议的实现顺序
+
+1. 固定上游版本与补丁，构建不含本地音乐的 Go 服务与实际插件运行时。
+2. 先连通完整官方目录 → 选择 → 自动安装 → 实例隔离 → Source API 的闭环；目录与插件能力分开显示。
+3. 实现 1280×720 UI、遥控器焦点、真实数据/fixture 预览，验证歌曲搜索、账号二维码与歌词等协议。
+4. 接 Android 壳、原生音频播放器、系统媒体会话和后台策略；使用具体在线源做实机播放验证。
+5. 在同一插件市场中逐项适配 helper、网页登录、remote 控制与特殊音频格式；保持未验证状态清楚可见。
+6. 单独执行签名、发布仓库配置、更新校验及设备矩阵；讨论稿阶段不猜测包名、签名材料或发布仓库。

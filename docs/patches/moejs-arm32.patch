@@ -1,0 +1,12 @@
+diff --git a/webapi/internal/whatwgurl/url.go b/webapi/internal/whatwgurl/url.go
+--- a/webapi/internal/whatwgurl/url.go
++++ b/webapi/internal/whatwgurl/url.go
+@@ -191,7 +191,7 @@ func (u *URL) set(r *record, in string) bool {
+ 	nu := URL{opts: u.opts}
+ 	w := hrefWriter{cmp: in, eq: true}
+ 	nu.serialize(r, &w)
+-	if w.n > 1<<32-1 {
++	if uint64(w.n) > 1<<32-1 {
+ 		return false
+ 	}
+ 	if w.eq && w.n == len(in) {

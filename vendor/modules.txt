@@ -1,0 +1,20 @@
+# github.com/MoeForge/moejs v0.1.0-alpha.11
+## explicit; go 1.25
+github.com/MoeForge/moejs
+github.com/MoeForge/moejs/bytecode
+github.com/MoeForge/moejs/compiler
+github.com/MoeForge/moejs/engine
+github.com/MoeForge/moejs/eventloop
+github.com/MoeForge/moejs/internal/regexpsyntax
+github.com/MoeForge/moejs/syntax
+github.com/MoeForge/moejs/webapi
+github.com/MoeForge/moejs/webapi/internal/whatwgurl
+# golang.org/x/net v0.39.0
+## explicit; go 1.23.0
+golang.org/x/net/html
+golang.org/x/net/html/atom
+# rsc.io/qr v0.2.0
+## explicit
+rsc.io/qr
+rsc.io/qr/coding
+rsc.io/qr/gf256

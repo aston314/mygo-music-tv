@@ -1,0 +1,25 @@
+plugins { id 'com.android.application' }
+def product = new groovy.json.JsonSlurper().parse(file('../../app.json'))
+android {
+    namespace product.applicationId
+    compileSdk 35
+    defaultConfig {
+        applicationId product.applicationId
+        minSdk product.minSdk
+        targetSdk 35
+        versionCode product.versionCode
+        versionName product.versionName
+        ndk { abiFilters.addAll(product.abis) }
+        manifestPlaceholders = [appName: product.displayName]
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+    }
+    buildFeatures { buildConfig true }
+    packaging { jniLibs { useLegacyPackaging = true; keepDebugSymbols += '**/libmygocore.so' } }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    lint { abortOnError true; checkReleaseBuilds true }
+}
+dependencies {
+    implementation 'androidx.media3:media3-exoplayer:1.6.1'
+    implementation 'androidx.media3:media3-session:1.6.1'
+    testImplementation 'junit:junit:4.13.2'
+}

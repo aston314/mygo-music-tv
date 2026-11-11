@@ -1,0 +1,1457 @@
+{
+  "observedOn": "2026-11-11",
+  "directoryUrl": "https://music.egoist.dev/zh/plugins",
+  "discovery": "Unique repo query values in mygo-music://install-plugin links from fetched HTML",
+  "baseline": {
+    "tag": "v0.1.22",
+    "commit": "1af0d8efd77fdf630c27cfc635f12e9cb089ce10",
+    "runtime": "github.com/MoeForge/moejs v0.1.0-alpha.11"
+  },
+  "limits": [
+    "Directory HTML and manifest HEAD may change independently.",
+    "No plugin was installed in the application or authenticated or played on Android.",
+    "Process permission is a declaration, not proof that every operation requires a helper.",
+    "No process permission is not proof that a plugin is compatible."
+  ],
+  "counts": {
+    "directoryEntries": 62,
+    "readableRootManifests": 61,
+    "streamWithoutProcess": 42,
+    "declaresProcess": 19,
+    "remotePlayback": 4
+  },
+  "duplicateManifestIds": {
+    "netease": [
+      "sogud/mygo-music-netease",
+      "hubandad/mygo-music-netease",
+      "AsperaUlt/mygo-netease"
+    ],
+    "netease-cloud-music": [
+      "AkinoKaede/mygo-music-netease-cloud-music",
+      "KirishimaRin/mygo-music-netease-cloud-music"
+    ],
+    "qishui": [
+      "DaviRain-Su/mygo-music-qishui",
+      "Guyu23/mygo-music-qishui",
+      "qile222/mygo-music-qishui"
+    ],
+    "kugou-lite": [
+      "bitbyte404/mygo-music-kugou-lite",
+      "craigary/mygo-music-kugou-lite"
+    ],
+    "qqmusic": [
+      "Amamiya23/mygo-music-qq-plugin",
+      "Lorpaves/mygo-music-qqmusic",
+      "Guyu23/mygo-music-qqmusic",
+      "dddaniel1/mygo-plugin-qqmusic"
+    ],
+    "apple-music": [
+      "LYJW131/mygo-music-apple-music",
+      "InkCitrus/mygo-music-apple-music"
+    ],
+    "ximalaya": [
+      "specialhua/mygo-ximalaya",
+      "LANMIN-X/mygo-plugin-ximalaya"
+    ],
+    "zongzi-music": [
+      "ZONGZI-000/zongzi-mygo-plugin-beta",
+      "ZONGZI-000/zongzi-mygo-plugin-stable"
+    ],
+    "kugou": [
+      "dddaniel1/mygo-plugin-kugou",
+      "fcmfcm1999/mygo-music-kugou"
+    ],
+    "navidrome": [
+      "TengYangTuoHai/mygo-music-navidrome",
+      "rocona/mygo-navidrome"
+    ]
+  },
+  "entries": [
+    {
+      "repository": "sogud/mygo-music-netease",
+      "manifestUrl": "https://raw.githubusercontent.com/sogud/mygo-music-netease/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "netease",
+      "name": "网易云音乐",
+      "pluginVersion": "0.1.7",
+      "minAppVersion": "0.1.20",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "music.163.com",
+        "interfacepc.music.163.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "djyde/mygo-lizhi",
+      "manifestUrl": "https://raw.githubusercontent.com/djyde/mygo-lizhi/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "lizhi",
+      "name": "Li Zhi",
+      "pluginVersion": "1.1.0",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "api.github.com",
+        "testingcf.jsdelivr.net",
+        "cdn.jsdelivr.net",
+        "raw.githubusercontent.com",
+        "lrclib.net"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "egoist/mygo-music-youtube-music",
+      "manifestUrl": "https://raw.githubusercontent.com/egoist/mygo-music-youtube-music/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "youtube-music",
+      "name": "YouTube Music",
+      "pluginVersion": "0.1.1",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [
+        "ffmpeg",
+        "yt-dlp",
+        "/opt/homebrew/bin/ffmpeg",
+        "/opt/homebrew/bin/yt-dlp",
+        "/usr/local/bin/ffmpeg",
+        "/usr/local/bin/yt-dlp"
+      ],
+      "network": [
+        "music.youtube.com",
+        "s.youtube.com",
+        "api.betterlyrics.org"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "AkinoKaede/mygo-music-netease-cloud-music",
+      "manifestUrl": "https://raw.githubusercontent.com/AkinoKaede/mygo-music-netease-cloud-music/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "netease-cloud-music",
+      "name": "NetEase Cloud Music",
+      "pluginVersion": "0.1.12",
+      "minAppVersion": "0.1.20",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "music.163.com",
+        "interfacepc.music.163.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "GentleM4dman/mygo-music-bilibili",
+      "manifestUrl": "https://raw.githubusercontent.com/GentleM4dman/mygo-music-bilibili/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "bilibili",
+      "name": "Bilibili",
+      "pluginVersion": "0.4.2",
+      "minAppVersion": "0.1.21",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [
+        "ffmpeg",
+        "/opt/homebrew/bin/ffmpeg",
+        "/usr/local/bin/ffmpeg"
+      ],
+      "network": [
+        "api.bilibili.com",
+        "passport.bilibili.com",
+        "s.search.bilibili.com",
+        "b23.tv",
+        "*.bilivideo.com",
+        "*.bilivideo.cn",
+        "*.hdslb.com",
+        "aisubtitle.hdslb.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "hubandad/mygo-music-netease",
+      "manifestUrl": "https://raw.githubusercontent.com/hubandad/mygo-music-netease/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "netease",
+      "name": "网易云音乐",
+      "pluginVersion": "1.0.0",
+      "minAppVersion": null,
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "music.163.com",
+        "interface.music.163.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "DaviRain-Su/mygo-music-qishui",
+      "manifestUrl": "https://raw.githubusercontent.com/DaviRain-Su/mygo-music-qishui/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "qishui",
+      "name": "汽水音乐",
+      "pluginVersion": "0.5.2",
+      "minAppVersion": "0.1.22",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [
+        "bin/qishui-helper-*"
+      ],
+      "network": [
+        "qishui.com",
+        "*.qishui.com",
+        "beta-luna.douyin.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "SixWa12138/mygo-music-netease-music",
+      "manifestUrl": "https://raw.githubusercontent.com/SixWa12138/mygo-music-netease-music/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "netease-music",
+      "name": "网易云音乐",
+      "pluginVersion": "0.4.1",
+      "minAppVersion": null,
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "music.163.com",
+        "interfacepc.music.163.com",
+        "*.127.net"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "lane128/mygo-music-qishui",
+      "manifestUrl": "https://raw.githubusercontent.com/lane128/mygo-music-qishui/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "qishui-app-login",
+      "name": "汽水音乐",
+      "pluginVersion": "1.0.11",
+      "minAppVersion": "0.1.20",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [
+        "bin/qishui-helper-*"
+      ],
+      "network": [
+        "qishui.com",
+        "*.qishui.com",
+        "beta-luna.douyin.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "bitbyte404/mygo-music-kugou-lite",
+      "manifestUrl": "https://raw.githubusercontent.com/bitbyte404/mygo-music-kugou-lite/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "kugou-lite",
+      "name": "Kugou Concept",
+      "pluginVersion": "1.3.0",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "gateway.kugou.com",
+        "openapi.kugou.com",
+        "login-user.kugou.com",
+        "lyrics.kugou.com",
+        "krcs.kugou.com",
+        "kugouvip.kugou.com",
+        "userservice.kugou.com",
+        "mcloudservice.kugou.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "Amamiya23/mygo-music-qq-plugin",
+      "manifestUrl": "https://raw.githubusercontent.com/Amamiya23/mygo-music-qq-plugin/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "qqmusic",
+      "name": "QQ Music",
+      "pluginVersion": "0.3.0",
+      "minAppVersion": "0.1.8",
+      "main": "dist/index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "u.y.qq.com",
+        "c.y.qq.com",
+        "c6.y.qq.com",
+        "y.qq.com",
+        "xui.ptlogin2.qq.com",
+        "ssl.ptlogin2.graph.qq.com",
+        "graph.qq.com",
+        "api.tencentmusic.com",
+        "open.weixin.qq.com",
+        "lp.open.weixin.qq.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "yunforge/mygo-music-download",
+      "manifestUrl": "https://raw.githubusercontent.com/yunforge/mygo-music-download/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "download-music",
+      "name": "Music Download",
+      "pluginVersion": "0.2.0",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "flac.music.hi.cn",
+        "*.126.net",
+        "music.163.com",
+        "*.kuwo.cn",
+        "kuwo.cn"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "r0k1s-i/mygotify",
+      "manifestUrl": "https://raw.githubusercontent.com/r0k1s-i/mygotify/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "mygotify",
+      "name": "MyGotify",
+      "pluginVersion": "0.1.0",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [
+        "ffmpeg",
+        "yt-dlp",
+        "/opt/homebrew/bin/ffmpeg",
+        "/opt/homebrew/bin/yt-dlp",
+        "/usr/local/bin/ffmpeg",
+        "/usr/local/bin/yt-dlp"
+      ],
+      "network": [
+        "open.spotify.com",
+        "api-partner.spotify.com",
+        "spclient.wg.spotify.com",
+        "clienttoken.spotify.com",
+        "gist.githubusercontent.com",
+        "music.youtube.com",
+        "lrclib.net",
+        "music.163.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "LYJW131/mygo-music-apple-music",
+      "manifestUrl": "https://raw.githubusercontent.com/LYJW131/mygo-music-apple-music/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "apple-music",
+      "name": "Apple Music",
+      "pluginVersion": "0.3.4",
+      "minAppVersion": "0.1.21",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [
+        "ffmpeg",
+        "/opt/homebrew/bin/ffmpeg",
+        "/usr/local/bin/ffmpeg",
+        "bin/amhelper",
+        "bin/amhelper.exe"
+      ],
+      "network": [
+        "music.apple.com",
+        "amp-api.music.apple.com",
+        "play.music.apple.com",
+        "play.itunes.apple.com",
+        "*.itunes.apple.com",
+        "*.mzstatic.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "shensl4499/mygo-music-xiaoyuzhou",
+      "manifestUrl": "https://raw.githubusercontent.com/shensl4499/mygo-music-xiaoyuzhou/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "xiaoyuzhou",
+      "name": "小宇宙",
+      "pluginVersion": "0.1.0",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "api.xiaoyuzhoufm.com",
+        "web-api.xiaoyuzhoufm.com",
+        "media.xyzcdn.net",
+        "image.xyzcdn.net",
+        "xyzfm.link"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "KirishimaRin/mygo-music-netease-cloud-music",
+      "manifestUrl": "https://raw.githubusercontent.com/KirishimaRin/mygo-music-netease-cloud-music/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "netease-cloud-music",
+      "name": "NetEase Cloud Music",
+      "pluginVersion": "0.1.5",
+      "minAppVersion": "0.1.20",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "interfacepc.music.163.com",
+        "music.163.com",
+        "clientlog.music.163.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "xingkaixin/mygo-music-spotify",
+      "manifestUrl": "https://raw.githubusercontent.com/xingkaixin/mygo-music-spotify/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "spotify",
+      "name": "Spotify",
+      "pluginVersion": "0.1.1",
+      "minAppVersion": null,
+      "main": "index.js",
+      "playback": "remote",
+      "process": [
+        "/opt/homebrew/bin/librespot",
+        "/usr/local/bin/librespot"
+      ],
+      "network": [
+        "api.spotify.com",
+        "accounts.spotify.com",
+        "lrclib.net"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "yusgsysh/mygo-music-fnos-plugin",
+      "manifestUrl": "https://raw.githubusercontent.com/yusgsysh/mygo-music-fnos-plugin/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "fnos-music",
+      "name": "fnOS Music",
+      "pluginVersion": "1.1.2",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "*"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "InkCitrus/mygo-music-apple-music",
+      "manifestUrl": "https://raw.githubusercontent.com/InkCitrus/mygo-music-apple-music/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "apple-music",
+      "name": "Apple Music",
+      "pluginVersion": "0.2.7",
+      "minAppVersion": "0.1.8",
+      "main": "dist/index.js",
+      "playback": "remote",
+      "process": [
+        "/usr/bin/osascript",
+        "osascript"
+      ],
+      "network": [
+        "amp-api.music.apple.com",
+        "amp-api-edge.music.apple.com",
+        "music.apple.com",
+        "beta.music.apple.com",
+        "*.music.apple.com",
+        "play.itunes.apple.com",
+        "itunes.apple.com",
+        "audio-ssl.itunes.apple.com",
+        "*.itunes.apple.com",
+        "*.mzstatic.com",
+        "lrclib.net"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "Lorpaves/mygo-music-qqmusic",
+      "manifestUrl": "https://raw.githubusercontent.com/Lorpaves/mygo-music-qqmusic/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "qqmusic",
+      "name": "QQ Music",
+      "pluginVersion": "0.3.2",
+      "minAppVersion": "0.1.20",
+      "main": "dist/index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "u.y.qq.com",
+        "c.y.qq.com",
+        "c6.y.qq.com",
+        "y.qq.com",
+        "xui.ptlogin2.qq.com",
+        "ssl.ptlogin2.graph.qq.com",
+        "graph.qq.com",
+        "api.tencentmusic.com",
+        "open.weixin.qq.com",
+        "lp.open.weixin.qq.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "benhaotang/mygo-music-Ampache",
+      "manifestUrl": "https://raw.githubusercontent.com/benhaotang/mygo-music-Ampache/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "ampache",
+      "name": "Ampache",
+      "pluginVersion": "0.2.0",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "*"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "nimrc/mygo-chensheng",
+      "manifestUrl": "https://raw.githubusercontent.com/nimrc/mygo-chensheng/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "chensheng",
+      "name": "Bobby Chen",
+      "pluginVersion": "1.0.0",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "api.github.com",
+        "testingcf.jsdelivr.net",
+        "raw.githubusercontent.com",
+        "lrclib.net",
+        "*.mzstatic.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "amqsy/mygo-music-bodian",
+      "manifestUrl": "https://raw.githubusercontent.com/amqsy/mygo-music-bodian/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "bodian",
+      "name": "Bodian Music",
+      "pluginVersion": "0.3.2",
+      "minAppVersion": "0.1.17",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "bd-api.kuwo.cn",
+        "mlyric.kuwo.cn"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "LYJW131/mygo-music-emby-jellyfin",
+      "manifestUrl": "https://raw.githubusercontent.com/LYJW131/mygo-music-emby-jellyfin/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "emby",
+      "name": "Emby / Jellyfin",
+      "pluginVersion": "0.1.0",
+      "minAppVersion": "0.1.21",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "*"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "Guyu23/mygo-music-qishui",
+      "manifestUrl": "https://raw.githubusercontent.com/Guyu23/mygo-music-qishui/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "qishui",
+      "name": "Soda Music",
+      "pluginVersion": "0.1.0",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "api.qishui.com",
+        "www.qishui.com",
+        "*.qishui.com",
+        "*.douyinpic.com",
+        "*.douyinvod.com",
+        "*.douyincdn.com",
+        "*.byteimg.com",
+        "*.ibyteimg.com",
+        "*.bytecdn.cn"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "popeyelau/mygo-queyue",
+      "manifestUrl": "https://raw.githubusercontent.com/popeyelau/mygo-queyue/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "mygo-queyue",
+      "name": "QueYue",
+      "pluginVersion": "0.1.0",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "api.indie.cn",
+        "www.indie.cn",
+        "cdn2.indie.cn",
+        "lrclib.net",
+        "music.163.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "specialhua/mygo-ximalaya",
+      "manifestUrl": "https://raw.githubusercontent.com/specialhua/mygo-ximalaya/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "ximalaya",
+      "name": "喜马拉雅",
+      "pluginVersion": "0.1.4",
+      "minAppVersion": "0.1.20",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "www.ximalaya.com",
+        "passport.ximalaya.com",
+        "*.xmcdn.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "starriv/mygo-music-spotify",
+      "manifestUrl": "https://raw.githubusercontent.com/starriv/mygo-music-spotify/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "spotify-connect",
+      "name": "Spotify",
+      "pluginVersion": "1.0.0",
+      "minAppVersion": "0.1.22",
+      "main": "src/index.js",
+      "playback": "remote",
+      "process": [
+        "soloist/soloist",
+        "soloist/soloist.exe",
+        "curl",
+        "tar"
+      ],
+      "network": [
+        "accounts.spotify.com",
+        "api.spotify.com",
+        "lrclib.net",
+        "music.163.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "Faye-bit/MyGo-Music-Netease-All",
+      "manifestUrl": "https://raw.githubusercontent.com/Faye-bit/MyGo-Music-Netease-All/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "netease-all",
+      "name": "网易云音乐 All",
+      "pluginVersion": "0.3.1",
+      "minAppVersion": "0.1.22",
+      "main": "plugin/index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "music.163.com",
+        "interfacepc.music.163.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "Guyu23/mygo-music-qqmusic",
+      "manifestUrl": "https://raw.githubusercontent.com/Guyu23/mygo-music-qqmusic/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "qqmusic",
+      "name": "QQ Music",
+      "pluginVersion": "0.1.4",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "ssl.ptlogin2.qq.com",
+        "ptlogin2.qq.com",
+        "ssl.ptlogin2.graph.qq.com",
+        "ptlogin2.graph.qq.com",
+        "graph.qq.com",
+        "u.y.qq.com",
+        "u6.y.qq.com",
+        "c.y.qq.com",
+        "c6.y.qq.com",
+        "y.qq.com",
+        "*.y.qq.com",
+        "y.gtimg.cn",
+        "*.gtimg.cn",
+        "*.tc.qq.com",
+        "*.music.tc.qq.com",
+        "*.stream.qqmusic.qq.com",
+        "*.qqmusic.qq.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "louisgreen0726/mygo-music-pocket-casts",
+      "manifestUrl": "https://raw.githubusercontent.com/louisgreen0726/mygo-music-pocket-casts/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "pocket-casts",
+      "name": "Pocket Casts",
+      "pluginVersion": "0.1.2",
+      "minAppVersion": "0.1.21",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [
+        "ffmpeg",
+        "/opt/homebrew/bin/ffmpeg",
+        "/usr/local/bin/ffmpeg"
+      ],
+      "network": [
+        "api.pocketcasts.com",
+        "podcast-api.pocketcasts.com",
+        "lists.pocketcasts.com",
+        "pocketcasts.com",
+        "play.pocketcasts.com",
+        "static.pocketcasts.com",
+        "podcasts.pocketcasts.com",
+        "www.gravatar.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "hiSlowMo/neteaseXqqmusic",
+      "manifestUrl": "https://raw.githubusercontent.com/hiSlowMo/neteaseXqqmusic/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "music-fusion",
+      "name": "NetEaseXQQMusic",
+      "pluginVersion": "0.1.5",
+      "minAppVersion": "0.1.20",
+      "main": "dist/index.js",
+      "playback": "stream",
+      "process": [
+        "bin/qqmusic-login-darwin-arm64",
+        "bin/qqmusic-login-darwin-amd64",
+        "bin/qqmusic-login-linux-arm64",
+        "bin/qqmusic-login-linux-amd64",
+        "bin/qqmusic-login-windows-arm64.exe",
+        "bin/qqmusic-login-windows-amd64.exe"
+      ],
+      "network": [
+        "music.163.com",
+        "interfacepc.music.163.com",
+        "u.y.qq.com",
+        "c.y.qq.com",
+        "c6.y.qq.com",
+        "y.qq.com",
+        "mu.y.qq.com",
+        "xui.ptlogin2.qq.com",
+        "ssl.ptlogin2.graph.qq.com",
+        "graph.qq.com",
+        "api.tencentmusic.com",
+        "open.weixin.qq.com",
+        "lp.open.weixin.qq.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "biaobiaobiao108/mygo-yun-music",
+      "manifestUrl": "https://raw.githubusercontent.com/biaobiaobiao108/mygo-yun-music/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "yun-music",
+      "name": "YunLu Music",
+      "pluginVersion": "1.1.1",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "*"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "LANMIN-X/mygo-plugin-ximalaya",
+      "manifestUrl": "https://raw.githubusercontent.com/LANMIN-X/mygo-plugin-ximalaya/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "ximalaya",
+      "name": "喜马拉雅",
+      "pluginVersion": "0.1.6",
+      "minAppVersion": "0.1.20",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "pc.ximalaya.com",
+        "www.ximalaya.com",
+        "passport.ximalaya.com",
+        "*.xmcdn.com",
+        "*.qrstuvwxyzab.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "TexasOct/mygo-subsonic",
+      "manifestUrl": "https://raw.githubusercontent.com/TexasOct/mygo-subsonic/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "subsonic",
+      "name": "Subsonic",
+      "pluginVersion": "0.1.9",
+      "minAppVersion": "0.1.13",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "*"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "yiyiSmallti/mygo-qishui",
+      "manifestUrl": "https://raw.githubusercontent.com/yiyiSmallti/mygo-qishui/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestFetchError": "HTTP Error 404: Not Found",
+      "note": "Root HEAD manifest lookup is insufficient; inspect release assets before classifying installation support."
+    },
+    {
+      "repository": "Arteiimis/mygo-music-netease",
+      "manifestUrl": "https://raw.githubusercontent.com/Arteiimis/mygo-music-netease/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "netease-cloud-music-plus",
+      "name": "NetEase Cloud Music Plus",
+      "pluginVersion": "0.2.1",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "music.163.com",
+        "interfacepc.music.163.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "ZONGZI-000/zongzi-mygo-plugin-beta",
+      "manifestUrl": "https://raw.githubusercontent.com/ZONGZI-000/zongzi-mygo-plugin-beta/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "zongzi-music",
+      "name": "粽子音源",
+      "pluginVersion": "1.1.0-beta.5",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [
+        "*",
+        "bin/win32-amd64/ffmpeg.exe",
+        "bin/win32-arm64/ffmpeg.exe",
+        "bin/darwin-arm64/ffmpeg",
+        "bin/darwin-x64/ffmpeg",
+        "bin/linux-x64/ffmpeg",
+        "bin/linux-arm64/ffmpeg",
+        "powershell",
+        "pwsh",
+        "/bin/sh"
+      ],
+      "network": [
+        "music.163.com",
+        "*.126.net",
+        "*.163.com",
+        "search.kuwo.cn",
+        "antiserver.kuwo.cn",
+        "*.kuwo.cn",
+        "*.youtube.com",
+        "*.ytimg.com",
+        "*.googlevideo.com",
+        "*.googleapis.com",
+        "lrclib.net",
+        "github.com",
+        "objects.githubusercontent.com",
+        "release-assets.githubusercontent.com",
+        "api.bilibili.com",
+        "*.bilibili.com",
+        "*.bilivideo.com",
+        "*.bilivideo.cn",
+        "*.mcdn.bilivideo.cn",
+        "*.hdslb.com",
+        "*.jsdelivr.net",
+        "*.qtfm.cn",
+        "lhttp.qtfm.cn",
+        "stream.zeno.fm",
+        "*.zeno.fm",
+        "podtown.xyz",
+        "*.myqcloud.com",
+        "*.fireside.fm",
+        "*.xyzfm.space",
+        "*.xyzcdn.net",
+        "raw.githubusercontent.com",
+        "c.y.qq.com",
+        "u.y.qq.com",
+        "y.qq.com",
+        "*.qq.com",
+        "*.gtimg.cn",
+        "itunes.apple.com",
+        "*.apple.com",
+        "feed.xyzfm.space",
+        "*.xiaoyuzhoufm.com",
+        "*.xyzcdn.net",
+        "*.ximalaya.com",
+        "*.libsyn.com",
+        "*.fm",
+        "*.simplecast.com",
+        "*.megaphone.fm",
+        "*.acast.com",
+        "*.buzzsprout.com",
+        "*.podbean.com",
+        "*.typlog.io",
+        "*.anchor.fm",
+        "icecast.radiofrance.fr",
+        "*.radiofrance.fr",
+        "ice1.somafm.com",
+        "*2.somafm.com",
+        "*.somafm.com",
+        "stream-relay-geo.ntslive.net",
+        "*.ntslive.net",
+        "stream.radioparadise.com",
+        "*.radioparadise.com",
+        "media-ice.musicradio.com",
+        "s5-webradio.antenne.de",
+        "*.antenne.de"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "dddaniel1/mygo-plugin-kugou",
+      "manifestUrl": "https://raw.githubusercontent.com/dddaniel1/mygo-plugin-kugou/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "kugou",
+      "name": "KuGou Music",
+      "pluginVersion": "0.1.0",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "gateway.kugou.com",
+        "login-user.kugou.com",
+        "krcs.kugou.com",
+        "lyrics.kugou.com",
+        "m.kugou.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "ZONGZI-000/zongzi-mygo-plugin-stable",
+      "manifestUrl": "https://raw.githubusercontent.com/ZONGZI-000/zongzi-mygo-plugin-stable/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "zongzi-music",
+      "name": "粽子音源",
+      "pluginVersion": "1.0.0",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [
+        "*",
+        "bin/win32-amd64/ffmpeg.exe",
+        "bin/win32-arm64/ffmpeg.exe",
+        "bin/darwin-arm64/ffmpeg",
+        "bin/darwin-x64/ffmpeg",
+        "bin/linux-x64/ffmpeg",
+        "bin/linux-arm64/ffmpeg",
+        "powershell",
+        "pwsh",
+        "/bin/sh"
+      ],
+      "network": [
+        "music.163.com",
+        "*.126.net",
+        "*.163.com",
+        "search.kuwo.cn",
+        "antiserver.kuwo.cn",
+        "*.kuwo.cn",
+        "*.youtube.com",
+        "*.ytimg.com",
+        "*.googlevideo.com",
+        "*.googleapis.com",
+        "lrclib.net",
+        "github.com",
+        "objects.githubusercontent.com",
+        "release-assets.githubusercontent.com",
+        "api.bilibili.com",
+        "*.bilibili.com",
+        "*.bilivideo.com",
+        "*.bilivideo.cn",
+        "*.mcdn.bilivideo.cn",
+        "*.hdslb.com",
+        "*.jsdelivr.net",
+        "*.qtfm.cn",
+        "lhttp.qtfm.cn",
+        "stream.zeno.fm",
+        "*.zeno.fm",
+        "podtown.xyz",
+        "*.myqcloud.com",
+        "*.fireside.fm",
+        "*.xyzfm.space",
+        "*.xyzcdn.net",
+        "raw.githubusercontent.com",
+        "c.y.qq.com",
+        "u.y.qq.com",
+        "y.qq.com",
+        "*.qq.com",
+        "*.gtimg.cn",
+        "itunes.apple.com",
+        "*.apple.com",
+        "feed.xyzfm.space",
+        "*.xiaoyuzhoufm.com",
+        "*.xyzcdn.net",
+        "*.ximalaya.com",
+        "*.libsyn.com",
+        "*.fm",
+        "*.simplecast.com",
+        "*.megaphone.fm",
+        "*.acast.com",
+        "*.buzzsprout.com",
+        "*.podbean.com",
+        "*.typlog.io",
+        "*.anchor.fm",
+        "icecast.radiofrance.fr",
+        "*.radiofrance.fr",
+        "ice1.somafm.com",
+        "*2.somafm.com",
+        "*.somafm.com",
+        "stream-relay-geo.ntslive.net",
+        "*.ntslive.net",
+        "stream.radioparadise.com",
+        "*.radioparadise.com",
+        "media-ice.musicradio.com",
+        "s5-webradio.antenne.de",
+        "*.antenne.de"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "AdkinsHan/mygo-local-lyrics",
+      "manifestUrl": "https://raw.githubusercontent.com/AdkinsHan/mygo-local-lyrics/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "lrclib-lyrics",
+      "name": "LRCLib Lyrics",
+      "pluginVersion": "1.1.1",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [
+        "bin/read-index-*"
+      ],
+      "network": [
+        "lrclib.net"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "dddaniel1/mygo-plugin-qqmusic",
+      "manifestUrl": "https://raw.githubusercontent.com/dddaniel1/mygo-plugin-qqmusic/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "qqmusic",
+      "name": "QQ Music",
+      "pluginVersion": "0.2.4",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "*.qq.com",
+        "*.gtimg.cn"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "iko233/webdav4mygo",
+      "manifestUrl": "https://raw.githubusercontent.com/iko233/webdav4mygo/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "webdav4mygo",
+      "name": "WebDAV",
+      "pluginVersion": "0.3.5",
+      "minAppVersion": "0.1.22",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [
+        "bin/cover-*"
+      ],
+      "network": [
+        "*"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "craigary/mygo-music-kugou-lite",
+      "manifestUrl": "https://raw.githubusercontent.com/craigary/mygo-music-kugou-lite/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "kugou-lite",
+      "name": "Kugou Lite",
+      "pluginVersion": "0.6.2",
+      "minAppVersion": "0.1.20",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "gateway.kugou.com",
+        "login-user.kugou.com",
+        "login.user.kugou.com",
+        "loginserviceretry.kugou.com",
+        "userservice.kugou.com",
+        "kugouvip.kugou.com",
+        "openapi.kugou.com",
+        "lyrics.kugou.com",
+        "mlike.kugou.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "satyawikananda/soundgo",
+      "manifestUrl": "https://raw.githubusercontent.com/satyawikananda/soundgo/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "soundgo",
+      "name": "SoundGo",
+      "pluginVersion": "0.1.0",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [
+        "ffmpeg",
+        "/opt/homebrew/bin/ffmpeg",
+        "/usr/local/bin/ffmpeg"
+      ],
+      "network": [
+        "soundcloud.com",
+        "*.soundcloud.com",
+        "api-v2.soundcloud.com",
+        "api-auth.soundcloud.com",
+        "*.sndcdn.com",
+        "*.soundcloud.cloud",
+        "lrclib.net"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "VenusLuna/mygo-music-netease-plus",
+      "manifestUrl": "https://raw.githubusercontent.com/VenusLuna/mygo-music-netease-plus/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "netease-plus",
+      "name": "网易云音乐 Plus",
+      "pluginVersion": "0.2.5",
+      "minAppVersion": "0.1.20",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "music.163.com",
+        "interfacepc.music.163.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "GYRYEZ/mygo-music-roamdial",
+      "manifestUrl": "https://raw.githubusercontent.com/GYRYEZ/mygo-music-roamdial/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "roamdial",
+      "name": "RoamDial 电台",
+      "pluginVersion": "0.1.0",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "roamdial.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "liuxiaofengone/synology-DSAudio-mygo-music-plugin",
+      "manifestUrl": "https://raw.githubusercontent.com/liuxiaofengone/synology-DSAudio-mygo-music-plugin/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "synology-audio",
+      "name": "群晖 Audio Station",
+      "pluginVersion": "0.1.1",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "*"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "TengYangTuoHai/mygo-music-navidrome",
+      "manifestUrl": "https://raw.githubusercontent.com/TengYangTuoHai/mygo-music-navidrome/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "navidrome",
+      "name": "Navidrome",
+      "pluginVersion": "0.2.0",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "*"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "Jimmyzzt/mygo-music-incompetech",
+      "manifestUrl": "https://raw.githubusercontent.com/Jimmyzzt/mygo-music-incompetech/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "incompetech",
+      "name": "Incompetech",
+      "pluginVersion": "0.2.2",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "incompetech.com",
+        "itunes.apple.com",
+        "musicbrainz.org",
+        "coverartarchive.org"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "jfeng018/mygo-music-lx-source",
+      "manifestUrl": "https://raw.githubusercontent.com/jfeng018/mygo-music-lx-source/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "lx-source",
+      "name": "LX Source",
+      "pluginVersion": "0.2.2",
+      "minAppVersion": "0.1.20",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "*"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "MaYunFei/mygo-music-feiniu",
+      "manifestUrl": "https://raw.githubusercontent.com/MaYunFei/mygo-music-feiniu/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "feiniu",
+      "name": "Feiniu Music",
+      "pluginVersion": "0.1.0",
+      "minAppVersion": "0.1.20",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "*"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "Maker-World/mygo-music-migu",
+      "manifestUrl": "https://raw.githubusercontent.com/Maker-World/mygo-music-migu/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "migu",
+      "name": "Migu Music",
+      "pluginVersion": "0.2.0",
+      "minAppVersion": "0.1.21",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "music.migu.cn",
+        "passport.migu.cn",
+        "app.c.nf.migu.cn",
+        "app.u.nf.migu.cn",
+        "c.musicapp.migu.cn",
+        "d.musicapp.migu.cn"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "fcmfcm1999/mygo-music-kugou",
+      "manifestUrl": "https://raw.githubusercontent.com/fcmfcm1999/mygo-music-kugou/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "kugou",
+      "name": "酷狗",
+      "pluginVersion": "1.0.0",
+      "minAppVersion": null,
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "gateway.kugou.com",
+        "lyrics.kugou.com",
+        "krcs.kugou.com",
+        "login-user.kugou.com",
+        "expendablekmr.kugou.com",
+        "openapi.kugou.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "rocona/mygo-navidrome",
+      "manifestUrl": "https://raw.githubusercontent.com/rocona/mygo-navidrome/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "navidrome",
+      "name": "Navidrome",
+      "pluginVersion": "0.1.0",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "*"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "fansion314/mygo-music-yoi",
+      "manifestUrl": "https://raw.githubusercontent.com/fansion314/mygo-music-yoi/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "world.fansionia.mygo-music-yoi",
+      "name": "You Own It",
+      "pluginVersion": "0.1.1",
+      "minAppVersion": "0.1.22",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "music.163.com",
+        "interfacepc.music.163.com",
+        "*.music.126.net",
+        "*.music.163.com",
+        "*.music.163.net",
+        "*.music.126.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "YeeYeung/mygo-music-overcast",
+      "manifestUrl": "https://raw.githubusercontent.com/YeeYeung/mygo-music-overcast/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "overcast",
+      "name": "Overcast",
+      "pluginVersion": "0.1.0",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "*"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "AsperaUlt/mygo-netease",
+      "manifestUrl": "https://raw.githubusercontent.com/AsperaUlt/mygo-netease/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "netease",
+      "name": "网易云音乐",
+      "pluginVersion": "1.0.14",
+      "minAppVersion": null,
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "music.163.com",
+        "interface.music.163.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "sounfury/mygo-music-spotify-soloist",
+      "manifestUrl": "https://raw.githubusercontent.com/sounfury/mygo-music-spotify-soloist/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "spotify-soloist",
+      "name": "Spotify Soloist",
+      "pluginVersion": "0.1.0",
+      "minAppVersion": "0.1.8",
+      "main": "index.js",
+      "playback": "remote",
+      "process": [
+        "bin/soloist.exe",
+        "powershell.exe"
+      ],
+      "network": [
+        "api.spotify.com",
+        "accounts.spotify.com",
+        "lrclib.net"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "qile222/mygo-music-qishui",
+      "manifestUrl": "https://raw.githubusercontent.com/qile222/mygo-music-qishui/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "qishui",
+      "name": "Qishui Music",
+      "pluginVersion": "0.7.7",
+      "minAppVersion": "0.1.22",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [
+        "/usr/bin/base64",
+        "/usr/bin/env"
+      ],
+      "network": [
+        "api.qishui.com",
+        "*.qishui.com",
+        "beta-luna.douyin.com",
+        "*.douyin.com",
+        "*.douyinpic.com",
+        "*.douyinvod.com",
+        "*.douyincdn.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "e5u/mygo-taskbar-lyrics",
+      "manifestUrl": "https://raw.githubusercontent.com/e5u/mygo-taskbar-lyrics/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "taskbar-lyrics",
+      "name": "Taskbar Lyrics",
+      "pluginVersion": "0.8.2",
+      "minAppVersion": null,
+      "main": "index.js",
+      "playback": "stream",
+      "process": [
+        "bin/*"
+      ],
+      "network": [
+        "amlldb.bikonoo.com"
+      ],
+      "declaresNewerBaseline": false
+    },
+    {
+      "repository": "pingfury108/mygo-music-sonust",
+      "manifestUrl": "https://raw.githubusercontent.com/pingfury108/mygo-music-sonust/HEAD/plugin.json",
+      "verification": "manifest-declarations-only; no login or playback verified",
+      "manifestId": "sonust",
+      "name": "Sonust",
+      "pluginVersion": "0.1.1",
+      "minAppVersion": "0.1.20",
+      "main": "index.js",
+      "playback": "stream",
+      "process": [],
+      "network": [
+        "*"
+      ],
+      "declaresNewerBaseline": false
+    }
+  ]
+}
