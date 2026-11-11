@@ -1,5 +1,6 @@
 plugins { id 'com.android.application' }
 def product = new groovy.json.JsonSlurper().parse(file('../../app.json'))
+def releaseKeystore = System.getenv('ANDROID_KEYSTORE_PATH')
 android {
     namespace product.applicationId
     compileSdk 35
@@ -14,6 +15,24 @@ android {
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     buildFeatures { buildConfig true }
+    signingConfigs {
+        release {
+            if (releaseKeystore) {
+                storeFile file(releaseKeystore)
+                storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+                enableV1Signing true
+                enableV2Signing true
+            }
+        }
+    }
+    buildTypes {
+        release {
+            debuggable false
+            if (releaseKeystore) signingConfig signingConfigs.release
+        }
+    }
     packaging { jniLibs { useLegacyPackaging = true; keepDebugSymbols += '**/libmygocore.so' } }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
     lint { abortOnError true; checkReleaseBuilds true }

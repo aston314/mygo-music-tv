@@ -12,12 +12,12 @@ async function song(page){
  await page.locator('#open-player').click();await expect(page.locator('.player-heading')).toBeVisible();
 }
 
-test('signed in account is visible throughout navigation and remains known after a refresh failure',async({page})=>{
+test('account stays hidden on market and settings and remains known on music pages after a refresh failure',async({page})=>{
  let signedIn=true,fail=false;
  await page.route('**/call/account',route=>route.fulfill(fail?{status:422,json:{error:'账号查询超时'}}:{json:signedIn?{id:'me',name:'客厅听众'}:null}));
  await page.route('**/call/signOut',route=>{signedIn=false;return route.fulfill({json:null});});
  await boot(page);await expect(page.locator('#account-name')).toHaveText('客厅听众');
- for(const nav of ['settings','market','search','home']){await page.locator('[data-focus="nav-'+nav+'"]').click();await expect(page.locator('#account-name')).toHaveText('客厅听众');}
+ for(const nav of ['settings','market','search','home']){await page.locator('[data-focus="nav-'+nav+'"]').click();if(nav==='settings'||nav==='market')await expect(page.locator('#account-button')).toBeHidden();else await expect(page.locator('#account-button')).toBeVisible();await expect(page.locator('#account-name')).toHaveText('客厅听众');}
  fail=true;await page.locator('#account-button').click();await expect(page.locator('#modal-layer')).toContainText('账号查询超时');await expect(page.locator('#account-name')).toHaveText('客厅听众');await page.keyboard.press('Escape');
  fail=false;await page.locator('#account-button').click();await expect(page.locator('#modal-layer')).toContainText('客厅听众');
  await page.locator('#modal-layer [data-action="signout"]').click();await expect(page.locator('#account-name')).toHaveText('未登录');

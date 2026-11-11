@@ -26,7 +26,7 @@ go run -mod=vendor ./core/cmd/music-tv -mode real
 - 重启恢复上次队列、当前歌曲、进度、随机历史和电台信息，默认暂停，按播放才重新获取音频；保存上次浏览来源。设置可选择标准、高音质、无损，下一次播放生效，实际音质由来源和账号权限决定。
 - 自己的非固定歌单支持按来源能力重命名、删除、移除歌曲和上下移序；删除需要确认，编辑失败保留原内容，修改歌单不会改动正在播放的队列。
 - 电台在当前批次接近结束时自动获取下一批曲目，失败保留队列并可重试；可退出连续电台而继续当前歌曲。播客节目列表支持接近底部懒加载、去重和失败重试，保留滚动位置与焦点。实现与验证范围见 [聆听功能补齐](docs/listening-completion.md)。
-- 右上角常驻当前音乐源的账号名；切换来源、登录和退出后更新，查询失败保留已知账号并提供重试/重新登录。
+- 音乐浏览页右上角显示当前音乐源的账号名；插件市场、设置和歌词页隐藏账号信息。切换来源、登录和退出后更新，查询失败保留已知账号并提供重试/重新登录。
 - 底部展示歌曲、歌手与专辑，歌手/专辑可进入详情；多歌手可选择，歌手详情有歌曲和专辑切换标签，专辑继续进入歌曲列表，返回保留焦点且不会重启播放。专辑列表展示 Source 协议返回的全部条目，不额外推测来源未提供的分页接口。
 - 浏览页面底部可直接喜欢/取消喜欢歌曲，实心爱心表示已喜欢，和播放页/菜单同步；歌词页只保留大封面下方的收藏入口。歌手与专辑通过焦点高亮表示可操作，不使用文字下划线；详情名称只在页头显示一次。当前歌曲在首页、歌单和队列中以底色、侧边标记和播放/暂停 SVG 高亮，队列按独立条目区分重复歌曲。进度条以圆点标识当前位置，遥控器焦点显示在圆点上，可直接点击、拖动或触摸调整；左右键每次快进/快退 10 秒，上下键离开进度条，不再弹窗。
 - 设置支持深色 / 淡色主题、简体 / 繁体中文，立即切换并持久保存；语言资源按 JS 文件独立维护，详见 [主题与语言](docs/localization.md)。
@@ -62,7 +62,7 @@ gradle -p android testDebugUnitTest lintDebug assembleDebug
 python3 scripts/verify_apk.py android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-GitHub 私有仓库 [aston314/mygo-music-tv](https://github.com/aston314/mygo-music-tv) 的 [CI](https://github.com/aston314/mygo-music-tv/actions/workflows/ci.yml) 执行上述 Go/浏览器/Java/Android 检查并编译 arm64-v8a、armeabi-v7a、x86_64。CI 不把 APK 上传成临时 Actions artifact。尚未配置正式签名、公开下载仓库或应用更新渠道；未创建发布标签。
+GitHub 私有仓库 [aston314/mygo-music-tv](https://github.com/aston314/mygo-music-tv) 的 [CI](https://github.com/aston314/mygo-music-tv/actions/workflows/ci.yml) 执行上述 Go/浏览器/Java/Android 检查并编译 arm64-v8a、armeabi-v7a、x86_64。CI 不把 APK 上传成临时 Actions artifact。[Android Release](https://github.com/aston314/mygo-music-tv/actions/workflows/release.yml) 在签名 Secrets 填写完成后构建和校验签名 APK、校验和与 update.json，再发布到私有 Release，详见[电视测试版发布](docs/android-release.md)。当前没有配置匿名公开下载仓库或应用内升级地址。
 
 产品身份、ABI、画布和插件兼容版本保存在 `app.json`。应用版本独立于上游插件 `minAppVersion`。
 

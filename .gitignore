@@ -9,3 +9,7 @@ android/app/src/main/jniLibs/
 *.log
 node_modules/
 tests/results/
+.env.release.local
+*.jks
+*.keystore
+__pycache__/
