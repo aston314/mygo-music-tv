@@ -205,8 +205,8 @@ for(const [width,height] of [[960,540],[1280,720],[1920,1080]])test('lyrics view
  const bounds=await page.evaluate(()=>{const rect=s=>document.querySelector(s).getBoundingClientRect();return {controls:rect('#player-bar'),lyrics:rect('.lyric-column'),tools:rect('.player-tools'),stage:rect('#stage')};});
  expect(bounds.controls.right).toBeLessThan(bounds.lyrics.left);expect(bounds.controls.top).toBeGreaterThanOrEqual(bounds.tools.bottom);expect(bounds.lyrics.bottom).toBeGreaterThan(bounds.controls.bottom-2);
  await page.locator('#toggle').focus();await page.keyboard.press('ArrowDown');await expect(page.locator('#seek')).toBeFocused();await page.keyboard.press('ArrowDown');await expect(page.locator('#queue-button')).toBeFocused();
- await page.keyboard.press('ArrowRight');await expect(page.locator('#lyrics-button')).toBeFocused();await page.keyboard.press('ArrowRight');await expect(page.locator('[data-focus="translation"]')).toBeFocused();
- await page.keyboard.press('ArrowLeft');await expect(page.locator('#toggle')).toBeFocused();await page.keyboard.press('ArrowUp');expect(await page.evaluate(()=>document.querySelector('.record-column').contains(document.activeElement))).toBe(true);
+ await page.keyboard.press('ArrowRight');await expect(page.locator('#lyrics-button')).toBeFocused();await page.keyboard.press('ArrowRight');await expect(page.locator('[data-focus="player-back"]')).toBeFocused();
+ await page.keyboard.press('ArrowDown');await expect(page.locator('[data-focus="player-artist"]')).toBeFocused();await page.locator('#toggle').focus();await page.keyboard.press('ArrowUp');expect(await page.evaluate(()=>document.querySelector('.record-column').contains(document.activeElement))).toBe(true);
  await page.locator('#lyrics-button').click();await expect(page.locator('.record-column')).toBeHidden();await visibleFocus(page,'#stage');
  await page.keyboard.press('Escape');await expect(page.locator('#lyrics-button')).toBeFocused();await visibleFocus(page,'#player-bar');
  await page.keyboard.press('Escape');await expect(page.locator('#open-player')).toBeVisible();await expect(page.locator('.now-meta')).toBeVisible();

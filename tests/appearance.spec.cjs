@@ -79,7 +79,8 @@ test('Traditional lyrics, nested queue and comments retain original music text a
  await settings(page);await choose(page,'theme','light');await choose(page,'language','zh-TW');
  const after=await(await page.request.get('/api/player')).json();expect(after.generation).toBe(before.generation);expect(after.media).toBe(before.media);
  await page.locator('#open-player').click();await expect(page.locator('.lyric-line')).toHaveText('音乐，歌词保持原样');
- await expect(page.locator('[data-action="translation"]')).toHaveText('翻譯：開');
+ await expect(page.locator('[data-action="translation"]')).toHaveCount(0);
+ await expect(page.locator('[data-focus="player-album"]')).toContainText('專輯 · ');
  await page.locator('#queue-button').click();await expect(page.locator('.modal h2')).toHaveText('播放佇列');await expect(page.locator('[data-queue-jump]').first()).toBeFocused();
  await page.locator('#modal-layer [data-action="play-mode"]').click();await expect(page.locator('.modal h2')).toHaveText('播放順序');
  await page.keyboard.press('Escape');await expect(page.locator('.modal h2')).toHaveText('播放佇列');await page.keyboard.press('Escape');

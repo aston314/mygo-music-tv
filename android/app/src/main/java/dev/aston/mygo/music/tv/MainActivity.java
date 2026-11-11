@@ -24,6 +24,7 @@ public final class MainActivity extends Activity {
         super.onCreate(state); immersive();
         root = new FrameLayout(this); root.setBackgroundColor(Appearance.background(this)); setContentView(root);
         web = new WebView(this); web.setBackgroundColor(Appearance.background(this));
+        web.setVerticalScrollBarEnabled(false); web.setHorizontalScrollBarEnabled(false);
         WebSettings settings = web.getSettings(); settings.setJavaScriptEnabled(true); settings.setDomStorageEnabled(true); settings.setAllowFileAccess(false); settings.setAllowContentAccess(false); settings.setMediaPlaybackRequiresUserGesture(false); settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         if (BuildConfig.DEBUG) WebView.setWebContentsDebuggingEnabled(true);
         web.addJavascriptInterface(new Bridge(), "Android");
@@ -85,6 +86,7 @@ public final class MainActivity extends Activity {
         dialog.setOnDismissListener(d->{exitVisible=false;immersive();}); dialog.setOnShowListener(d->dialog.getButton(AlertDialog.BUTTON_NEGATIVE).requestFocus()); dialog.show();
     }
     private final class Bridge {
+        @JavascriptInterface public String platform() { return "android-tv"; }
         @JavascriptInterface public boolean webSignInSupported() { return true; }
         @JavascriptInterface public void openLogin(String id,String requestId) {
             if(id==null||requestId==null||!id.matches("[a-f0-9]{48}")||!requestId.matches("[a-f0-9]{48}"))return;

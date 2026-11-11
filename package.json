@@ -1,6 +1,6 @@
 {
   "name": "mygo-music-tv-checks",
   "private": true,
-  "scripts": {"test": "playwright test", "check": "node --check ui/app.js && node --check ui/i18n.js && node --check ui/locales/zh-CN.js && node --check ui/locales/zh-TW.js"},
+  "scripts": {"test": "playwright test", "check": "node --check ui/app.js && node --check ui/platform.js && node --check ui/i18n.js && node --check ui/locales/zh-CN.js && node --check ui/locales/zh-TW.js"},
   "devDependencies": {"@playwright/test": "1.56.1", "acorn": "8.15.0"}
 }

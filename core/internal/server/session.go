@@ -25,6 +25,25 @@ type playbackSession struct {
 	Station   *Station      `json:"station,omitempty"`
 }
 
+// Called with the player lock held. Revive a future queue entry's evicted cover
+// from its saved origin, then protect only the current artwork from image LRU.
+func (p *player) keepArtworkLocked() {
+	if p.state.Index < 0 || p.state.Index >= len(p.state.Queue) {
+		p.server.media.protectArtwork("")
+		return
+	}
+	t := &p.state.Queue[p.state.Index]
+	path := t.Album.ImageURL
+	if strings.HasPrefix(path, "/media/") && !p.server.media.has(path) {
+		if address := p.artwork[path]; address != "" {
+			if src, err := p.server.sources.Get(t.Source); err == nil {
+				t.Album.ImageURL = p.server.media.addImage(address, src)
+			}
+		}
+	}
+	p.server.media.protectArtwork(t.Album.ImageURL)
+}
+
 func (p *player) saveSessionLocked(force bool) {
 	if p.sessionPath == "" || !force && time.Since(p.savedAt) < 5*time.Second {
 		return
@@ -119,6 +138,7 @@ func (p *player) restoreSession(path string) {
 		return
 	}
 	p.state.Index = index
+	p.keepArtworkLocked()
 	p.state.Generation = 1
 	p.state.SeekRevision = 1
 	p.state.QueueRevision = 1

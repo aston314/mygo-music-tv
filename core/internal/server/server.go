@@ -546,7 +546,7 @@ func (s *Server) images(value any, p *plugin.Plugin) {
 					u, e := url.Parse(address)
 					if e == nil && (u.Scheme == "https" || u.Scheme == "http") {
 						address = music.SizedImage(address, 400)
-						x[k] = s.media.add(address, imageHeaders(p, address), 30*time.Minute, false)
+						x[k] = s.media.addImage(address, p)
 					} else {
 						x[k] = ""
 					}

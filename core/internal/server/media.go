@@ -21,22 +21,49 @@ type lease struct {
 	Context context.Context
 	Cancel  context.CancelFunc
 	Fixture bool
+	Image   bool
+	Used    time.Time
+	Source  *plugin.Plugin
 }
 type media struct {
 	sync.Mutex
-	leases map[string]*lease
-	client *http.Client
+	leases  map[string]*lease
+	client  *http.Client
+	artwork string // Current cover must survive browsing other image-heavy pages.
 }
 
 func newMedia() *media {
 	return &media{leases: map[string]*lease{}, client: &http.Client{Transport: &http.Transport{Proxy: http.ProxyFromEnvironment, ResponseHeaderTimeout: 25 * time.Second, IdleConnTimeout: 60 * time.Second}}}
 }
 func (m *media) add(address string, headers map[string]string, d time.Duration, fixture bool) string {
+	return m.addLease(address, headers, d, fixture, false, nil)
+}
+
+// Artwork is bounded metadata, not a timed audio capability. A queue can live
+// longer than 30 minutes; keep its cover usable until LRU eviction or core exit.
+func (m *media) addImage(address string, source *plugin.Plugin) string {
+	return m.addLease(address, nil, 0, false, true, source)
+}
+
+func (m *media) protectArtwork(path string) {
+	m.Lock()
+	defer m.Unlock()
+	m.artwork = strings.TrimPrefix(path, "/media/")
+}
+
+func (m *media) has(path string) bool {
+	m.Lock()
+	defer m.Unlock()
+	l := m.leases[strings.TrimPrefix(path, "/media/")]
+	return l != nil && (l.Image || time.Now().Before(l.Expires))
+}
+
+func (m *media) addLease(address string, headers map[string]string, d time.Duration, fixture, image bool, source *plugin.Plugin) string {
 	m.Lock()
 	defer m.Unlock()
 	now := time.Now()
 	for k, v := range m.leases {
-		if now.After(v.Expires) {
+		if !v.Image && now.After(v.Expires) {
 			v.Cancel()
 			delete(m.leases, k)
 		}
@@ -45,9 +72,16 @@ func (m *media) add(address string, headers map[string]string, d time.Duration, 
 		var oldest string
 		var at time.Time
 		for k, v := range m.leases {
-			if oldest == "" || v.Expires.Before(at) {
+			if k == m.artwork {
+				continue
+			}
+			// Image browsing must not evict an active audio stream.
+			if oldest != "" && m.leases[oldest].Image && !v.Image {
+				continue
+			}
+			if oldest == "" || v.Image && !m.leases[oldest].Image || v.Used.Before(at) {
 				oldest = k
-				at = v.Expires
+				at = v.Used
 			}
 		}
 		m.leases[oldest].Cancel()
@@ -55,7 +89,7 @@ func (m *media) add(address string, headers map[string]string, d time.Duration, 
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	id := randomID()
-	m.leases[id] = &lease{address, headers, now.Add(d), ctx, cancel, fixture}
+	m.leases[id] = &lease{URL: address, Headers: headers, Expires: now.Add(d), Context: ctx, Cancel: cancel, Fixture: fixture, Image: image, Used: now, Source: source}
 	return "/media/" + id
 }
 func (m *media) revoke(path string) {
@@ -82,8 +116,11 @@ func (m *media) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	m.Lock()
 	l := m.leases[strings.TrimPrefix(r.URL.Path, "/media/")]
+	if l != nil {
+		l.Used = time.Now()
+	}
 	m.Unlock()
-	if l == nil || time.Now().After(l.Expires) {
+	if l == nil || !l.Image && time.Now().After(l.Expires) {
 		http.Error(w, "媒体会话已过期", 410)
 		return
 	}
@@ -106,7 +143,12 @@ func (m *media) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	req.Header.Set("User-Agent", music.Agent)
-	for k, v := range l.Headers {
+	headers := l.Headers
+	if l.Image && l.Source != nil {
+		// Resolve current credentials rather than retaining a stale login token.
+		headers = imageHeaders(l.Source, l.URL)
+	}
+	for k, v := range headers {
 		req.Header.Set(k, v)
 	}
 	for _, k := range []string{"Range", "If-Range"} {
@@ -120,7 +162,7 @@ func (m *media) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return errors.New("too many redirects")
 		}
 		if next.URL.Hostname() != u.Hostname() {
-			for k := range l.Headers {
+			for k := range headers {
 				next.Header.Del(k)
 			}
 			next.Header.Del("Cookie")

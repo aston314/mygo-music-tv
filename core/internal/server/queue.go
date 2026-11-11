@@ -123,6 +123,7 @@ func (p *player) beginAtLocked(index int, position int64) {
 	p.state.Generation++
 	p.state.Revision++
 	p.state.Index = index
+	p.keepArtworkLocked()
 	p.state.Media = ""
 	p.state.Position = position
 	p.state.SeekRevision = 0
@@ -331,6 +332,7 @@ func (p *player) clearLocked() error {
 	}
 	p.endStationLocked()
 	p.server.media.revoke(p.state.Media)
+	p.server.media.protectArtwork("")
 	p.state.Generation++
 	p.state.Revision++
 	p.state.QueueRevision++
