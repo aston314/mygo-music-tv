@@ -17,8 +17,9 @@
   "pluginCompatibilityVersion": "0.1.22",
   "playerAdapter": "media3",
   "privateRepository": "aston314/mygo-music-tv",
-  "publicReleaseRepository": null,
-  "updateManifestUrl": null,
+  "publicReleaseRepository": "aston314/my-music-release",
+  "updateManifestUrl": "https://raw.githubusercontent.com/aston314/my-music-release/main/update.json",
+  "appUpdatesEnabled": true,
   "supportedLocales": [
     "zh-CN",
     "zh-TW"

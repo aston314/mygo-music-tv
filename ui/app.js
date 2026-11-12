@@ -194,7 +194,8 @@
     if(state.page!=='home'&&state.page!=='market'){state.detail=null;navigate('home');return true;}
     exitConfirm();return true;
   }
-  window.MyGo={back:back,nativeBack:back,refreshViewport:refreshViewport};
+  function canShowAppUpdate(manual){return !$('app').hidden&&!document.hidden&&!state.modal&&state.page!=='player'&&!isEditor(document.activeElement)&&(manual||!state.player||!state.player.wantPlay);}
+  window.MyGo={back:back,nativeBack:back,refreshViewport:refreshViewport,canShowAppUpdate:canShowAppUpdate};
   function exitConfirm(){if(window.Android&&window.Android.confirmExit)window.Android.confirmExit();else dialog('退出 MyGo Music TV？',("<p>"+tr("退出后停止播放音乐。")+"</p>"),button('cancel',tr("取消"))+button('exit',tr("退出"),'primary'));}
   function appClass(){ $('app').className=[state.pref==='icons'?'icons':'',state.page==='player'?'player-view':'',state.page==='player'&&state.lyricFull?'lyrics-full':'',hasPlayerBar()?'':'without-player'].filter(function(x){return x;}).join(' ');$('player-bar').hidden=!hasPlayerBar();renderLyricButton();renderNowLikeVisibility(); }
   function renderLyricButton(){var n=$('lyrics-button'),full=state.page==='player'&&state.lyricFull,label=full?tr("退出全屏歌词"):tr("全屏歌词");n.hidden=state.page!=='player';n.disabled=!currentTrack();n.innerHTML=buttonContent(null,full?'fullscreenExit':'fullscreen');n.setAttribute('aria-pressed',String(full));n.setAttribute('aria-label',label);n.title=label;}
@@ -527,8 +528,21 @@
     h+=("<section class=\"settings-card appearance-card\"><h2>"+tr("主题")+"</h2><p class=\"hint\">"+tr("选择适合客厅环境的外观")+"</p><div class=\"appearance-choices\">")+appearanceChoice('theme','dark',tr("深色主题"),tr("保留当前深绿风格"),'moon')+appearanceChoice('theme','light',tr("淡色主题"),tr("浅色背景，柔和清晰"),'sun')+'</div></section>';
     h+=("<section class=\"settings-card\"><h2>"+tr("界面语言")+"</h2><button class=\"secondary\" data-focus=\"language-zh-CN\" data-language=\"zh-CN\" aria-pressed=\"")+(state.language==='zh-CN')+("\">"+tr("简体中文")+"</button><button class=\"secondary\" data-focus=\"language-zh-TW\" data-language=\"zh-TW\" aria-pressed=\"")+(state.language==='zh-TW')+("\">"+tr("繁體中文")+"</button><p class=\"hint\">"+tr("仅切换应用界面，歌曲、歌词和评论保留原文。")+"</p></section>");
     if(state.source){h+='<section class="settings-card"><h2>'+esc(state.source.manifest.name)+'</h2><p class="hint">'+esc(state.source.repository)+'</p>'+button('login',tr("账号 / 登录"),'primary','artist')+button('signout',tr("退出账号"))+button('uninstall',tr("卸载来源"))+(state.source.manifest.playback==='remote'?button('remote-devices',tr("播放设备")):'' )+'<p class="hint">'+(state.source.process&&state.source.process.length?tr("部分功能依赖外部程序，可能需要电视适配。"):tr("账号与内容由当前音乐源提供。"))+'</p>';(state.source.manifest.settings||[]).forEach(function(setting,i){h+='<label for="setting-'+i+'">'+esc(setting.label)+'</label><p class="hint">'+esc(setting.help)+'</p><input id="setting-'+i+'" type="text" data-focus="setting-'+i+'" autocomplete="off"><button class="secondary" data-focus="save-'+i+'" data-setting="'+i+("\">"+tr("保存")+"</button>");});h+='</section>';}
-    h+=("<section class=\"settings-card\"><h2>MyGo Music TV · ")+esc(state.version||'')+("</h2><p class=\"muted\">"+tr("1280 × 720 · 在线音乐与社区插件")+"</p>")+button('exit-confirm',tr("退出应用"))+'</section>';$('content').innerHTML=h;if(!keepFocus)afterContent();
+    h+='<section class="settings-card app-update-card"><h2>'+tr("版本更新")+'</h2><p class="hint">'+tr("当前版本：")+esc(state.version||'')+'</p><p id="app-update-status" class="hint" role="status"></p>'+button('app-check-update',tr("检查更新"),'secondary','refresh')+'</section>';
+    h+=("<section class=\"settings-card\"><h2>MyGo Music TV · ")+esc(state.version||'')+("</h2><p class=\"muted\">"+tr("1280 × 720 · 在线音乐与社区插件")+"</p>")+button('exit-confirm',tr("退出应用"))+'</section>';$('content').innerHTML=h;refreshAppUpdate();if(!keepFocus)afterContent();
   }
+  function refreshAppUpdate(){
+    var bridge=window.MyGoAppUpdates,data={supported:false,state:'browser',message:tr("请在 Android 正式版中检查更新")};
+    if(bridge)try{data=JSON.parse(bridge.getStatus());bridge.setPromptAllowed(canShowAppUpdate(true));}catch(_){data={supported:false,state:'error',message:tr("更新功能暂时不可用")};}
+    state.appUpdate=data;var status=$('app-update-status'),action=document.querySelector('[data-action="app-check-update"]');if(!status||!action)return;
+    var busy=['checking','downloading','installing'].indexOf(data.state)>=0,label=data.state==='ready'?tr("继续安装"):data.state==='available'?tr("查看更新"):data.state==='checking'?tr("正在检查更新…"):data.state==='downloading'?tr("正在下载…"):data.state==='installing'?tr("等待系统确认安装…"):tr("检查更新");
+    status.textContent=data.message||tr("尚未检查更新");
+    if(data.state==='available'&&data.latest_version)status.textContent=tr("有新版本可用")+' · '+data.latest_version;
+    if(data.state==='downloading'&&data.size)status.textContent=tr("正在下载…")+' '+Math.min(100,Math.floor(data.downloaded*100/data.size))+'%';
+    action.disabled=!data.supported;action.setAttribute('aria-disabled',String(!data.supported||busy));action.setAttribute('aria-busy',String(busy));
+    if(action.getAttribute('data-update-label')!==label){action.innerHTML=buttonContent(label,busy||data.state!=='ready'?'refresh':'download');action.setAttribute('data-update-label',label);}
+  }
+  function activateAppUpdate(){var bridge=window.MyGoAppUpdates;if(!bridge)return;refreshAppUpdate();try{if(state.appUpdate.state==='ready')bridge.install();else bridge.check();setTimeout(refreshAppUpdate,100);}catch(_){toast(tr("更新功能暂时不可用"));}}
   function appearanceChoice(key,value,label,hint,ico){return '<button class="appearance-choice secondary" data-focus="'+key+'-'+value+'" data-'+key+'="'+value+'" aria-pressed="'+(state[key]===value)+'"><span class="button-content"><span class="theme-swatch '+value+'">'+icon(ico)+'</span><span class="appearance-copy"><strong>'+esc(label)+'</strong><small>'+esc(hint)+'</small></span><span class="choice-check">'+icon('check')+'</span></span></button>';}
   function syncAppearanceChoices(){['theme','language','quality'].forEach(function(key){Array.prototype.forEach.call(document.querySelectorAll('button[data-'+key+']'),function(n){n.setAttribute('aria-pressed',String(n.getAttribute('data-'+key)===state[key]));});});}
   function applyAppearance(prefs){
@@ -731,6 +745,7 @@
     if((v=n.getAttribute('data-device'))!==null){sourceCall('remoteUse',{deviceId:state.devices[+v].id},function(err){if(err)toast(err);else{closeModal();toast(tr("播放设备已切换"));}});return;}
     var a=n.getAttribute('data-action')||n.id;
     switch(a){
+    case 'app-check-update':activateAppUpdate();break;
     case 'source-switch':sourceMenu();break;case 'go-market':state.stack=[];navigate('market');break;case 'go-search':state.stack=[];state.detail=null;navigate('search');break;case 'cancel':closeModal();break;
     case 'check-all-updates':checkUpdates(true);break;case 'check-update':checkUpdates(false);break;case 'update-plugin':updatePlugin();break;case 'confirm-update':confirmUpdate();break;case 'retry-job':if(state.catalogView&&state.catalogView.job){state.catalogView.error='';pollJob(state.catalogView.job.id,state.catalogView);patchCatalogDetail();}break;case 'install':install();break;case 'refresh-catalog':if(!state.marketRefreshBusy)loadCatalog(state.pageGen,true);break;case 'retry':navigate(state.page);break;case 'load-more':n.disabled=true;n.textContent=tr("正在加载…");fetchList(true,state.pageGen);break;
     case 'feature-play':play(state.featureTrack);break;case 'play-all':play(0);break;case 'toggle':toggle();break;case 'previous':control('previous');break;case 'next':control('next');break;case 'seek':commitSeek();break;case 'open-player':openPlayer();break;case 'player-back':case 'detail-back':back();break;
@@ -754,5 +769,5 @@
     }
   });
   function start(){window.MyGoI18n.localize(document);var boot=++state.boot;$('startup-retry').hidden=true;api('/health',function(err){if(err){$('startup-status').textContent=tr("核心连接失败，请重试");$('startup-retry').hidden=false;$('startup-retry').focus();return;}api('/api/config',function(e,conf){if(e){$('startup-status').textContent=e;$('startup-retry').hidden=false;return;}state.mode=conf.mode;state.version=conf.app.versionName;$('startup-version').textContent=tr("版本")+' '+state.version;api('/api/preferences',function(prefError,prefs){if(prefError){$('startup-status').textContent=prefError;$('startup-retry').hidden=false;return;}applyAppearance(prefs||{});state.pref=prefs&&prefs.sidebar==='icons'?'icons':'expanded';state.translation=!prefs||prefs.translation!=='off';appClass();loadSources(function(sourceError){if(sourceError){$('startup-status').textContent=tr("音乐源加载失败，请重试");$('startup-retry').hidden=false;return;}$('startup').hidden=true;$('app').hidden=false;navigate(state.sources.length?'home':'market');clearInterval(state.poll);state.poll=setInterval(pollPlayer,600);pollPlayer();clearTimeout(state.updatesTimer);pollUpdates();if(window.Android&&window.Android.uiReady)window.Android.uiReady();});});});});}
-  state.boot=0;$('startup-retry').onclick=start;start();
+  state.boot=0;$('startup-retry').onclick=start;start();setInterval(refreshAppUpdate,1000);
 }());

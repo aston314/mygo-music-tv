@@ -1,0 +1,67 @@
+package dev.aston.mygo.music.tv;
+
+import java.net.URI;
+import java.util.Arrays;
+import java.util.Locale;
+
+/** Rules shared by checking, downloading and the final installer hand-off. */
+final class UpdatePolicy {
+    static final String REPOSITORY = BuildConfig.UPDATE_REPOSITORY;
+    static String manifestUrl() { return BuildConfig.UPDATE_MANIFEST_URL; }
+    /** Ordered public mirrors. The GitHub URL remains the final fallback. */
+    static final String[] BUILTIN_PROXIES = new String[]{
+            "https://gh-proxy.com/",
+            "https://v4.gh-proxy.org/",
+            "https://gh-proxy.org/"
+    };
+    static final long MAX_APK_BYTES = 100L * 1024 * 1024;
+    static final long CHECK_INTERVAL = 24L * 60 * 60 * 1000;
+
+    static boolean automaticCheckDue(long now, long lastAttempt) {
+        return lastAttempt <= 0 || lastAttempt > now || now - lastAttempt >= CHECK_INTERVAL;
+    }
+
+    static String[] sources(String origin) {
+        String[] result = new String[BUILTIN_PROXIES.length + 1];
+        for (int i = 0; i < BUILTIN_PROXIES.length; i++) result[i] = BUILTIN_PROXIES[i] + origin;
+        result[BUILTIN_PROXIES.length] = origin;
+        return result;
+    }
+
+    static void validate(String packageName, int code, String name, int minSdk, long bytes,
+                         String sha256, String download, String installedPackage, int installedCode, String installedName) {
+        if (code < installedCode || code == installedCode && !installedName.equals(name))
+            throw new IllegalArgumentException("更新信息尚未刷新或版本不一致，请稍后重试");
+        if (!installedPackage.equals(packageName) || code <= 0 || name == null
+                || !name.matches("[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?")
+                || minSdk < 23 || bytes <= 0 || bytes > MAX_APK_BYTES
+                || sha256 == null || !sha256.matches("[a-fA-F0-9]{64}"))
+            throw new IllegalArgumentException("版本信息不完整或不匹配");
+        URI uri = URI.create(download);
+        String path = uri.getRawPath();
+        String prefix = "/" + REPOSITORY + "/releases/download/v" + name + "/";
+        if (!"https".equals(uri.getScheme()) || !"github.com".equals(uri.getHost())
+                || uri.getRawUserInfo() != null || uri.getPort() != -1
+                || uri.getRawQuery() != null || uri.getRawFragment() != null
+                || path == null || !path.equals(prefix + "mygo-music-tv-" + name + ".apk"))
+            throw new IllegalArgumentException("安装包地址不是MyGo Music TV公开发行文件");
+    }
+
+    static boolean matchingArchive(String installedPackage, int installedCode, String archivePackage,
+                                   int archiveCode, String archiveName, int expectedCode, String expectedName,
+                                   String[] installedSigners, String[] archiveSigners) {
+        if (!installedPackage.equals(archivePackage) || archiveCode <= installedCode
+                || archiveCode != expectedCode || !expectedName.equals(archiveName)
+                || installedSigners == null || archiveSigners == null
+                || installedSigners.length == 0 || installedSigners.length != archiveSigners.length) return false;
+        String[] left = installedSigners.clone(), right = archiveSigners.clone();
+        Arrays.sort(left); Arrays.sort(right);
+        return Arrays.equals(left, right);
+    }
+
+    static String hex(byte[] bytes) {
+        StringBuilder result = new StringBuilder(bytes.length * 2);
+        for (byte value : bytes) result.append(String.format(Locale.ROOT, "%02x", value & 255));
+        return result.toString();
+    }
+}

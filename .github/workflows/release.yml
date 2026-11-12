@@ -73,6 +73,13 @@ jobs:
           release_flags=()
           if [ "$RELEASE_PRERELEASE" = "true" ]; then release_flags+=(--prerelease); fi
           gh release create "$RELEASE_TAG" "$RELEASE_APK" build/release/update.json build/release/SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "MyGo Music TV $RELEASE_TAG" --notes-file "$RELEASE_NOTES" "${release_flags[@]}"
+      - name: Mirror verified public downloads
+        if: vars.MYGO_PUBLIC_RELEASES_ENABLED == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.MYGO_RELEASES_TOKEN }}
+        run: |
+          test -n "$GH_TOKEN" || { echo 'MYGO_RELEASES_TOKEN is required for public downloads'; exit 1; }
+          python3 scripts/publish_public_release.py --directory build/release --notes "$RELEASE_NOTES"
       - name: Remove temporary signing key
         if: always()
         run: rm -f "$RUNNER_TEMP/mygo-release-keystore.jks"

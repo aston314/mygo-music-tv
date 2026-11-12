@@ -16,6 +16,8 @@ public final class MainActivity extends Activity {
     private TextView status, version;
     private LinearLayout startup;
     private StartupLogoView startupLogo;
+    private AppUpdater appUpdater;
+    private volatile boolean pageReady, foreground;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean loaded, destroyed, editing, exitVisible;
     private volatile int nativeViewWidth;
@@ -34,7 +36,18 @@ public final class MainActivity extends Activity {
         WebSettings settings = web.getSettings(); settings.setJavaScriptEnabled(true); settings.setDomStorageEnabled(true); settings.setAllowFileAccess(false); settings.setAllowContentAccess(false); settings.setMediaPlaybackRequiresUserGesture(false); settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         if (BuildConfig.DEBUG) WebView.setWebContentsDebuggingEnabled(true);
         web.addJavascriptInterface(new Bridge(), "Android");
+        appUpdater = new AppUpdater(this, new AppUpdater.Host() {
+            public boolean trusted() { return pageReady && !destroyed; }
+            public boolean foreground() { return foreground; }
+            public void restoreFocus() { if (!destroyed) { web.requestFocus(); immersive(); } }
+            public void allowPrompt(boolean manual, AppUpdater.PromptCheck check) {
+                if (!pageReady || destroyed) { check.result(false); return; }
+                web.evaluateJavascript("!!(window.MyGo&&window.MyGo.canShowAppUpdate("+manual+"))", value -> check.result("true".equals(value)));
+            }
+        });
+        web.addJavascriptInterface(appUpdater.new Bridge(), "MyGoAppUpdates");
         web.setWebViewClient(new WebViewClient() {
+            @Override public void onPageStarted(WebView view, String url, android.graphics.Bitmap icon) { pageReady=false; }
             @Override public boolean shouldOverrideUrlLoading(WebView view, String url) { return !trusted(url); }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest r) { return !trusted(r.getUrl().toString()); }
         });
@@ -67,8 +80,10 @@ public final class MainActivity extends Activity {
     private boolean trusted(String url) { try { CoreService s = CoreService.get(); if (s == null || s.pageURL() == null) return false; URI a = new URI(url), b = new URI(s.pageURL()); return "http".equals(a.getScheme()) && a.getHost().equals(b.getHost()) && a.getPort() == b.getPort(); } catch (Exception e) { return false; } }
     private void immersive() { getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_STABLE); }
     @Override public void onWindowFocusChanged(boolean focus) { super.onWindowFocusChanged(focus); if (focus) immersive(); }
-    @Override protected void onResume() { super.onResume(); if(loaded&&web!=null)web.evaluateJavascript("if(window.MyGo&&window.MyGo.resumeLogin)window.MyGo.resumeLogin()",null); }
+    @Override protected void onResume() { super.onResume(); foreground=true; if(appUpdater!=null)appUpdater.resume(); if(loaded&&web!=null)web.evaluateJavascript("if(window.MyGo&&window.MyGo.resumeLogin)window.MyGo.resumeLogin()",null); }
+    @Override protected void onPause() { foreground=false; super.onPause(); }
     @Override public void onBackPressed() {
+        if (appUpdater!=null && appUpdater.back()) return;
         if (editing) { finishEditing(); web.evaluateJavascript("if(document.activeElement)document.activeElement.blur()",null); return; }
         if (!loaded) { confirmExit(); return; }
         final long seq = ++backSequence;
@@ -103,16 +118,17 @@ public final class MainActivity extends Activity {
             handler.post(()->{
                 if(destroyed) return;
                 Appearance.save(MainActivity.this,theme,language);
+                appUpdater.refreshAppearance();
                 root.setBackgroundColor(Appearance.background(MainActivity.this));web.setBackgroundColor(Appearance.background(MainActivity.this));
                 if(startup!=null) { startup.setBackgroundColor(Appearance.background(MainActivity.this));startupLogo.setTintColor(Appearance.foreground(MainActivity.this));status.setTextColor(Appearance.foreground(MainActivity.this));version.setText(String.format(Appearance.text(MainActivity.this,R.string.version_label),BuildConfig.VERSION_NAME)); }
                 CoreService service=CoreService.get();if(service!=null)service.refreshAppearance();
             });
         }
         @JavascriptInterface public boolean nativePlayer() { return true; }
-        @JavascriptInterface public void uiReady() { handler.post(()->{if(!destroyed && startup!=null){root.removeView(startup);startup=null;web.requestFocus();}}); }
+        @JavascriptInterface public void uiReady() { handler.post(()->{if(!destroyed && trusted(web.getUrl())){pageReady=true;if(startup!=null){root.removeView(startup);startup=null;web.requestFocus();}appUpdater.start();}}); }
         @JavascriptInterface public void confirmExit() { handler.post(MainActivity.this::confirmExit); }
         @JavascriptInterface public void startSearchEditing() { handler.post(()->editing=true); }
         @JavascriptInterface public void finishSearchEditing() { handler.post(MainActivity.this::finishEditing); }
     }
-    @Override protected void onDestroy() { destroyed=true; ++backSequence; handler.removeCallbacksAndMessages(null); unregisterReceiver(receiver); finishEditing(); web.removeJavascriptInterface("Android"); web.destroy(); super.onDestroy(); }
+    @Override protected void onDestroy() { destroyed=true; pageReady=false; if(appUpdater!=null)appUpdater.destroy(); ++backSequence; handler.removeCallbacksAndMessages(null); unregisterReceiver(receiver); finishEditing(); web.removeJavascriptInterface("MyGoAppUpdates"); web.removeJavascriptInterface("Android"); web.destroy(); super.onDestroy(); }
 }

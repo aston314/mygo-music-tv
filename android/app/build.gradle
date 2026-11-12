@@ -10,6 +10,9 @@ android {
         targetSdk 35
         versionCode product.versionCode
         versionName product.versionName
+        buildConfigField 'String', 'UPDATE_REPOSITORY', groovy.json.JsonOutput.toJson(product.publicReleaseRepository ?: '')
+        buildConfigField 'String', 'UPDATE_MANIFEST_URL', groovy.json.JsonOutput.toJson(product.updateManifestUrl ?: '')
+        buildConfigField 'boolean', 'UPDATE_ENABLED', (product.appUpdatesEnabled == true).toString()
         ndk { abiFilters.addAll(product.abis) }
         manifestPlaceholders = [appName: product.displayName]
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="update_messages">
+        <item>"不支援的版本資訊格式"</item>
+        <item>"版本說明過長"</item>
+        <item>"偵錯版不覆蓋更新，請使用正式版"</item>
+        <item>"安裝包完整性校驗失敗"</item>
+        <item>"更新包已驗證，可繼續安裝"</item>
+        <item>"正在檢查更新…"</item>
+        <item>"暫時無法連線更新服務，請稍後重試"</item>
+        <item>"檢查失敗："</item>
+        <item>"新版本需要更高版本的 Android"</item>
+        <item>"發現新版本 "</item>
+        <item>"已是最新版本"</item>
+        <item>"版本資訊超過大小限制"</item>
+        <item>"更新連線必須使用 HTTPS"</item>
+        <item>"下載重新導向缺少位址"</item>
+        <item>"更新服務回傳 HTTP "</item>
+        <item>"更新連線重新導向次數過多"</item>
+        <item>"MyGo Music TV 有新版本可以安裝。"</item>
+        <item>"\n\n覆蓋升級保留帳號和記錄。"</item>
+        <item>"稍後"</item>
+        <item>"立即更新"</item>
+        <item>"正在下載 "</item>
+        <item>"正在連線下載服務…"</item>
+        <item>"下載更新"</item>
+        <item>"取消"</item>
+        <item>"下載暫時無法使用"</item>
+        <item>"目前線路失敗，正在嘗試下一條更新線路…"</item>
+        <item>"正在連線更新服務…"</item>
+        <item>"安裝包大小不符"</item>
+        <item>"無法儲存更新安裝包"</item>
+        <item>"下載失敗："</item>
+        <item>"安裝包已驗證，可以安裝"</item>
+        <item>"已下載 %1$.1f / %2$.1f MB · %3$d%%"</item>
+        <item>"安裝包的應用程式、版本或簽章不符，已停止安裝"</item>
+        <item>"裝置 Android 版本不符合安裝要求"</item>
+        <item>"請允許 MyGo Music TV 安裝更新。授權返回後會自動繼續安裝。"</item>
+        <item>"已開啟系統安裝程式，請完成系統確認"</item>
+        <item>"一般安裝入口失敗："</item>
+        <item>"請先允許 MyGo Music TV 安裝更新，再使用備用安裝流程。"</item>
+        <item>"正在準備備用系統安裝入口…"</item>
+        <item>"系統安裝程式啟動失敗："</item>
+        <item>"\n備用安裝入口失敗："</item>
+        <item>"更新已安裝"</item>
+        <item>"已下載的更新包無法使用，請重新檢查更新"</item>
+        <item>"安裝權限尚未開啟。已驗證的安裝包仍保留，可繼續授權或重試。"</item>
+        <item>"系統安裝尚未完成。安裝包已保留，可再次開啟安裝介面。"</item>
+        <item>"等待系統確認安裝…"</item>
+        <item>"安裝未完成，已保留驗證過的安裝包"</item>
+        <item>"允許安裝更新"</item>
+        <item>"前往設定"</item>
+        <item>"裝置無法開啟安裝權限設定。請在系統設定中允許此應用程式安裝未知來源應用程式後，回到這裡繼續安裝。"</item>
+        <item>"繼續安裝 "</item>
+        <item>"\n\n已校驗的安裝包仍保留，可以重試安裝。"</item>
+        <item>"繼續安裝"</item>
+        <item>"備用方式"</item>
+        <item>"更新未完成"</item>
+        <item>"知道了"</item>
+        <item>"已取消下載"</item>
+        <item>"更新操作已取消"</item>
+        <item>"連線逾時，應用程式會自動嘗試其他更新線路"</item>
+        <item>"無法連線更新服務，應用程式會自動嘗試其他線路"</item>
+        <item>"網路或檔案校驗失敗"</item>
+        <item>"更新資訊尚未重新整理或版本不一致，請稍後重試"</item>
+        <item>"版本資訊不完整或不符"</item>
+        <item>"安裝包位址不是 MyGo Music TV 公開發行檔案"</item>
+        <item>"安裝包超過預期大小"</item>
+        <item>"安裝已取消"</item>
+        <item>"裝置安全政策阻止了安裝"</item>
+        <item>"安裝包與裝置中現有應用程式衝突"</item>
+        <item>"安裝包與此裝置不相容"</item>
+        <item>"系統未能識別此安裝包"</item>
+        <item>"裝置儲存空間不足"</item>
+        <item>"系統安裝程式回應逾時"</item>
+        <item>"系統安裝未完成"</item>
+        <item>"系統無法開啟安裝確認介面"</item>
+        <item>"更新下載來源尚未啟用"</item>
+        <item>"更新資訊無法讀取，請稍後重試"</item>
+    </string-array>
+</resources>

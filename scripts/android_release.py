@@ -145,7 +145,7 @@ def package(apk):
         "size": signed.stat().st_size,
         "sha256": sha256(signed),
         "certificate_sha256": fingerprint.lower(),
-        "download_url": "https://github.com/" + app["privateRepository"] + "/releases/download/" + tag + "/" + filename,
+        "download_url": "https://github.com/" + (app.get("publicReleaseRepository") or app["privateRepository"]) + "/releases/download/" + tag + "/" + filename,
         "release_notes": notes_path.read_text(),
     }
     update = output / "update.json"
