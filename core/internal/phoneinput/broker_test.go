@@ -39,6 +39,8 @@ func phone(t *testing.T, b *Broker, s *session, method, path, body, token string
 }
 func TestScopedInputAndPrivateApplicationBoundary(t *testing.T) {
 	b := broker(t)
+	clock := time.Now()
+	b.now = func() time.Time { return clock }
 	v := start(t, b, "resource")
 	s := b.active
 	if v.ExpiresAt-v.ServerNow != Lifetime.Milliseconds() || len(v.ID) != 48 || !strings.Contains(v.URL, "/input#") || strings.Contains(v.URL, v.ID) {
