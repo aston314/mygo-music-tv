@@ -7,6 +7,8 @@ import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.StateListDrawable;
+import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
@@ -50,11 +52,18 @@ final class Appearance {
             button.setBackground(background);
             int focusedText = light ? Color.WHITE : Color.rgb(22,48,36);
             button.setTextColor(new ColorStateList(new int[][]{new int[]{android.R.attr.state_focused},new int[]{android.R.attr.state_pressed},new int[]{}},new int[]{focusedText,focusedText,text}));
-            button.setAllCaps(false); button.setTextSize(16); button.setMinHeight((int)(52*density));
+            button.setAllCaps(false); button.setTextSize(16); button.setSingleLine(true); button.setGravity(Gravity.CENTER);
+            button.setMinHeight((int)(52*density)); button.setMinimumHeight((int)(52*density));
             button.setPadding((int)(22*density),0,(int)(22*density),0);
             if (button.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
                 ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams)button.getLayoutParams();
-                params.leftMargin = (int)(8*density); params.bottomMargin = (int)(8*density); button.setLayoutParams(params);
+                // TV themes can fix this at 48dp, clipping a taller custom background.
+                params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                params.leftMargin = (int)(8*density); params.topMargin = (int)(8*density); params.bottomMargin = (int)(8*density); button.setLayoutParams(params);
+                if (button.getParent() instanceof View) {
+                    View row = (View)button.getParent(); ViewGroup.LayoutParams rowParams = row.getLayoutParams();
+                    if (rowParams != null) { rowParams.height = ViewGroup.LayoutParams.WRAP_CONTENT; row.setLayoutParams(rowParams); }
+                }
             }
         }
     }
