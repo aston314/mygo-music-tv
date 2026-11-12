@@ -31,6 +31,8 @@ base64 < "$HOME/.mygo-signing/mygo-music-tv-release.jks" | tr -d '\n' | pbcopy
 
 ## 构建与下载
 
+仅需设备验收包时，从 `main` 手动运行并设置 `test_only=true`。工作流复用完整签名与校验流程，将结果保存在私有草稿 Release，跳过公开镜像及公开更新清单；草稿中的下载地址指向私有仓库。每次使用新的版本号和 versionCode，不覆盖已有 Release 文件。测试完成前不发布该草稿。
+
 填写完成后从 `main` 触发工作流。预检先验证版本、分支归属、签名项和 keystore。通过 Go race、浏览器测试、Android 单元测试和 lint 后构建非调试 release APK，再校验包名、版本、最低 SDK、应用名称、v1/v2 签名、证书指纹及三个 ABI。
 
 Release 仅包含从同一份签名 APK 生成的文件：

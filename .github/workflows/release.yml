@@ -8,6 +8,10 @@ on:
         description: '标记为电视测试版'
         type: boolean
         default: true
+      test_only:
+        description: '仅生成私有草稿测试包，不同步公开更新渠道'
+        type: boolean
+        default: false
 permissions:
   contents: write
 concurrency:
@@ -16,6 +20,8 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-24.04
+    env:
+      RELEASE_TEST_ONLY: ${{ github.event_name == 'workflow_dispatch' && inputs.test_only }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -72,10 +78,11 @@ jobs:
         run: |
           release_flags=()
           if [ "$RELEASE_PRERELEASE" = "true" ]; then release_flags+=(--prerelease); fi
+          if [ "$RELEASE_TEST_ONLY" = "true" ]; then release_flags+=(--draft); fi
           display_name=$(python3 -c 'import json; print(json.load(open("app.json"))["displayName"])')
           gh release create "$RELEASE_TAG" "$RELEASE_APK" build/release/update.json build/release/SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$display_name $RELEASE_TAG" --notes-file "$RELEASE_NOTES" "${release_flags[@]}"
       - name: Mirror verified public downloads
-        if: vars.MYGO_PUBLIC_RELEASES_ENABLED == 'true'
+        if: vars.MYGO_PUBLIC_RELEASES_ENABLED == 'true' && !(github.event_name == 'workflow_dispatch' && inputs.test_only)
         env:
           GH_TOKEN: ${{ secrets.MYGO_RELEASES_TOKEN }}
         run: |
