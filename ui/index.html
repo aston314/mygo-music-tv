@@ -1,9 +1,14 @@
 <!doctype html>
-<html lang="zh-CN" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>My Music+</title><script src="/platform.js"></script><link rel="stylesheet" href="/app.css"><script src="/locales/zh-CN.js"></script><script src="/locales/zh-TW.js"></script><script src="/i18n.js"></script></head>
+<html lang="zh-CN" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>My Music+</title><script src="/platform.js"></script><link rel="icon" type="image/svg+xml" href="/brand/ic_launcher_round.svg"><link rel="stylesheet" href="/app.css"><script src="/locales/zh-CN.js"></script><script src="/locales/zh-TW.js"></script><script src="/i18n.js"></script></head>
 <body><div id="stage">
-  <div id="startup"><div class="startup-logo"><div class="ring"></div><span data-icon="music"></span></div><p id="startup-status" data-i18n="正在启动 My Music+…">正在启动 My Music+…</p><small id="startup-version"></small><button id="startup-retry" hidden data-i18n="重试">重试</button></div>
+  <div id="startup"><div class="startup-logo"><div class="ring"></div><span class="startup-icon"><svg class="icon" viewBox="0 0 108 108" aria-hidden="true" focusable="false">
+<circle cx="54" cy="54" r="54" fill="#E5324B" stroke="none" />
+<g transform="translate(54 54) scale(.95) translate(-54 -54) translate(-3.4 5.4)" fill="#FFFFFF" stroke="none"><circle cx="38" cy="70" r="12" /><rect x="43" y="28" width="7" height="42" rx="3.5" /><path d="M59 32H85M72 19V45" stroke="#FFFFFF" stroke-width="7.5" stroke-linecap="round" fill="none" /></g>
+</svg></span></div><p id="startup-status" data-i18n="正在启动 My Music+…">正在启动 My Music+…</p><small id="startup-version"></small><button id="startup-retry" hidden data-i18n="重试">重试</button></div>
   <div id="app" hidden>
-    <aside id="sidebar"><div class="brand"><span class="brand-mark" data-icon="music"></span><div class="brand-name">My Music+</div></div>
+    <aside id="sidebar"><div class="brand"><span class="brand-mark"><svg class="icon brand-icon" viewBox="18 18 72 72" aria-hidden="true" focusable="false">
+<g transform="translate(54 54) scale(.95) translate(-54 -54) translate(-3.4 5.4)" fill="currentColor" stroke="none"><circle cx="38" cy="70" r="12" /><rect x="43" y="28" width="7" height="42" rx="3.5" /><path d="M59 32H85M72 19V45" stroke="currentColor" stroke-width="7.5" stroke-linecap="round" fill="none" /></g>
+</svg></span><div class="brand-name">My Music+</div></div>
       <button id="source-switch" class="source-switch" data-focus="source-switch" aria-label="切换音乐源"><span class="button-content"><span class="source-dot"></span><span class="source-icon" data-icon="sources"></span><span id="source-name">选择音乐源</span><span class="source-chevron" data-icon="chevronDown"></span></span></button>
       <nav id="nav" aria-label="主导航" data-i18n-aria-label="主导航"></nav>
     </aside>

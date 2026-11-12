@@ -17,8 +17,11 @@ for(const isMobile of [false,true])test((isMobile?'WebView':'desktop')+' startup
    for(const row of [b.logo,b.status,b.version])expect(row.cx).toBeCloseTo(width/2,0);
    expect(b.logo.bottom).toBeLessThan(b.status.top);expect(b.status.bottom).toBeLessThan(b.version.top);
    expect(b.icon.cx).toBeCloseTo(b.logo.cx,0);expect(b.icon.cy).toBeCloseTo(b.logo.cy,0);
-   const gap=b.logo.width/2-Math.hypot(b.icon.width,b.icon.height)/2;
+   // The artwork is circular, so measure the radial gap instead of its square corners.
+   const gap=(b.logo.width-b.icon.width)/2;
    expect(gap).toBeGreaterThan(b.logo.width*.14);
+   await expect(page.locator('.startup-logo svg>circle')).toHaveCSS('fill','rgb(229, 50, 75)');
+   await expect(page.locator('.startup-logo svg>g>circle')).toHaveCSS('fill','rgb(255, 255, 255)');
    await expect(page.locator('.ring')).toHaveCSS('animation-name','spin');
    await page.screenshot({path:info.outputPath(theme+'-'+width+'-startup.png')});
   }

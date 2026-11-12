@@ -50,6 +50,7 @@ test('failed saves retain the active appearance and rapid choices persist in ord
 
 for(const theme of ['dark','light'])for(const language of ['zh-CN','zh-TW'])test(theme+' / '+language+' keeps TV layout and source content intact',async({page},info)=>{
  const traditional=language==='zh-TW';await settings(page);await choose(page,'theme',theme);await choose(page,'language',language);
+ await expect(page.locator('.brand-mark svg>g>circle')).toHaveCSS('fill',theme==='light'?'rgb(229, 50, 75)':'rgb(183, 245, 215)');
  for(const [width,height]of [[960,540],[1280,720],[1920,1080]]){
   await page.setViewportSize({width,height});await page.locator('button[data-theme="'+theme+'"]').focus();
   const result=await page.locator('button[data-theme="'+theme+'"]').evaluate(n=>{const r=n.getBoundingClientRect(),parent=n.closest('#content').getBoundingClientRect(),s=getComputedStyle(n);return{inside:r.left>=parent.left&&r.right<=parent.right&&r.top>=parent.top&&r.bottom<=parent.bottom,outline:s.outlineStyle,width:s.outlineWidth,shadow:s.boxShadow,clipped:n.scrollWidth>n.clientWidth};});
