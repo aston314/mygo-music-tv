@@ -77,6 +77,13 @@ test('Android editing handoff calls the shared direction router for both search 
  expect(await page.evaluate(()=>window.editStarted)).toBeGreaterThan(0);expect(await page.evaluate(()=>window.editFinished)).toBeGreaterThan(0);
 });
 
+test('TV search enters on its action so scanning does not first open the system keyboard',async({page})=>{
+ await page.addInitScript(()=>{window.MyGoHost={platform:'android-tv'};window.Android={startSearchEditing(){window.editStarted=(window.editStarted||0)+1;},finishSearchEditing(){}};});await boot(page);
+ await page.locator('[data-focus="nav-search"]').click();await expect(page.locator('[data-focus="search-submit"]')).toBeFocused();expect(await page.evaluate(()=>window.editStarted||0)).toBe(0);
+ await page.keyboard.press('ArrowRight');await expect(page.locator('[data-action="scan-resource"]')).toBeFocused();
+ await page.keyboard.press('ArrowLeft');await page.keyboard.press('ArrowLeft');await expect(page.locator('#search-input')).toBeFocused();expect(await page.evaluate(()=>window.editStarted)).toBeGreaterThan(0);
+});
+
 test('a slow creation or submitted status cannot apply after leaving the page or backgrounding',async({page})=>{
  await boot(page);await page.locator('[data-focus="nav-search"]').click();let release,created;const gate=new Promise(resolve=>release=resolve);
  await page.route('**/api/input-session',async r=>{if(r.request().method()!=='POST')return r.continue();const response=await r.fetch();created=await response.json();await gate;await r.fulfill({response});});
