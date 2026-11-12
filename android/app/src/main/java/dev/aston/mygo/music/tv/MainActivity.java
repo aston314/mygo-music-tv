@@ -15,6 +15,7 @@ public final class MainActivity extends Activity {
     private FrameLayout root;
     private TextView status, version;
     private LinearLayout startup;
+    private StartupLogoView startupLogo;
     private final Handler handler = new Handler(Looper.getMainLooper());
     private boolean loaded, destroyed, editing, exitVisible;
     private volatile int nativeViewWidth;
@@ -46,14 +47,11 @@ public final class MainActivity extends Activity {
     private void showStartup() {
         if (startup != null) root.removeView(startup);
         startup = new LinearLayout(this); startup.setOrientation(LinearLayout.VERTICAL); startup.setGravity(Gravity.CENTER); startup.setBackgroundColor(Appearance.background(this));
-        FrameLayout logo = new FrameLayout(this); int size = dp(94);
-        ProgressBar ring = new ProgressBar(this); logo.addView(ring, new FrameLayout.LayoutParams(-1,-1));
-        ImageView note = new ImageView(this); note.setImageResource(R.drawable.startup_music); note.setColorFilter(Appearance.foreground(this));
-        ring.setIndeterminateTintList(android.content.res.ColorStateList.valueOf(Appearance.foreground(this)));
-        FrameLayout.LayoutParams noteParams = new FrameLayout.LayoutParams(dp(56),dp(56),Gravity.CENTER);
-        logo.addView(note,noteParams); startup.addView(logo,new LinearLayout.LayoutParams(size,size));
+        startupLogo = new StartupLogoView(this); int size = dp(94);
+        startup.addView(startupLogo,new LinearLayout.LayoutParams(size,size));
         status = new TextView(this); status.setText(Appearance.text(this,R.string.app_starting)); status.setTextColor(Appearance.foreground(this)); status.setTextSize(18); status.setGravity(Gravity.CENTER); LinearLayout.LayoutParams statusParams = new LinearLayout.LayoutParams(-2,dp(46)); statusParams.topMargin=dp(16); startup.addView(status,statusParams);
-        version = new TextView(this); version.setText(String.format(Appearance.text(this,R.string.version_label),BuildConfig.VERSION_NAME)); version.setTextColor(Appearance.muted(this)); version.setTextSize(13); startup.addView(version);
+        version = new TextView(this); version.setText(String.format(Appearance.text(this,R.string.version_label),BuildConfig.VERSION_NAME)); version.setTextColor(Appearance.muted(this)); version.setTextSize(13); version.setGravity(Gravity.CENTER);
+        startup.addView(version,new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT));
         root.addView(startup,new FrameLayout.LayoutParams(-1,-1));
     }
     private int dp(int value) { return (int)(getResources().getDisplayMetrics().density * value); }
@@ -61,8 +59,9 @@ public final class MainActivity extends Activity {
         if (destroyed || loaded) return; CoreService service = CoreService.get();
         if (service != null && service.pageURL() != null) { loaded = true; web.loadUrl(service.pageURL()); return; }
         if (service != null && service.error() != null) {
+            startupLogo.setLoading(false);
             status.setText(service.error());
-            if (startup.getChildCount() == 3) { Button retry = new Button(this); retry.setText(Appearance.text(this,R.string.retry)); retry.setOnClickListener(v -> { stopService(new Intent(this, CoreService.class)); showStartup(); startCore(); handler.postDelayed(this::connect, 500); }); startup.addView(retry); retry.requestFocus(); }
+            if (startup.getChildCount() == 3) { Button retry = new Button(this); retry.setText(Appearance.text(this,R.string.retry)); retry.setOnClickListener(v -> { stopService(new Intent(this, CoreService.class)); showStartup(); startCore(); handler.postDelayed(this::connect, 500); }); LinearLayout.LayoutParams retryParams = new LinearLayout.LayoutParams(-2,-2); retryParams.topMargin=dp(12); startup.addView(retry,retryParams); retry.requestFocus(); }
         } else handler.postDelayed(this::connect, 250);
     }
     private boolean trusted(String url) { try { CoreService s = CoreService.get(); if (s == null || s.pageURL() == null) return false; URI a = new URI(url), b = new URI(s.pageURL()); return "http".equals(a.getScheme()) && a.getHost().equals(b.getHost()) && a.getPort() == b.getPort(); } catch (Exception e) { return false; } }
@@ -105,7 +104,7 @@ public final class MainActivity extends Activity {
                 if(destroyed) return;
                 Appearance.save(MainActivity.this,theme,language);
                 root.setBackgroundColor(Appearance.background(MainActivity.this));web.setBackgroundColor(Appearance.background(MainActivity.this));
-                if(startup!=null) { startup.setBackgroundColor(Appearance.background(MainActivity.this));status.setTextColor(Appearance.foreground(MainActivity.this));version.setText(String.format(Appearance.text(MainActivity.this,R.string.version_label),BuildConfig.VERSION_NAME)); }
+                if(startup!=null) { startup.setBackgroundColor(Appearance.background(MainActivity.this));startupLogo.setTintColor(Appearance.foreground(MainActivity.this));status.setTextColor(Appearance.foreground(MainActivity.this));version.setText(String.format(Appearance.text(MainActivity.this,R.string.version_label),BuildConfig.VERSION_NAME)); }
                 CoreService service=CoreService.get();if(service!=null)service.refreshAppearance();
             });
         }
