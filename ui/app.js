@@ -129,6 +129,7 @@
     if(state.modal&&moveComments(active,dir))return;
     if(state.modal&&active.getAttribute('data-focus')==='modal-content'&&(dir==='ArrowUp'||dir==='ArrowDown')){active.scrollTop+=dir==='ArrowUp'?-90:90;return;}
     if(state.modal&&active.id==='login-status'&&(dir==='ArrowUp'||dir==='ArrowDown')){var step=dir==='ArrowUp'?-90:90;if(step<0&&active.scrollTop>0||step>0&&active.scrollTop<active.scrollHeight-active.clientHeight-1){active.scrollTop+=step;return;}}
+    if(!state.modal&&dir==='ArrowDown'&&(active.id==='search-input'||active.id==='market-search')){focusId(active.id==='search-input'?'search-submit':'market-search-submit');return;}
     if(!state.modal&&nav.contains(active)){
       var entries=Array.prototype.slice.call(nav.querySelectorAll('[data-focus]')),at=entries.indexOf(active);
       if(dir==='ArrowUp'||dir==='ArrowDown'){var next=entries[at+(dir==='ArrowDown'?1:-1)];if(next)focusNode(next);else if(dir==='ArrowUp')focusId('source-switch');else enterFooter(active);return;}
@@ -249,7 +250,7 @@
       if(list.kind==='tracks'){state.shown=list.items;var target=$('search-results')||$('list-results');target.innerHTML=list.items.length?list.items.map(trackHTML).join(''):listEmpty(list);refreshLikes(list.items);}
       else{state.items=list.items;var result=$('search-results')||$('list-results');result.innerHTML=list.items.length?'<div class="grid album-grid">'+list.items.map(function(x,i){return itemHTML(x,{albums:'album',artists:'artist',playlists:'playlist',shows:'show'}[list.kind],i);}).join('')+'</div>':listEmpty(list);}
       var pager=$('list-pagination');if(pager)pager.innerHTML=list.more?("<button id=\"load-more\" class=\"secondary\" data-focus=\"load-more\" data-action=\"load-more\">"+tr("加载更多")+"</button>"):'';
-      if(list.method==='search'&&!list.items.length){focusId('edit-search');return;}if(append){if(!focusId(list.kind==='tracks'?'track-'+Math.max(0,list.items.length-batch.length):'load-more'))afterContent();}else afterContent();
+      if(list.method==='search'&&!list.items.length){focusId('edit-search');return;}if(list.method==='search'&&params.offset===0){afterContent();return;}if(append){if(!focusId(list.kind==='tracks'?'track-'+Math.max(0,list.items.length-batch.length):'load-more'))afterContent();}else afterContent();
     });
   }
   function listEmpty(list){return '<div class="state"><h2>'+tr(list.method==='search'?"未找到相关内容":"这里还没有音乐")+'</h2><p>'+esc(list.method==='search'?'“'+list.params.query+'” · '+tr("试试其他关键词"):tr("尝试搜索或其他音乐源"))+'</p>'+(list.method==='search'?button('edit-search',tr("修改关键词"),'primary','search'):'')+'</div>';}

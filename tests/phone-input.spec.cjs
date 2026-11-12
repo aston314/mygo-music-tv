@@ -15,7 +15,7 @@ test.afterEach(async({request})=>{
 
 test('phone resource search keeps source and type, focuses results, and never starts playback',async({page,browser},info)=>{
  await page.addInitScript(()=>{window.MyGoHost={platform:'android-tv'};});await boot(page);await page.request.post('/api/player/queue',{data:{action:'clear'}});
- const calls=[];await page.route('**/call/search',async r=>{const params=r.request().postDataJSON();calls.push({url:r.request().url(),params});await r.fulfill({json:{albums:[{id:'a1',name:'手机找来的专辑',imageUrl:''}],more:false}});});
+ const calls=[];await page.route('**/call/search',async r=>{const params=r.request().postDataJSON();calls.push({url:r.request().url(),params});await r.fulfill({json:{albums:[{id:'a1',name:'手机找来的专辑',imageUrl:''}],more:true}});});
  await page.locator('[data-focus="nav-search"]').click();await page.locator('[data-search-kind="albums"]').click();await page.locator('#search-input').fill('原词');const data=await openScan(page,'resource');
  expect(data.target).toBe('resource');expect(data.initial).toBe('原词');expect(data.context).toBe('演示 · 专辑');await expect(page.locator('#scan-expiry')).toContainText('二维码有效期');
  const mobile=await phone(browser,data);await expect(mobile.page.locator('#query')).toHaveValue('原词');await expect(mobile.page.locator('#context')).toHaveText('演示 · 专辑');await expect(page.locator('#scan-status')).toHaveText('手机已连接，请在手机上输入');
@@ -49,7 +49,8 @@ test('remote search actions reach scan input, trap modal focus and retain direct
  for(const target of ['resource','plugins']){
   await page.locator('[data-focus="nav-'+(target==='resource'?'search':'market')+'"]').click();
   const submit=page.locator('[data-focus="'+(target==='resource'?'search-submit':'market-search-submit')+'"]');
-  await submit.focus();await page.keyboard.press('ArrowRight');await expect(page.locator('[data-action="scan-'+target+'"]')).toBeFocused();
+  await page.locator(target==='resource'?'#search-input':'#market-search').focus();await page.keyboard.press('ArrowDown');await expect(submit).toBeFocused();
+  await page.keyboard.press('ArrowRight');await expect(page.locator('[data-action="scan-'+target+'"]')).toBeFocused();
   const created=page.waitForResponse(r=>r.url().endsWith('/api/input-session')&&r.request().method()==='POST');
   await page.keyboard.press('Enter');const data=await(await created).json();await expect(page.locator('#scan-status')).toBeFocused();
   await page.evaluate(before=>window.MyGo.cancelScanInput(before),data.serverNow-1000);await expect(page.locator('#scan-status')).toBeFocused();
