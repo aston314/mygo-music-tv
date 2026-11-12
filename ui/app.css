@@ -257,6 +257,7 @@ html[data-poster-columns="5"] .album-grid>.album-card{width:calc(20% - 16px)}
 html[data-poster-columns="6"] .album-grid>.album-card{width:calc(16.666% - 16px)}
 
 .app-update-card [role=status]{min-height:29px;overflow-wrap:break-word;word-wrap:break-word}
+.app-update-card .button-row{margin-top:20px}
 .app-update-card button[aria-busy=true] .icon{animation:spin 1.2s linear infinite}
 .app-update-card button[aria-disabled=true]{opacity:.55;cursor:default}
 
