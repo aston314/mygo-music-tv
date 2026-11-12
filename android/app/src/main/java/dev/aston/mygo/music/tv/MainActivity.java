@@ -27,7 +27,11 @@ public final class MainActivity extends Activity {
         setTheme(Appearance.light(this)?android.R.style.Theme_Material_Light_NoActionBar:android.R.style.Theme_Material_NoActionBar);
         super.onCreate(state); immersive();
         root = new FrameLayout(this); root.setBackgroundColor(Appearance.background(this)); setContentView(root);
-        web = new WebView(this); web.setBackgroundColor(Appearance.background(this));
+        web = new WebView(this) {
+            @Override public boolean onKeyPreIme(int keyCode, KeyEvent event) {
+                return routeEditingDirection(event) || super.onKeyPreIme(keyCode, event);
+            }
+        }; web.setBackgroundColor(Appearance.background(this));
         web.addOnLayoutChangeListener((v,left,top,right,bottom,oldLeft,oldTop,oldRight,oldBottom)->{
             int width=right-left;
             if(width>0&&width!=nativeViewWidth){nativeViewWidth=width;if(loaded&&!destroyed)web.evaluateJavascript("if(window.MyGo&&window.MyGo.refreshViewport)window.MyGo.refreshViewport()",null);}
@@ -96,12 +100,15 @@ public final class MainActivity extends Activity {
         handler.postDelayed(() -> { if (seq == backSequence && !exitVisible && !web.isAttachedToWindow()) confirmExit(); }, 700);
     }
     @Override public boolean dispatchKeyEvent(KeyEvent event) {
+        return routeEditingDirection(event) || super.dispatchKeyEvent(event);
+    }
+    private boolean routeEditingDirection(KeyEvent event) {
         String direction = KeyRoutingPolicy.editDirection(editing, event.getKeyCode());
         if (direction != null) {
             if (event.getAction() == KeyEvent.ACTION_DOWN) web.evaluateJavascript("if(window.MyGo&&window.MyGo.nativeEditDirection)window.MyGo.nativeEditDirection('" + direction + "')", null);
             return true;
         }
-        return super.dispatchKeyEvent(event);
+        return false;
     }
     private void finishEditing() { editing = false; ((InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(web.getWindowToken(),0); }
     private void confirmExit() {
