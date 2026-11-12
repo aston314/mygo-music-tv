@@ -594,7 +594,14 @@ func (v *vm) ask(method string, params []byte, got func(answer)) {
 	}
 	// The call's data goes once nothing is using it. It can't go any sooner, as
 	// another call may be waiting on something with its own.
+	answered := false
 	done := func(a answer) {
+		// A shutdown interrupt may arrive after ok/bad ran, before the helper
+		// returns. Its interrupted return must not answer or release twice.
+		if answered {
+			return
+		}
+		answered = true
 		got(a)
 		v.inFlight--
 		v.loop.RunOnLoop(func(rt *moejs.Runtime) {

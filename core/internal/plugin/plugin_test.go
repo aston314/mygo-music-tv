@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/MoeForge/moejs"
 	"mygo-music-tv/core/internal/i18n"
 	"mygo-music-tv/core/internal/music"
 )
@@ -171,6 +172,33 @@ export function suggest() { calls++; return [String(calls)]; }`)
 	got, err := p.Suggest("a")
 	if err != nil || got[0] != "2" {
 		t.Fatalf("it restarted: %v, %v", got, err)
+	}
+}
+
+func TestInterruptAfterAnswerCompletesCallOnce(t *testing.T) {
+	p := load(t, plain, `export function suggest() { return ["answered"]; }`)
+	v, err := p.running()
+	if err != nil {
+		t.Fatal(err)
+	}
+	type result struct{ answers, inFlight int }
+	finished := make(chan result, 1)
+	v.loop.RunOnLoop(func(rt *moejs.Runtime) {
+		answers := 0
+		v.ask("suggest", nil, func(answer) {
+			answers++
+			rt.Interrupt(errors.New("shutdown after answer"))
+		})
+		rt.ClearInterrupt()
+		finished <- result{answers, v.inFlight}
+	})
+	select {
+	case got := <-finished:
+		if got.answers != 1 || got.inFlight != 0 {
+			t.Fatalf("interrupted completion: %+v", got)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("interrupted completion blocked the event loop")
 	}
 }
 
