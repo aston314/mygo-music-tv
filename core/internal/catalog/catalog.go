@@ -25,25 +25,33 @@ type Entry struct {
 	Description string `json:"description"`
 }
 type Snapshot struct {
-	Entries   []Entry   `json:"entries"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	Stale     bool      `json:"stale"`
-	Message   string    `json:"message,omitempty"`
+	Entries    []Entry   `json:"entries"`
+	UpdatedAt  time.Time `json:"updatedAt"`
+	Stale      bool      `json:"stale"`
+	Message    string    `json:"message,omitempty"`
+	Source     string    `json:"source,omitempty"`
+	Refreshing bool      `json:"refreshing,omitempty"`
 }
 type Catalog struct {
-	mu          sync.Mutex
-	URL, Path   string
-	Client      *http.Client
-	saved       Snapshot
-	seeded      bool
-	lastAttempt time.Time
+	mu                   sync.Mutex
+	URL, MirrorURL, Path string
+	Client               *http.Client
+	saved                Snapshot
+	seeded               bool
+	lastAttempt          time.Time
+	flight               chan struct{}
+	lastError            error
 }
 
 //go:embed bundled.json
 var bundled []byte
 
 func New(address, path string) *Catalog {
-	c := &Catalog{URL: address, Path: path, Client: &http.Client{Timeout: 25 * time.Second}}
+	return NewWithMirror(address, "", path)
+}
+
+func NewWithMirror(address, mirror, path string) *Catalog {
+	c := &Catalog{URL: address, MirrorURL: mirror, Path: path, Client: &http.Client{Timeout: 4 * time.Second}}
 	if b, err := os.ReadFile(path); err == nil {
 		_ = json.Unmarshal(b, &c.saved)
 	}
@@ -230,47 +238,70 @@ func Parse(r io.Reader) ([]Entry, error) {
 	}
 	return out, nil
 }
+
+// Get always serves usable cache immediately. One bounded background refresh is
+// shared by every caller; explicit refresh waits without holding the cache lock.
 func (c *Catalog) Get(ctx context.Context, refresh bool) (Snapshot, error) {
 	c.mu.Lock()
-	defer c.mu.Unlock()
-	if c.seeded && !refresh {
-		c.seeded = false
-		go func() {
-			ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
-			defer cancel()
-			_, _ = c.Get(ctx, true)
-		}()
-		return c.saved, nil
-	}
-	if !refresh && len(c.saved.Entries) > 0 && (time.Since(c.saved.UpdatedAt) < 30*time.Minute || time.Since(c.lastAttempt) < 30*time.Minute) {
-		return c.saved, nil
-	}
-	c.seeded = false
-	c.lastAttempt = time.Now()
-	req, err := http.NewRequestWithContext(ctx, "GET", c.URL, nil)
-	var entries []Entry
-	if err == nil {
-		req.Header.Set("User-Agent", "MyGoMusicTV/0.1")
-		var res *http.Response
-		res, err = c.Client.Do(req)
-		if err == nil {
-			defer res.Body.Close()
-			if res.StatusCode != 200 {
-				err = errors.New("官方目录暂时不可用")
-			} else {
-				entries, err = Parse(io.LimitReader(res.Body, 8<<20))
-			}
+	if !refresh && len(c.saved.Entries) > 0 {
+		due := c.seeded || (time.Since(c.saved.UpdatedAt) >= 30*time.Minute && time.Since(c.lastAttempt) >= 30*time.Minute)
+		if due && c.flight == nil {
+			c.startRefresh()
 		}
+		result := c.saved
+		result.Refreshing = c.flight != nil
+		c.mu.Unlock()
+		return result, nil
 	}
-	if err != nil {
+	if c.flight == nil {
+		c.startRefresh()
+	}
+	done := c.flight
+	c.mu.Unlock()
+	select {
+	case <-ctx.Done():
+		return Snapshot{}, ctx.Err()
+	case <-done:
+		c.mu.Lock()
+		defer c.mu.Unlock()
 		if len(c.saved.Entries) > 0 {
-			c.saved.Stale = true
-			c.saved.Message = "刷新失败，显示最近成功获取的目录"
 			return c.saved, nil
 		}
-		return Snapshot{}, err
+		return Snapshot{}, c.lastError
 	}
-	s := Snapshot{Entries: entries, UpdatedAt: time.Now().UTC()}
+}
+
+// Caller holds mu. Fetching never holds it, so re-entering the market stays fast.
+func (c *Catalog) startRefresh() {
+	c.seeded = false
+	c.lastAttempt = time.Now()
+	c.flight = make(chan struct{})
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 22*time.Second)
+		defer cancel()
+		result, err := c.fetch(ctx)
+		c.mu.Lock()
+		defer c.mu.Unlock()
+		c.lastError = err
+		if err == nil {
+			// A proxy may cache an older JSON. Never replace newer usable local data.
+			if len(c.saved.Entries) == 0 || !result.UpdatedAt.Before(c.saved.UpdatedAt) {
+				c.saved = result
+				c.persist(result)
+			} else {
+				c.saved.Stale = true
+				c.saved.Message = "刷新失败，显示最近成功获取的目录"
+			}
+		} else if len(c.saved.Entries) > 0 {
+			c.saved.Stale = true
+			c.saved.Message = "刷新失败，显示最近成功获取的目录"
+		}
+		close(c.flight)
+		c.flight = nil
+	}()
+}
+
+func (c *Catalog) persist(s Snapshot) {
 	if b, e := json.Marshal(s); e == nil {
 		if e = os.MkdirAll(filepath.Dir(c.Path), 0700); e == nil {
 			if e = os.WriteFile(c.Path+".part", b, 0600); e == nil {
@@ -278,6 +309,85 @@ func (c *Catalog) Get(ctx context.Context, refresh bool) (Snapshot, error) {
 			}
 		}
 	}
-	c.saved = s
-	return s, nil
+}
+
+func (c *Catalog) fetch(ctx context.Context) (Snapshot, error) {
+	direct, cancel := context.WithTimeout(ctx, 4*time.Second)
+	req, err := http.NewRequestWithContext(direct, "GET", c.URL, nil)
+	var entries []Entry
+	if err == nil {
+		req.Header.Set("User-Agent", "MyMusicPlus-Catalog/1")
+		var res *http.Response
+		res, err = c.Client.Do(req)
+		if err == nil {
+			if res.StatusCode != http.StatusOK {
+				err = errors.New("官方目录暂时不可用")
+			} else {
+				var b []byte
+				b, err = io.ReadAll(io.LimitReader(res.Body, (8<<20)+1))
+				if err == nil && len(b) > 8<<20 {
+					err = errors.New("目录过大")
+				}
+				if err == nil {
+					entries, err = Parse(strings.NewReader(string(b)))
+				}
+			}
+			res.Body.Close()
+		}
+	}
+	cancel()
+	if err == nil {
+		return Snapshot{Entries: entries, UpdatedAt: time.Now().UTC(), Source: "official"}, nil
+	}
+	if c.MirrorURL == "" {
+		return Snapshot{}, err
+	}
+	var result Snapshot
+	_, mirrorErr := plugin.ReadPublicJSON(ctx, c.MirrorURL, 8<<20, func(b []byte) error {
+		var e error
+		result, e = ParseMirror(b, c.URL)
+		if e == nil {
+			c.mu.Lock()
+			older := len(c.saved.Entries) > 0 && result.UpdatedAt.Before(c.saved.UpdatedAt)
+			c.mu.Unlock()
+			if older {
+				return errors.New("public directory is older than local cache")
+			}
+		}
+		return e
+	})
+	if mirrorErr != nil {
+		return Snapshot{}, mirrorErr
+	}
+	return result, nil
+}
+
+// ParseMirror accepts only a complete, bounded snapshot of this official source.
+func ParseMirror(b []byte, source string) (Snapshot, error) {
+	var doc struct {
+		Schema    int       `json:"schema"`
+		Origin    string    `json:"source"`
+		UpdatedAt time.Time `json:"updatedAt"`
+		Entries   []Entry   `json:"entries"`
+	}
+	if len(b) > 8<<20 || json.Unmarshal(b, &doc) != nil || doc.Schema != 1 || doc.Origin != source || doc.UpdatedAt.IsZero() || doc.UpdatedAt.After(time.Now().Add(5*time.Minute)) || len(doc.Entries) == 0 || len(doc.Entries) > 2000 {
+		return Snapshot{}, errors.New("invalid public plugin directory")
+	}
+	seen := map[string]bool{}
+	for i := range doc.Entries {
+		entry := &doc.Entries[i]
+		repo, err := plugin.ParseRepo(entry.Repository)
+		key := strings.ToLower(repo)
+		if err != nil || repo != entry.Repository || seen[key] || strings.TrimSpace(entry.Name) == "" || len([]rune(entry.Name)) > 200 || len([]rune(entry.Description)) > 320 {
+			return Snapshot{}, errors.New("invalid public plugin entry")
+		}
+		seen[key] = true
+		cleanEntry(entry)
+	}
+	result := Snapshot{Entries: doc.Entries, UpdatedAt: doc.UpdatedAt, Source: "public-mirror"}
+	if time.Since(doc.UpdatedAt) > 7*24*time.Hour {
+		result.Stale = true
+		result.Message = "刷新失败，显示最近成功获取的目录"
+	}
+	return result, nil
 }

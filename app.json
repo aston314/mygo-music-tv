@@ -14,6 +14,7 @@
     "height": 720
   },
   "pluginCatalogUrl": "https://music.egoist.dev/zh/plugins",
+  "pluginCatalogMirrorUrl": "https://raw.githubusercontent.com/aston314/my-music-release/main/plugin-catalog.json",
   "pluginCompatibilityVersion": "0.1.22",
   "playerAdapter": "media3",
   "privateRepository": "aston314/mygo-music-tv",

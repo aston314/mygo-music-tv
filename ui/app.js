@@ -242,6 +242,7 @@
   function error(message){empty(tr("暂时无法加载"),message,button('retry',tr("重试"),'primary','refresh'));state.restoreFocus='retry';afterContent();}
   function afterContent(){var pending=state.pendingContentFocus;state.pendingContentFocus=null;if(state.restoreScroll!=null){$('content').scrollTop=state.restoreScroll;state.restoreScroll=null;}if(pending&&pending.gen===state.pageGen&&pending.moved){state.restoreFocus=null;return;}focusContent();}
   function navigate(page){
+    clearTimeout(state.catalogTimer);
     stopLyricFrame();state.lyricNodes=null;state.lyricWordNodes=null;
     if(state.episodeXHR){state.episodeXHR.abort();state.episodeXHR=null;if(state.episodeContext)state.episodeContext.busy=false;}if(state.modal)closeModal(true);finishEditing();state.page=page;var gen=++state.pageGen;state.pendingContentFocus={gen:gen,focus:activeID(),moved:false};state.shown=[];state.items=[];state.list=null;$('content').scrollTop=0;$('header-actions').innerHTML='';appClass();renderNav();renderAccount();refreshVisibleAccount();
     if(page==='market'){renderMarket(gen,false);return;}if(page==='settings'){renderSettings();return;}if(page==='player'){renderPlayerPage();afterContent();return;}
@@ -379,13 +380,15 @@
     var next=String(!!busy);if(n.getAttribute('aria-busy')!==next){var svg=n.querySelector('.icon');if(svg)svg.outerHTML=icon(busy||action==='check-all-updates'?'refresh':'catalog');}
     n.setAttribute('aria-busy',next);n.setAttribute('aria-disabled',next);
   }
-  function loadCatalog(gen,refresh){
+  function loadCatalog(gen,refresh,background){
+    clearTimeout(state.catalogTimer);
     state.marketRefreshBusy=true;marketButtonBusy('refresh-catalog',true);
     api('/api/catalog'+(refresh?'?refresh=1':''),function(e,data){
-      if(gen!==state.pageGen)return;state.marketRefreshBusy=false;marketButtonBusy('refresh-catalog',false);
-      if(e){if(refresh)toast(e);else error(e);return;}
+      if(gen!==state.pageGen)return;state.marketRefreshBusy=!e&&!!data.refreshing;marketButtonBusy('refresh-catalog',state.marketRefreshBusy);
+      if(e){if(refresh)toast(e);else if(!background)error(e);return;}
       var active=activeID(),scroll=$('content').scrollTop;state.catalog=data.entries||[];paintCatalog(data.stale,data.message);
-      if(refresh){$('content').scrollTop=scroll;if(!state.modal&&!activeID()&&!focusId(active,true))focusContent();}else afterContent();
+      if(refresh||background){$('content').scrollTop=scroll;if(!state.modal&&!activeID()&&!focusId(active,true))focusContent();}else afterContent();
+      if(data.refreshing)state.catalogTimer=setTimeout(function(){if(gen===state.pageGen)loadCatalog(gen,false,true);},800);
     });
   }
   function renderMarket(gen,refresh){
@@ -413,10 +416,10 @@
     var installed=state.installed[entry.repository.toLowerCase()];if(!found||installed&&installed.revision!==found.revision)return tr("暂无验证记录");if(found.process&&found.process.length||found.playback==='remote')return tr("部分功能需适配");var search=found.stages&&found.stages.search;if(search&&(search.code==='sign-in-required'||search.code==='setup-required'))return tr("需登录或配置");return tr("播放未验证");
   }
   function paintCatalog(stale,message){
-    if(!$('market-search-form')){var html='<form id="market-search-form" class="search-row market-search"><input id="market-search" data-focus="market-search" type="text" value="'+esc(state.marketQuery)+'" placeholder="'+tr("搜索插件名称、作者或音乐服务")+'" aria-label="'+tr("搜索插件")+'"><button class="secondary" type="submit" data-focus="market-search-submit">'+buttonContent(tr("搜索"),'search')+'</button>'+button('scan-plugins',tr("扫码输入"),'secondary','scan')+'</form><div class="market-toolbar"><div class="button-row market-filters">'+[['all',tr("全部插件")],['installed',tr("已安装")],['updates',tr("可更新")]].map(function(f){return '<button class="secondary" data-focus="market-filter-'+f[0]+'" data-market-filter="'+f[0]+'">'+buttonContent(f[1])+'</button>';}).join('')+'</div><span id="market-update-status" role="status"></span></div>';
+    if(!$('market-search-form')){state.marketListKey=null;var html='<form id="market-search-form" class="search-row market-search"><input id="market-search" data-focus="market-search" type="text" value="'+esc(state.marketQuery)+'" placeholder="'+tr("搜索插件名称、作者或音乐服务")+'" aria-label="'+tr("搜索插件")+'"><button class="secondary" type="submit" data-focus="market-search-submit">'+buttonContent(tr("搜索"),'search')+'</button>'+button('scan-plugins',tr("扫码输入"),'secondary','scan')+'</form><div class="market-toolbar"><div class="button-row market-filters">'+[['all',tr("全部插件")],['installed',tr("已安装")],['updates',tr("可更新")]].map(function(f){return '<button class="secondary" data-focus="market-filter-'+f[0]+'" data-market-filter="'+f[0]+'">'+buttonContent(f[1])+'</button>';}).join('')+'</div><span id="market-update-status" role="status"></span></div>';
     $('content').innerHTML=html+'<div id="catalog-banner" class="empty-banner" hidden></div><p id="market-results-count" class="hint" role="status"></p><div class="grid" id="catalog-grid"></div><div id="catalog-empty" class="state" hidden><h2>'+tr("没有符合条件的插件")+'</h2><p>'+tr("试试其他关键词，或切换到全部插件。")+'</p></div>';
     }
-    var banner=$('catalog-banner');banner.hidden=!stale;banner.textContent=message||'';state.marketListKey=null;patchCatalog();
+    var banner=$('catalog-banner');banner.hidden=!stale;banner.textContent=tr(message||'');patchCatalog();
   }
   function searchCatalog(){var input=$('market-search');if(!input)return;state.marketQuery=input.value;patchCatalog();finishEditing();var first=$('catalog-grid').querySelector('[data-catalog]');if(first)focusNode(first);else focusId('market-filter-'+state.marketFilter);}
   function openScanSearch(target){var page=state.page,gen=state.pageGen,source=state.source&&state.source.instanceId,kind=state.searchKind,input=$(target==='plugins'?'market-search':'search-input');if(!input||target==='resource'&&!source){toast(tr("请先选择音乐源"));return;}
@@ -425,7 +428,7 @@
   }
   function renderCatalogCards(){var grid=$('catalog-grid');if(!grid)return;var query=state.marketQuery.toLowerCase().replace(/^\s+|\s+$/g,''),indices=[];
     state.catalog.forEach(function(entry,index){var installed=state.installed[entry.repository.toLowerCase()],u=updateFor(installed);if(state.marketFilter==='installed'&&!installed||state.marketFilter==='updates'&&!(installed&&u&&u.available))return;if(query&&(catalogName(entry)+' '+entry.name+' '+entry.repository+' '+entry.description).toLowerCase().indexOf(query)<0)return;indices.push(index);});
-    var key=JSON.stringify(indices.map(function(i){return state.catalog[i].repository;}));
+    var key=JSON.stringify(indices.map(function(i){return [i,state.catalog[i].repository];}));
     if(key!==state.marketListKey){var active=activeID(),wasCard=grid.contains(document.activeElement);state.marketListKey=key;grid.innerHTML=indices.map(function(index){var entry=state.catalog[index],installed=state.installed[entry.repository.toLowerCase()],u=updateFor(installed),name=catalogName(entry);
       return '<button class="plugin-card'+(installed?' is-installed':'')+'" data-focus="catalog-'+esc(entry.repository)+'" data-catalog="'+index+'"><span class="card-top"><span class="monogram">'+esc(name.charAt(0).toUpperCase())+'</span>'+installationBadge(installed,u)+'</span><span class="card-heading"><strong class="card-name">'+esc(name)+'</strong><span class="card-owner">'+esc(entry.repository.split('/')[0])+'</span></span><span class="card-description">'+esc(entry.description||tr("社区在线音乐源插件"))+'</span><span class="compatibility-badge">'+esc(catalogCompatibility(entry))+'</span><span class="plugin-version">'+esc(pluginVersion(installed,u))+'</span><span class="card-bottom"><span>'+(installed?tr("查看与更新"):tr("查看与安装"))+'</span>'+icon('arrow')+'</span></button>';
       }).join('');if(wasCard&&!state.modal&&!focusId(active,true))focusId('market-filter-'+state.marketFilter);
@@ -442,6 +445,7 @@
         if(badge&&badge.outerHTML!==fresh)badge.outerHTML=fresh;
         n.classList.toggle('is-installed',!!installed);n.classList.toggle('has-update',!!(u&&u.available));
         n.querySelector('.card-name').textContent=catalogName(entry);n.querySelector('.monogram').textContent=catalogName(entry).charAt(0).toUpperCase();n.querySelector('.compatibility-badge').textContent=catalogCompatibility(entry);
+        n.querySelector('.card-description').textContent=entry.description||tr("社区在线音乐源插件");
         n.querySelector('.plugin-version').textContent=pluginVersion(installed,u);
         n.querySelector('.card-bottom span').textContent=installed?tr("查看与更新"):tr("查看与安装");
         n.setAttribute('aria-label',catalogName(entry)+(u&&u.available?'，'+tr("有更新"):installed?tr("，已安装，查看与更新"):tr("，未安装，查看与安装")));

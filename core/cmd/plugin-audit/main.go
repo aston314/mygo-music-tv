@@ -195,7 +195,7 @@ func main() {
 		panic(err)
 	}
 	defer m.Close()
-	c := catalog.New(product.App().PluginCatalogURL, filepath.Join(*root, "catalog.json"))
+	c := catalog.NewWithMirror(product.App().PluginCatalogURL, product.App().PluginCatalogMirrorURL, filepath.Join(*root, "catalog.json"))
 	snap, err := c.Get(context.Background(), true)
 	if err != nil {
 		panic(err)

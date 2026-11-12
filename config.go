@@ -16,6 +16,7 @@ type Config struct {
 	VersionName                string   `json:"versionName"`
 	VersionCode                int      `json:"versionCode"`
 	PluginCatalogURL           string   `json:"pluginCatalogUrl"`
+	PluginCatalogMirrorURL     string   `json:"pluginCatalogMirrorUrl"`
 	PluginCompatibilityVersion string   `json:"pluginCompatibilityVersion"`
 }
 

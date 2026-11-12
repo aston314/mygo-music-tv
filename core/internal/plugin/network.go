@@ -17,7 +17,7 @@ import (
 
 // Only public installer requests use these gateways. Plugin fetch(), music
 // accounts, media, and authenticated/private GitHub requests do not use them.
-var githubProxies = []string{"https://gh-proxy.com/", "https://v4.gh-proxy.org/", "https://gh-proxy.org/"}
+var githubProxies = []string{"https://gh-proxy.com/", "https://v4.gh-proxy.org/", "https://gh-proxy.org/", "https://ghfast.top/"}
 
 var routeHealth = struct {
 	sync.Mutex
@@ -49,7 +49,7 @@ var errGitHubNotFound = errors.New("GitHub resource not found")
 // challenge page or a truncated ZIP must not count as a successful gateway.
 func githubRead(ctx context.Context, address, accept, kind string, read func(*http.Response) error) error {
 	routes := []string{}
-	if publicGitHubURL(address) && !withToken() {
+	if publicGitHubURL(address) && (!withToken() || kind == "catalog") {
 		for _, proxy := range githubProxies {
 			routeHealth.Lock()
 			cooling := time.Now().Before(routeHealth.until[proxy+kind])
@@ -73,6 +73,9 @@ func githubRead(ctx context.Context, address, accept, kind string, read func(*ht
 			report(phase)
 		}
 		limit := 10 * time.Second
+		if kind == "catalog" {
+			limit = 3 * time.Second
+		}
 		if kind == "archive" {
 			limit = 3 * time.Minute
 		}
@@ -102,6 +105,41 @@ func githubRead(ctx context.Context, address, accept, kind string, read func(*ht
 		last = err
 	}
 	return fmt.Errorf("所有下载线路均未完成请求，请重试: %w", last)
+}
+
+// ReadPublicJSON validates each anonymous metadata response before accepting a
+// proxy. An HTML challenge, invalid JSON or stale snapshot retries the next route.
+func ReadPublicJSON(ctx context.Context, address string, maxBytes int64, validate func([]byte) error) ([]byte, error) {
+	u, e := url.Parse(address)
+	if e != nil || !publicGitHubURL(address) || u.Hostname() != "raw.githubusercontent.com" || validate == nil {
+		return nil, errors.New("invalid public metadata address")
+	}
+	if maxBytes <= 0 || maxBytes > 16<<20 {
+		maxBytes = 8 << 20
+	}
+	var body []byte
+	err := githubRead(ctx, address, "text/plain, application/json;q=0.9, */*;q=0.1", "catalog", func(res *http.Response) error {
+		if res.StatusCode != http.StatusOK {
+			if res.StatusCode == http.StatusNotFound {
+				return errGitHubNotFound
+			}
+			return fmt.Errorf("GitHub answered %s", res.Status)
+		}
+		limited := io.LimitReader(res.Body, maxBytes+1)
+		b, e := io.ReadAll(limited)
+		if e != nil {
+			return e
+		}
+		if int64(len(b)) > maxBytes {
+			return errors.New("public metadata is too large")
+		}
+		if e = validate(b); e != nil {
+			return e
+		}
+		body = b
+		return nil
+	})
+	return body, err
 }
 
 type progressBody struct {

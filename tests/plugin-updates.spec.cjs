@@ -16,6 +16,20 @@ async function setup(page){
  return model;
 }
 async function market(page){await page.locator('[data-focus="nav-market"]').click();await expect(page.locator('[data-catalog="0"]')).toBeVisible();}
+
+test('cached market appears immediately and background results preserve focus, query and scroll',async({page})=>{
+ await setup(page);let count=0,finished=false;
+ await page.route('**/api/catalog*',route=>{count++;return route.fulfill({json:{entries:Array.from({length:18},(_,i)=>({repository:'source/plugin-'+i,name:'音乐源 '+i,description:finished?'新的目录简介':'缓存目录简介'})),refreshing:!finished,stale:!finished,message:'正在使用内置目录，可联网刷新获取最新插件'}});});
+ await market(page);await expect(page.locator('[data-catalog]')).toHaveCount(18);
+ await expect(page.locator('[data-action="refresh-catalog"]')).toHaveAttribute('aria-busy','true');
+ await page.locator('#market-search').fill('音乐源');await page.locator('[data-focus="market-search-submit"]').click();
+ const card=page.locator('[data-catalog="12"]');await card.focus();const scroll=await page.locator('#content').evaluate(n=>n.scrollTop);
+ finished=true;await expect(card.locator('.card-description')).toHaveText('新的目录简介');await expect(card).toBeFocused();
+ expect(await page.locator('#content').evaluate(n=>n.scrollTop)).toBeCloseTo(scroll,0);await expect(page.locator('#market-search')).toHaveValue('音乐源');
+ await expect(page.locator('[data-action="refresh-catalog"]')).toHaveAttribute('aria-busy','false');await expect(page.locator('#catalog-banner')).toBeHidden();
+ finished=false;await page.locator('[data-action="refresh-catalog"]').click();await expect(page.locator('[data-action="refresh-catalog"]')).toHaveAttribute('aria-busy','true');
+ await page.locator('[data-focus="nav-settings"]').click();const stopped=count;await page.waitForTimeout(1100);expect(count).toBe(stopped);await expect(page.locator('#page-title')).toHaveText('设置');
+});
 function finish(model){model.version='2.0.0';model.revision='v2.0.0';model.job={...model.job,state:'complete'};model.update={...model.update,currentVersion:'2.0.0',revision:'v2.0.0',state:'current',available:false,jobId:''};}
 
 test('market actions have distinct icons and retain focus through checking, refresh and failures',async({page},info)=>{

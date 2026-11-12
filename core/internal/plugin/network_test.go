@@ -3,6 +3,7 @@ package plugin
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -22,7 +23,7 @@ func networkTest(t *testing.T, f installerTransport) {
 	githubAPI = "https://api.github.com"
 	githubToken = func() string { return "" }
 	installClient = &http.Client{Transport: f}
-	githubProxies = []string{"https://gh-proxy.com/", "https://v4.gh-proxy.org/", "https://gh-proxy.org/"}
+	githubProxies = []string{"https://gh-proxy.com/", "https://v4.gh-proxy.org/", "https://gh-proxy.org/", "https://ghfast.top/"}
 	routeHealth.Lock()
 	routeHealth.until = map[string]time.Time{}
 	routeHealth.Unlock()
@@ -32,6 +33,59 @@ func networkTest(t *testing.T, f installerTransport) {
 		routeHealth.until = map[string]time.Time{}
 		routeHealth.Unlock()
 	})
+}
+
+func TestPublicCatalogRetriesInvalidBodiesAndUsesFourProxiesBeforeDirect(t *testing.T) {
+	var hosts []string
+	networkTest(t, func(r *http.Request) (*http.Response, error) {
+		if r.Header.Get("Authorization") != "" {
+			t.Fatal("catalog leaked a credential")
+		}
+		hosts = append(hosts, r.URL.Host)
+		switch r.URL.Host {
+		case "gh-proxy.com":
+			return installerResponse(r, 200, []byte("<html>challenge</html>")), nil
+		case "v4.gh-proxy.org":
+			return installerResponse(r, 503, nil), nil
+		case "gh-proxy.org":
+			return installerResponse(r, 200, []byte(`{"entries":[]}`)), nil
+		case "ghfast.top":
+			return installerResponse(r, 200, []byte(`{"entries":[`)), nil
+		}
+		return installerResponse(r, 200, []byte(`{"entries":["ok"]}`)), nil
+	})
+	githubToken = func() string { return "private-token-must-not-be-used" }
+	validate := func(b []byte) error {
+		var value struct {
+			Entries []string `json:"entries"`
+		}
+		if err := json.Unmarshal(b, &value); err != nil {
+			return err
+		}
+		if len(value.Entries) == 0 {
+			return errors.New("empty")
+		}
+		return nil
+	}
+	address := "https://raw.githubusercontent.com/owner/repo/main/catalog.json"
+	if _, err := ReadPublicJSON(context.Background(), address, 1024, validate); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(hosts, []string{"gh-proxy.com", "v4.gh-proxy.org", "gh-proxy.org", "ghfast.top", "raw.githubusercontent.com"}) {
+		t.Fatal(hosts)
+	}
+	hosts = nil
+	if _, err := ReadPublicJSON(context.Background(), address, 1024, validate); err != nil || !reflect.DeepEqual(hosts, []string{"raw.githubusercontent.com"}) {
+		t.Fatal("failed routes did not cool down", hosts, err)
+	}
+	if _, err := ReadPublicJSON(context.Background(), address, 5, validate); err == nil {
+		t.Fatal("oversized metadata accepted")
+	}
+	for _, bad := range []string{"http://raw.githubusercontent.com/a/b/main/c.json", "https://evil.test/file.json", "https://api.github.com/repos/private/repo"} {
+		if _, err := ReadPublicJSON(context.Background(), bad, 1024, validate); err == nil {
+			t.Fatal("invalid catalog origin accepted", bad)
+		}
+	}
 }
 
 func installerResponse(r *http.Request, status int, b []byte) *http.Response {
@@ -64,7 +118,7 @@ func TestGitHubGatewaysFallBackAndValidateBodies(t *testing.T) {
 	if e != nil || rel.Version != "v2" {
 		t.Fatal(rel, e)
 	}
-	want := []string{"gh-proxy.com", "v4.gh-proxy.org", "gh-proxy.org", "api.github.com"}
+	want := []string{"gh-proxy.com", "v4.gh-proxy.org", "gh-proxy.org", "ghfast.top", "api.github.com"}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatal(got)
 	}
@@ -72,7 +126,7 @@ func TestGitHubGatewaysFallBackAndValidateBodies(t *testing.T) {
 	if e = downloadContext(context.Background(), rel.URL, t.TempDir()+"/plugin.zip"); e != nil {
 		t.Fatal(e)
 	}
-	want[3] = "github.com"
+	want[4] = "github.com"
 	if !reflect.DeepEqual(got, want) {
 		t.Fatal(got)
 	}

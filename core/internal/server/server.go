@@ -83,7 +83,7 @@ func New(data, mode, token string) (*Server, error) {
 	if e != nil {
 		return nil, e
 	}
-	s := &Server{phoneInput: phoneinput.New(), sources: m, catalog: catalog.New(cfg.PluginCatalogURL, filepath.Join(data, "catalog.json")), media: newMedia(), mode: mode, token: token, mux: http.NewServeMux(), settingsPath: settingsPath, settings: settings}
+	s := &Server{phoneInput: phoneinput.New(), sources: m, catalog: catalog.NewWithMirror(cfg.PluginCatalogURL, cfg.PluginCatalogMirrorURL, filepath.Join(data, "catalog.json")), media: newMedia(), mode: mode, token: token, mux: http.NewServeMux(), settingsPath: settingsPath, settings: settings}
 	if mode != "real" {
 		s.fixtureDir = filepath.Join(data, "fixture")
 		if e = s.extractFixture(); e != nil {
