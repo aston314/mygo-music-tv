@@ -227,6 +227,7 @@
   function error(message){empty(tr("暂时无法加载"),message,button('retry',tr("重试"),'primary','refresh'));state.restoreFocus='retry';afterContent();}
   function afterContent(){var pending=state.pendingContentFocus;state.pendingContentFocus=null;if(state.restoreScroll!=null){$('content').scrollTop=state.restoreScroll;state.restoreScroll=null;}if(pending&&pending.gen===state.pageGen&&pending.moved){state.restoreFocus=null;return;}focusContent();}
   function navigate(page){
+    stopLyricFrame();state.lyricNodes=null;state.lyricWordNodes=null;
     if(state.episodeXHR){state.episodeXHR.abort();state.episodeXHR=null;if(state.episodeContext)state.episodeContext.busy=false;}if(state.modal)closeModal(true);finishEditing();state.page=page;var gen=++state.pageGen;state.pendingContentFocus={gen:gen,focus:activeID(),moved:false};state.shown=[];state.items=[];state.list=null;$('content').scrollTop=0;$('header-actions').innerHTML='';appClass();renderNav();renderAccount();refreshVisibleAccount();
     if(page==='market'){renderMarket(gen,false);return;}if(page==='settings'){renderSettings();return;}if(page==='player'){renderPlayerPage();afterContent();return;}
     if(page==='detail'){renderDetail(gen);return;}if(page==='search'){renderSearch();return;}
@@ -658,21 +659,69 @@
   window.addEventListener('blur',function(){if(state.scrub&&state.scrub.drag)cancelSeek();else commitSeek();});
   function playPosition(){var p=state.player;if(!p)return 0;if(!nativePlayer&&audioGen===p.generation&&p.media&&audioSeek===p.seekRevision&&isFinite(audio.currentTime))return Math.max(0,audio.currentTime*1000);var pos=p.position||0;if(p.state==='playing'&&p.positionAt)pos+=Math.max(0,Math.min(2500,Date.now()-p.positionAt));return p.duration?Math.min(p.duration,pos):pos;}
   function openPlayer(){if(state.page!=='player')rememberPage();navigate('player');}
-  function renderPlayerPage(){title(tr("正在播放"));$('header-actions').innerHTML=backButton('player-back','','back');var p=state.player,t=currentTrack(),savedFocus=activeID();state.playerTrack=p?p.generation:-1;appClass();if(!t){empty(tr("还没有正在播放的音乐"),tr("从歌单或搜索结果开始"),button('go-search',tr("搜索音乐"),'primary','search'));return;}
+  function renderPlayerPage(){stopLyricFrame();state.lyricNodes=null;state.lyricWordNodes=null;title(tr("正在播放"));$('header-actions').innerHTML=backButton('player-back','','back');var p=state.player,t=currentTrack(),savedFocus=activeID();state.playerTrack=p?p.generation:-1;appClass();if(!t){empty(tr("还没有正在播放的音乐"),tr("从歌单或搜索结果开始"),button('go-search',tr("搜索音乐"),'primary','search'));return;}
     var tools='';if(can(t.source,t.showId?'likeEpisode':'like'))tools+=likeButton(t,'player-like',false);if(can(t.source,'comments'))tools+=tool('player-comments',tr("歌曲评论"),'comment');tools+=tool('player-more',tr("更多歌曲操作"),'more');
     $('content').innerHTML='<div class="listening '+(state.lyricFull?'lyrics-only':'')+'"><div class="record-column"><div class="large-cover">'+playbackArtwork(t.album&&t.album.imageUrl,'album',tr("专辑封面"))+'</div><div class="player-heading"><h2>'+esc(t.name)+'</h2><p><button class="credit-link" data-focus="player-artist" data-action="now-artist" '+(!can(t.source,'artist')||!(t.artists||[]).some(function(a){return !!a.id;})?'disabled':'')+'>'+esc(artists(t)||tr("未知歌手"))+'</button></p><div class="player-album"><button class="credit-link" data-focus="player-album" data-action="now-album" '+(!can(t.source,'album')||!t.album||!t.album.id?'disabled':'')+'>'+esc(tr("专辑 · ")+(t.album&&t.album.name||tr("未知专辑")))+'</button></div></div><div class="player-tools">'+tools+'</div></div><section class="lyric-column" aria-label="'+tr("歌词")+'"><div class="lyric-window" id="lyrics"></div></section></div>';
     if(state.lyricKey!==trackKey(t)){state.lyricKey=trackKey(t);state.lyrics=[];state.lyricState='idle';}drawLyrics();if(state.lyricState==='idle')loadLyrics(false);refreshLikes([t]);if(!state.modal&&savedFocus&&!focusId(savedFocus,true)&&state.page==='player')focusId('toggle');
   }
   function loadLyrics(){var t=currentTrack();if(!t)return;var key=trackKey(t),req=state.lyricRequest=(state.lyricRequest||0)+1;state.lyricKey=key;state.lyricState='loading';drawLyrics();if(!can(t.source,'lyrics')){state.lyricState='unsupported';drawLyrics();return;}api('/api/sources/'+encodeURIComponent(t.source)+'/lyrics?id='+encodeURIComponent(t.id),function(e,d){if(state.lyricKey!==key||req!==state.lyricRequest)return;if(e){state.lyricState='failed';state.lyricError=e;drawLyrics();return;}state.lyrics=(d&&d.lines)||[];state.lyricTimed=!!(d&&d.timed);state.lyricState=state.lyrics.length?'ready':'empty';drawLyrics();});}
-  function drawLyrics(){var root=$('lyrics');if(!root)return;state.lyricActive=-2;root.className='lyric-window';root.removeAttribute('data-focus');root.removeAttribute('tabindex');
+  function validLyricWords(line){
+    var words=line.words,text='',previous=-1;
+    if(!Array.isArray(words)||!words.length)return false;
+    for(var i=0;i<words.length;i++){
+      var w=words[i];
+      if(!w||typeof w.text!=='string'||typeof w.start!=='number'||typeof w.end!=='number'||!isFinite(w.start)||!isFinite(w.end)||w.start<0||w.start<line.start||w.start<previous||w.end<=w.start)return false;
+      previous=w.start;text+=w.text;
+    }
+    return text.trim()!==''&&(!line.text||text.trim()===line.text.trim());
+  }
+  var lyricFrame=null,lyricFrameAt=0,lyricMotion=window.matchMedia?window.matchMedia('(prefers-reduced-motion: reduce)'):null;
+  function lyricEffectsAvailable(){return typeof window.requestAnimationFrame==='function'&&typeof window.cancelAnimationFrame==='function'&&'transform' in document.documentElement.style&&!(lyricMotion&&lyricMotion.matches);}
+  function stopLyricFrame(){if(lyricFrame!==null){window.cancelAnimationFrame(lyricFrame);lyricFrame=null;}}
+  function requestLyricFrame(){
+    if(lyricFrame!==null)return;
+    lyricFrame=window.requestAnimationFrame(function(now){
+      lyricFrame=null;
+      // Only active words need extra frames. The ordinary 100ms clock remains the fallback.
+      if(now-lyricFrameAt>=40){lyricFrameAt=now;tickLyrics();}else requestLyricFrame();
+    });
+  }
+  function resetLyricWords(nodes){Array.prototype.forEach.call(nodes||[],function(w){w.className='lyric-word';w.style.color='';w.firstChild.style.transform='';});}
+  function paintLyricWords(nodes,pos,effects){
+    var light=window.MyGoI18n.theme==='light',dim=light?[142,142,154]:[154,186,150],lit=light?[29,29,31]:[210,245,205],moving=false;
+    Array.prototype.forEach.call(nodes,function(w){
+      var start=+w.getAttribute('data-start'),end=+w.getAttribute('data-end'),sung=pos>=start,progress=Math.max(0,Math.min(1,(pos-start)/(end-start))),active=sung&&pos<end;
+      var cls='lyric-word'+(sung?' sung':'');if(w.className!==cls)w.className=cls;
+      var color=effects?'rgb('+dim.map(function(c,i){return Math.round(c+(lit[i]-c)*progress);}).join(', ')+')':'';
+      if(w.style.color!==color)w.style.color=color;
+      // Small transforms leave line wrapping and the remote focus geometry unchanged.
+      var pulse=effects&&active?Math.sin(progress*Math.PI):0,transform=pulse?'translateY('+(Math.round(-1800*pulse)/1000)+'px) scale('+(Math.round(1000+45*pulse)/1000)+')':'';
+      if(w.firstChild.style.transform!==transform)w.firstChild.style.transform=transform;
+      if(active)moving=true;
+    });
+    return moving;
+  }
+  if(lyricMotion){if(lyricMotion.addEventListener)lyricMotion.addEventListener('change',tickLyrics);else if(lyricMotion.addListener)lyricMotion.addListener(tickLyrics);}
+  document.addEventListener('visibilitychange',function(){if(document.hidden)stopLyricFrame();else if(state.page==='player')tickLyrics();});
+  window.addEventListener('pagehide',stopLyricFrame);
+  function drawLyrics(){stopLyricFrame();state.lyricNodes=null;state.lyricWordNodes=null;var root=$('lyrics');if(!root)return;state.lyricActive=-2;root.className='lyric-window';root.removeAttribute('data-focus');root.removeAttribute('tabindex');
     if(state.lyricState!=='ready'){var label={idle:tr("正在准备歌词"),loading:tr("正在加载歌词"),failed:tr("歌词暂时无法加载"),empty:tr("暂无歌词"),unsupported:tr("此音乐源没有提供歌词")}[state.lyricState];root.innerHTML='<div class="lyrics-state">'+icon('lyrics')+'<p>'+esc(label)+'</p>'+(state.lyricState==='empty'?("<p>"+tr("享受音乐本身，也可以稍后重试。")+"</p>"):'')+(state.lyricState==='failed'?'<p>'+esc(state.lyricError)+'</p>':'')+(state.lyricState==='failed'||state.lyricState==='empty'?button('lyrics-retry',tr("重试"),'secondary','refresh'):'')+'</div>';return;}
     if(!state.lyricTimed){root.className+=' untimed';root.setAttribute('data-focus','lyrics');root.setAttribute('tabindex','0');}
-    root.innerHTML='<div class="lyric-lines">'+state.lyrics.map(function(l,i){return '<p class="lyric-line" data-line="'+i+'">'+(l.words&&l.words.length?l.words.map(function(w){return '<span class="lyric-word" data-start="'+w.start+'" data-end="'+w.end+'">'+esc(w.text)+'</span>';}).join(''):esc(l.text))+(state.translation&&l.translation?'<span class="translation">'+esc(l.translation)+'</span>':'')+'</p>';}).join('')+'</div>';tickLyrics();
+    root.innerHTML='<div class="lyric-lines">'+state.lyrics.map(function(l,i){return '<p class="lyric-line" data-line="'+i+'">'+(state.lyricTimed&&validLyricWords(l)?l.words.map(function(w){return '<span class="lyric-word" data-start="'+w.start+'" data-end="'+w.end+'"><span class="lyric-ink">'+esc(w.text)+'</span></span>';}).join(''):esc(l.text))+(state.translation&&l.translation?'<span class="translation">'+esc(l.translation)+'</span>':'')+'</p>';}).join('')+'</div>';state.lyricNodes=root.querySelectorAll('.lyric-line');tickLyrics();
   }
   function centerLyrics(){var root=$('lyrics');if(!root||state.lyricState!=='ready'||!state.lyricTimed)return;var line=root.querySelectorAll('.lyric-line')[Math.max(0,state.lyricActive)],strip=root.querySelector('.lyric-lines');if(line&&strip)strip.style.transform='translateY('+(root.clientHeight*.43-line.offsetTop-line.offsetHeight/2)+'px)';}
-  function tickLyrics(){var root=$('lyrics');if(!root||state.lyricState!=='ready'||!state.lyricTimed)return;var pos=playPosition(),at=-1;for(var i=0;i<state.lyrics.length;i++){if(state.lyrics[i].start<=pos)at=i;else break;}var nodes=root.querySelectorAll('.lyric-line');
-    if(state.lyricActive!==at){if(state.lyricActive>=0&&nodes[state.lyricActive]){nodes[state.lyricActive].className='lyric-line';Array.prototype.forEach.call(nodes[state.lyricActive].querySelectorAll('.lyric-word'),function(w){w.className='lyric-word';});}if(at>=0&&nodes[at])nodes[at].className='lyric-line current';state.lyricActive=at;centerLyrics();}
-    if(at>=0&&nodes[at])Array.prototype.forEach.call(nodes[at].querySelectorAll('.lyric-word'),function(w){var cls=pos>=+w.getAttribute('data-start')?'lyric-word sung':'lyric-word';if(w.className!==cls)w.className=cls;});
+  function tickLyrics(){var root=$('lyrics');if(state.page!=='player'||document.hidden||!root||state.lyricState!=='ready'||!state.lyricTimed){stopLyricFrame();return;}
+    var pos=playPosition(),at=-1,lo=0,hi=state.lyrics.length,nodes=state.lyricNodes,recenter=false;
+    while(lo<hi){var mid=Math.floor((lo+hi)/2);if(state.lyrics[mid].start<=pos){at=mid;lo=mid+1;}else hi=mid;}
+    if(state.lyricActive!==at){
+      if(state.lyricActive>=0&&nodes[state.lyricActive])nodes[state.lyricActive].className='lyric-line';
+      resetLyricWords(state.lyricWordNodes);state.lyricWordNodes=at>=0&&nodes[at]?nodes[at].querySelectorAll('.lyric-word'):[];state.lyricActive=at;recenter=true;
+    }
+    var effects=lyricEffectsAvailable()&&state.lyricWordNodes&&state.lyricWordNodes.length>0;
+    if(at>=0&&nodes[at]){var cls='lyric-line current'+(effects?' word-effects':'');if(nodes[at].className!==cls){nodes[at].className=cls;recenter=true;}}
+    if(recenter)centerLyrics();
+    var moving=paintLyricWords(state.lyricWordNodes||[],pos,effects);
+    if(effects&&moving&&state.player&&state.player.state==='playing')requestLyricFrame();else stopLyricFrame();
   }
   function toggleTranslation(n){var next=!state.translation;n.disabled=true;post('/api/preferences',{translation:next?'on':'off'},function(e){n.disabled=false;if(e){toast(e);return;}state.translation=next;if(state.page==='settings'){renderSettings();focusId('translation-setting');}else if(state.page==='player')drawLyrics();});}
   function emitEvent(name){if(!state.player||audioGen!==state.player.generation||!mediaPath)return;post('/api/player/event',{generation:audioGen,state:name,seekRevision:audioSeek,position:Math.floor(audio.currentTime*1000)||0,duration:isFinite(audio.duration)?Math.floor(audio.duration*1000):0},function(){});}
