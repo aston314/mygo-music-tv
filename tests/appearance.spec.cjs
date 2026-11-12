@@ -22,7 +22,7 @@ test('theme and language apply immediately, retain focus and survive browser ref
  await page.evaluate(()=>{window.Android={applyAppearance:(theme,language)=>window.recordAppearance(theme,language)};});
  await settings(page);await choose(page,'theme','light');await expect(page.locator('html')).toHaveAttribute('data-theme','light');
  await expect(page.locator('button[data-theme="light"]')).toBeFocused();await expect(page.locator('#page-title')).toHaveText('设置');
- await page.keyboard.press('ArrowLeft');await expect(page.locator('button[data-theme="dark"]')).toBeFocused();
+ await page.keyboard.press('ArrowRight');await expect(page.locator('button[data-theme="dark"]')).toBeFocused();
  await choose(page,'language','zh-TW');await expect(page.locator('html')).toHaveAttribute('lang','zh-TW');
  await expect(page.locator('#page-title')).toHaveText('設定');await expect(page.locator('[data-language="zh-TW"]')).toBeFocused();
  await expect(page.locator('[data-focus="nav-market"]')).toHaveText('外掛市場');
@@ -34,6 +34,34 @@ test('theme and language apply immediately, retain focus and survive browser ref
  expect(await page.evaluate(()=>window.MyGoI18n.text('unknown resource'))).toBe('unknown resource');
  await page.evaluate(()=>{delete window.MyGoLocales['zh-TW']['设置'];});
  expect(await page.evaluate(()=>window.MyGoI18n.text('设置'))).toBe('设置');
+});
+
+for(const isMobile of [false,true])test((isMobile?'WebView':'desktop')+' settings keep theme and language arrows in adjacent rows and matching columns',async({browser})=>{
+ test.setTimeout(60000);
+ const context=await browser.newContext({viewport:{width:1280,height:720},isMobile,deviceScaleFactor:isMobile?2:1}),page=await context.newPage();
+ async function step(key,id){await page.keyboard.press(key);const target=page.locator('[data-focus="'+id+'"]');await expect(target).toBeFocused();const visible=await target.evaluate(n=>{const r=n.getBoundingClientRect(),p=document.querySelector('#content').getBoundingClientRect();return r.left>=p.left&&r.right<=p.right&&r.top>=p.top&&r.bottom<=p.bottom;});expect(visible).toBe(true);}
+ try{
+  await page.goto('/?token='+token);
+  for(const theme of ['light','dark'])for(const sidebar of ['expanded','icons']){
+   await page.request.post('/api/preferences',{data:{theme,sidebar,language:theme==='light'?'zh-CN':'zh-TW'}});await page.reload();await settings(page);
+   expect(await page.locator('.appearance-choices button').evaluateAll(nodes=>nodes.map(n=>n.getAttribute('data-theme')))).toEqual(['light','dark']);
+   for(const [width,height] of [[960,540],[1280,720],[1920,1080]]){
+    await page.setViewportSize({width,height});
+    for(const ids of [['pref-expanded','play-mode','quality-standard','theme-light','language-zh-CN','login'],['pref-icons','translation-setting','quality-high','theme-dark','language-zh-TW','manage-source']]){
+     await page.locator('[data-focus="'+ids[0]+'"]').focus();
+     for(const id of ids.slice(1))await step('ArrowDown',id);
+     for(const id of ids.slice(0,-1).reverse())await step('ArrowUp',id);
+    }
+    await page.locator('[data-focus="theme-light"]').focus();await step('ArrowRight','theme-dark');await step('ArrowRight','theme-dark');await step('ArrowLeft','theme-light');
+    await page.keyboard.press('ArrowLeft');await expect(page.locator('[data-focus="nav-settings"]')).toBeFocused();await step('ArrowRight','theme-light');
+    await step('ArrowDown','language-zh-CN');await step('ArrowRight','language-zh-TW');await step('ArrowUp','theme-dark');
+    await page.locator('[data-focus="quality-lossless"]').focus();await step('ArrowDown','theme-dark');
+   }
+  }
+  await page.route('**/api/sources',async route=>{const response=await route.fetch(),sources=await response.json();Object.assign(sources[0].capabilities,{account:false,signIn:false});await route.fulfill({json:sources});});
+  await page.reload();await settings(page);await page.locator('[data-focus="language-zh-TW"]').focus();await step('ArrowDown','manage-source');await step('ArrowDown','setting-0');await step('ArrowUp','manage-source');
+  await page.locator('[data-focus="save-0"]').focus();await step('ArrowDown','save-0');
+ }finally{await context.close();}
 });
 
 test('failed saves retain the active appearance and rapid choices persist in order without stealing focus',async({page})=>{

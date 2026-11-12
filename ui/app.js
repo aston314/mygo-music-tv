@@ -123,6 +123,15 @@
     var credit=footerCredit(),ids=['now',credit?credit.id:'','now-like','previous','toggle','next','seek','mode','queue','full-lyrics'],nodes=focusables(),row=ids.map(function(id){for(var i=0;i<nodes.length;i++)if(nodes[i].getAttribute('data-focus')===id)return nodes[i];return null;}).filter(function(n){return !!n;});
     var at=row.indexOf(active);if(active.id==='now-album'||active.id==='now-artist')at=row.indexOf(credit);if(at<0)return;var next=row[at+(dir==='ArrowRight'?1:-1)];if(next)focusNode(next);
   }
+  function moveSettings(active,dir){
+    var rows=[],row=-1,col=-1;
+    Array.prototype.forEach.call($('content').querySelectorAll('.button-row,.appearance-choices,.setting-input-row'),function(group){var nodes=inRoot(group);if(nodes.length)rows.push(nodes);});
+    rows.forEach(function(nodes,i){var at=nodes.indexOf(active);if(at>=0){row=i;col=at;}});if(row<0)return false;
+    var horizontal=dir==='ArrowLeft'||dir==='ArrowRight',target;
+    if(horizontal){target=rows[row][col+(dir==='ArrowRight'?1:-1)];if(target)focusNode(target);else if(dir==='ArrowLeft')focusSidebar();}
+    else{var next=rows[row+(dir==='ArrowDown'?1:-1)];if(next)focusNode(next[Math.min(col,next.length-1)]);else if(dir==='ArrowUp')focusSidebar();}
+    return true;
+  }
   function move(dir){
     var active=document.activeElement,nav=$('nav'),content=$('content'),nodes=focusables();
     if(!active||nodes.indexOf(active)<0){focusNode(nodes[0]);return;}
@@ -137,6 +146,7 @@
     }
     if(!state.modal&&active.id==='source-switch'){if(dir==='ArrowDown')focusNode(nav.querySelector('[data-focus]'));else if(dir==='ArrowRight')enterContent();return;}
     if(!state.modal&&$('player-bar').contains(active)){moveFooter(active,dir);return;}
+    if(!state.modal&&state.page==='settings'&&content.contains(active)&&moveSettings(active,dir))return;
     if(!state.modal&&active.id==='lyrics'&&state.lyricTimed===false&&(dir==='ArrowUp'||dir==='ArrowDown')){var delta=dir==='ArrowUp'?-90:90;if(delta<0&&active.scrollTop>0||delta>0&&active.scrollTop<active.scrollHeight-active.clientHeight-1){active.scrollTop+=delta;return;}}
     if(!state.modal&&state.theme==='light'&&content.contains(active)){
       var featured=content.querySelector('[data-action="feature-play"]'),firstTrack=content.querySelector('[data-track]');
@@ -549,7 +559,7 @@
     title(tr("设置"),tr("你的聆听偏好"));
     var h='<section class="settings-card"><h2>'+tr("侧边栏显示")+'</h2><div class="button-row">'+['expanded','icons'].map(function(v){return '<button class="secondary" data-focus="pref-'+v+'" data-pref="'+v+'" aria-pressed="'+(state.pref===v)+'">'+buttonContent(tr(v==='expanded'?"展开显示":"仅显示图标"))+'</button>';}).join('')+'</div></section>';
     h+='<section class="settings-card"><h2>'+tr("播放与歌词")+'</h2><div class="button-row">'+button('play-mode',tr(modeLabels[state.player?state.player.mode:'sequence']),'secondary',state.player?state.player.mode:'sequence')+button('translation-setting',state.translation?tr("歌词翻译：开"):tr("歌词翻译：关"),'secondary','lyrics')+'</div><h3>'+tr("播放音质")+'</h3><div class="button-row">'+['standard','high','lossless'].map(function(q){return '<button class="secondary" data-focus="quality-'+q+'" data-quality="'+q+'" aria-pressed="'+(state.quality===q)+'">'+buttonContent(tr({standard:'标准音质',high:'高音质',lossless:'无损音质'}[q]))+'</button>';}).join('')+'</div><p class="hint">'+tr("下次播放生效，实际音质由音乐源和账号权限决定。")+'</p></section>';
-    h+='<section class="settings-card appearance-card"><h2>'+tr("外观与语言")+'</h2><div class="appearance-choices">'+appearanceChoice('theme','dark',tr("深色主题"),tr("保留当前深绿风格"),'moon')+appearanceChoice('theme','light',tr("淡色主题"),tr("浅色背景，柔和清晰"),'sun')+'</div><h3>'+tr("界面语言")+'</h3><div class="button-row">'+['zh-CN','zh-TW'].map(function(v){return '<button class="secondary" data-focus="language-'+v+'" data-language="'+v+'" aria-pressed="'+(state.language===v)+'">'+buttonContent(tr(v==='zh-CN'?"简体中文":"繁體中文"))+'</button>';}).join('')+'</div><p class="hint">'+tr("仅切换应用界面，歌曲、歌词和评论保留原文。")+'</p></section>';
+    h+='<section class="settings-card appearance-card"><h2>'+tr("外观与语言")+'</h2><div class="appearance-choices">'+appearanceChoice('theme','light',tr("淡色主题"),tr("浅色背景，柔和清晰"),'sun')+appearanceChoice('theme','dark',tr("深色主题"),tr("保留当前深绿风格"),'moon')+'</div><h3>'+tr("界面语言")+'</h3><div class="button-row">'+['zh-CN','zh-TW'].map(function(v){return '<button class="secondary" data-focus="language-'+v+'" data-language="'+v+'" aria-pressed="'+(state.language===v)+'">'+buttonContent(tr(v==='zh-CN'?"简体中文":"繁體中文"))+'</button>';}).join('')+'</div><p class="hint">'+tr("仅切换应用界面，歌曲、歌词和评论保留原文。")+'</p></section>';
     if(state.source){
       h+='<section class="settings-card"><h2>'+esc(state.source.manifest.name)+'</h2><div class="button-row" id="source-settings-actions"></div><p class="hint">'+(state.source.process&&state.source.process.length?tr("部分功能依赖外部程序，可能需要电视适配。"):tr("账号与内容由当前音乐源提供。"))+'</p>';
       (state.source.manifest.settings||[]).forEach(function(setting,i){h+='<label for="setting-'+i+'">'+esc(setting.label)+'</label><p class="hint">'+esc(setting.help)+'</p><div class="setting-input-row"><input id="setting-'+i+'" type="text" data-focus="setting-'+i+'" autocomplete="off"><button class="secondary" data-focus="save-'+i+'" data-setting="'+i+'">'+buttonContent(tr("保存"))+'</button></div>';});h+='</section>';
