@@ -8,7 +8,6 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.StateListDrawable;
 import android.view.Gravity;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
@@ -27,7 +26,7 @@ final class Appearance {
     static int foreground(Context context) { return light(context)?Color.rgb(229,50,75):Color.rgb(198,245,223); }
     static int muted(Context context) { return light(context)?Color.rgb(110,110,120):Color.rgb(135,148,145); }
     /** Apply after show so platform buttons exist; retain native Back/exit ownership. */
-    static void styleExitDialog(Context context, AlertDialog dialog) {
+    static void styleExitDialog(Context context, AlertDialog dialog, Button... buttons) {
         boolean light = light(context);
         float density = context.getResources().getDisplayMetrics().density;
         int surface = light ? Color.WHITE : Color.rgb(28,48,37);
@@ -40,9 +39,7 @@ final class Appearance {
         int titleId = context.getResources().getIdentifier("alertTitle", "id", "android");
         TextView title = titleId == 0 ? null : dialog.findViewById(titleId);
         if (title != null) title.setTextColor(text);
-        for (int which : new int[]{AlertDialog.BUTTON_NEGATIVE, AlertDialog.BUTTON_POSITIVE}) {
-            Button button = dialog.getButton(which);
-            if (button == null) continue;
+        for (Button button : buttons) {
             StateListDrawable background = new StateListDrawable();
             GradientDrawable focused = new GradientDrawable(); focused.setColor(accent); focused.setCornerRadius(26*density);
             GradientDrawable idle = new GradientDrawable(); idle.setColor(light ? Color.rgb(236,236,241) : Color.rgb(43,73,51)); idle.setCornerRadius(26*density);
@@ -57,13 +54,8 @@ final class Appearance {
             button.setPadding((int)(22*density),0,(int)(22*density),0);
             if (button.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
                 ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams)button.getLayoutParams();
-                // TV themes can fix this at 48dp, clipping a taller custom background.
                 params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
                 params.leftMargin = (int)(8*density); params.topMargin = (int)(8*density); params.bottomMargin = (int)(8*density); button.setLayoutParams(params);
-                if (button.getParent() instanceof View) {
-                    View row = (View)button.getParent(); ViewGroup.LayoutParams rowParams = row.getLayoutParams();
-                    if (rowParams != null) { rowParams.height = ViewGroup.LayoutParams.WRAP_CONTENT; row.setLayoutParams(rowParams); }
-                }
             }
         }
     }

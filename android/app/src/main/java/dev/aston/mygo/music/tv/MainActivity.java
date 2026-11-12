@@ -109,8 +109,18 @@ public final class MainActivity extends Activity {
     private void finishEditing() { editing = false; ((InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(web.getWindowToken(),0); }
     private void confirmExit() {
         if (destroyed || exitVisible) return; exitVisible=true; ++backSequence;
-        AlertDialog dialog = new AlertDialog.Builder(this,Appearance.light(this)?android.R.style.Theme_Material_Light_Dialog_Alert:android.R.style.Theme_Material_Dialog_Alert).setTitle(Appearance.text(this,R.string.exit_title)).setMessage(Appearance.text(this,R.string.exit_message)).setNegativeButton(Appearance.text(this,R.string.cancel),(d,w)->{}).setPositiveButton(Appearance.text(this,R.string.exit),(d,w)->{ finishEditing(); stopService(new Intent(this, CoreService.class)); finish(); }).create();
-        dialog.setOnDismissListener(d->{exitVisible=false;immersive();}); dialog.setOnShowListener(d->{Appearance.styleExitDialog(this,dialog);dialog.getButton(AlertDialog.BUTTON_NEGATIVE).requestFocus();}); dialog.show();
+        AlertDialog.Builder builder = new AlertDialog.Builder(this,Appearance.light(this)?android.R.style.Theme_Material_Light_Dialog_Alert:android.R.style.Theme_Material_Dialog_Alert);
+        // Own the action row: some TV themes put platform buttons in a clipping ScrollView.
+        LinearLayout actions = new LinearLayout(builder.getContext()); actions.setOrientation(LinearLayout.HORIZONTAL); actions.setGravity(Gravity.RIGHT|Gravity.CENTER_VERTICAL); actions.setPadding(dp(16),0,dp(16),dp(8));
+        Button cancel = new Button(builder.getContext()), confirm = new Button(builder.getContext());
+        cancel.setId(android.R.id.button2); confirm.setId(android.R.id.button1);
+        cancel.setText(Appearance.text(this,R.string.cancel)); confirm.setText(Appearance.text(this,R.string.exit));
+        actions.addView(cancel,new LinearLayout.LayoutParams(-2,-2)); actions.addView(confirm,new LinearLayout.LayoutParams(-2,-2));
+        for (Button button : new Button[]{cancel,confirm}) { button.setFocusableInTouchMode(true); button.setNextFocusUpId(button.getId()); button.setNextFocusDownId(button.getId()); }
+        cancel.setNextFocusLeftId(cancel.getId()); cancel.setNextFocusRightId(confirm.getId()); confirm.setNextFocusLeftId(cancel.getId()); confirm.setNextFocusRightId(confirm.getId());
+        AlertDialog dialog = builder.setTitle(Appearance.text(this,R.string.exit_title)).setMessage(Appearance.text(this,R.string.exit_message)).setView(actions).create();
+        cancel.setOnClickListener(v->dialog.dismiss()); confirm.setOnClickListener(v->{finishEditing();stopService(new Intent(this,CoreService.class));dialog.dismiss();finish();});
+        dialog.setOnDismissListener(d->{exitVisible=false;immersive();}); dialog.setOnShowListener(d->{Appearance.styleExitDialog(this,dialog,cancel,confirm);cancel.requestFocus();}); dialog.show();
     }
     private final class Bridge {
         @JavascriptInterface public String platform() { return "android-tv"; }
