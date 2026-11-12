@@ -62,9 +62,9 @@ for(const theme of ['dark','light'])for(const language of ['zh-CN','zh-TW'])test
  await page.setViewportSize({width:1280,height:720});await page.locator('[data-language="'+language+'"]').focus();
  await page.screenshot({path:info.outputPath(theme+'-'+language+'-settings.png')});
  await page.route('**/api/catalog*',route=>route.fulfill({json:{entries:[{repository:'fixture/demo',name:'发现音乐',description:'测试音乐源介绍，不转换。'},{repository:'new/source',name:'新音乐源',description:'尚未安装'}]}}));
- await page.locator('[data-focus="nav-market"]').click();await expect(page.locator('[data-catalog="0"] .card-name')).toHaveText('发现音乐');
+ await page.locator('[data-focus="nav-market"]').click();await expect(page.locator('[data-catalog="0"] .card-name')).toHaveText('演示');
  await expect(page.locator('[data-catalog="0"] .install-badge')).toHaveText(traditional?'已安裝':'已安装');
- await page.locator('[data-catalog="0"]').click();await expect(page.locator('.modal h2')).toHaveText('发现音乐');
+ await page.locator('[data-catalog="0"]').click();await expect(page.locator('.modal h2')).toHaveText('演示');
  await expect(page.locator('[data-action="check-update"]')).toHaveText(traditional?'檢查更新':'检查更新');
  await page.keyboard.press('Escape');await page.locator('[data-focus="nav-search"]').click();await expect(page.locator('#search-input')).toHaveAttribute('placeholder',traditional?'歌曲、歌手、專輯':'歌曲、歌手、专辑');
  await page.locator('#source-switch').click();await expect(page.locator('.modal h2')).toHaveText(traditional?'選擇音樂源':'选择音乐源');await expect(page.locator('[data-source="fixture"]')).toBeFocused();

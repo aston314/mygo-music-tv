@@ -46,9 +46,6 @@ func New(address, path string) *Catalog {
 	c := &Catalog{URL: address, Path: path, Client: &http.Client{Timeout: 25 * time.Second}}
 	if b, err := os.ReadFile(path); err == nil {
 		_ = json.Unmarshal(b, &c.saved)
-		for i := range c.saved.Entries {
-			c.saved.Entries[i].Description = cleanCachedDescription(c.saved.Entries[i].Description)
-		}
 	}
 	if len(c.saved.Entries) == 0 {
 		var seed struct {
@@ -62,7 +59,29 @@ func New(address, path string) *Catalog {
 			c.seeded = true
 		}
 	}
+	for i := range c.saved.Entries {
+		cleanEntry(&c.saved.Entries[i])
+	}
 	return c
+}
+
+// Migrate old cached card text only when its exact repository header is present.
+// A description that happens to mention GitHub or a number is not a header.
+func cleanEntry(entry *Entry) {
+	value := cleanCachedDescription(entry.Description)
+	parts := strings.Split(entry.Repository, "/")
+	for _, name := range []string{entry.Name, strings.TrimPrefix(parts[len(parts)-1], "mygo-music-")} {
+		prefix := name + " " + entry.Repository
+		if name != "" && strings.HasPrefix(value, prefix+" ") {
+			value = strings.TrimSpace(strings.TrimPrefix(value, prefix))
+			fields := strings.Fields(value)
+			if len(fields) > 0 && strings.Trim(fields[0], "0123456789") == "" {
+				value = strings.TrimSpace(strings.TrimPrefix(value, fields[0]))
+			}
+			break
+		}
+	}
+	entry.Description = value
 }
 
 // Older snapshots included the directory's adjacent install/repository buttons.
@@ -118,6 +137,42 @@ func text(n *html.Node) string {
 	}
 	return strings.Join(strings.Fields(b.String()), " ")
 }
+
+func hasClass(n *html.Node, class string) bool {
+	for _, value := range strings.Fields(attr(n, "class")) {
+		if value == class {
+			return true
+		}
+	}
+	return false
+}
+
+func cardDescription(n *html.Node) string {
+	if n.Type == html.ElementNode && (n.Data == "h2" || n.Data == "h3" || hasClass(n, "plugin-card-head") || hasClass(n, "plugin-title") || hasClass(n, "plugin-stars") || hasClass(n, "plugin-repo") || hasClass(n, "plugin-actions") || directoryAction(n)) {
+		return ""
+	}
+	if n.Type == html.TextNode {
+		return n.Data
+	}
+	var b strings.Builder
+	for child := n.FirstChild; child != nil; child = child.NextSibling {
+		b.WriteString(cardDescription(child))
+		b.WriteByte(' ')
+	}
+	return strings.Join(strings.Fields(b.String()), " ")
+}
+
+func cardName(n *html.Node) string {
+	if n.Type == html.ElementNode && (n.Data == "h2" || n.Data == "h3") {
+		return text(n)
+	}
+	for child := n.FirstChild; child != nil; child = child.NextSibling {
+		if name := cardName(child); name != "" {
+			return name
+		}
+	}
+	return ""
+}
 func attr(n *html.Node, name string) string {
 	for _, a := range n.Attr {
 		if a.Key == name {
@@ -153,7 +208,10 @@ func Parse(r io.Reader) ([]Entry, error) {
 						}
 					}
 					if card != nil {
-						description = text(card)
+						if title := cardName(card); title != "" {
+							name = title
+						}
+						description = cardDescription(card)
 						if len([]rune(description)) > 320 {
 							description = string([]rune(description)[:320])
 						}

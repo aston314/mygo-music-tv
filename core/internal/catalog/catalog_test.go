@@ -48,7 +48,7 @@ func TestDirectoryAndStaleCache(t *testing.T) {
 	if e != nil || len(entries) != 1 || entries[0].Repository != "Author/Music" {
 		t.Fatalf("%+v %v", entries, e)
 	}
-	if entries[0].Description != "Music 通过 GitHub 提供在线音乐" {
+	if entries[0].Name != "Music" || entries[0].Description != "通过 GitHub 提供在线音乐" {
 		t.Fatalf("directory controls mixed into description: %q", entries[0].Description)
 	}
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { _, _ = w.Write([]byte(html)) }))
@@ -67,6 +67,25 @@ func TestDirectoryAndStaleCache(t *testing.T) {
 	restored := New(srv.URL, path)
 	if len(restored.saved.Entries) != 1 {
 		t.Fatal("cache not persisted")
+	}
+}
+
+func TestDirectoryCardSeparatesTitleRepositoryStarsAndProse(t *testing.T) {
+	markup := `<article class="plugin-card"><div class="plugin-card-head"><div class="plugin-title"><h2>网易云音乐</h2><a class="plugin-repo" href="https://github.com/author/mygo-music-netease">author/mygo-music-netease</a></div><span class="plugin-stars">103</span></div><p class="platform-note">支持 GitHub API 与 24 小时播放</p><div class="plugin-actions"><a href="mygo-music://install-plugin?repo=author/mygo-music-netease">安装</a><a href="https://github.com/author/mygo-music-netease">GitHub</a></div></article>`
+	entries, err := Parse(strings.NewReader(markup))
+	if err != nil || len(entries) != 1 || entries[0].Name != "网易云音乐" || entries[0].Description != "支持 GitHub API 与 24 小时播放" {
+		t.Fatalf("card metadata mixed into prose: %+v %v", entries, err)
+	}
+	for _, input := range []struct{ text, want string }{
+		{"netease author/mygo-music-netease 103 支持 GitHub API 与 24 小时播放 安装 GitHub", "支持 GitHub API 与 24 小时播放"},
+		{"支持 GitHub API 与 24 小时播放", "支持 GitHub API 与 24 小时播放"},
+		{"提到 author/mygo-music-netease 103 的介绍", "提到 author/mygo-music-netease 103 的介绍"},
+	} {
+		entry := Entry{Name: "mygo-music-netease", Repository: "author/mygo-music-netease", Description: input.text}
+		cleanEntry(&entry)
+		if entry.Description != input.want {
+			t.Fatalf("cache migration: %q != %q", entry.Description, input.want)
+		}
 	}
 }
 

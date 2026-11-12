@@ -36,7 +36,7 @@ test('list dialogs enter their first item, keep focus during refresh, and confir
 test('empty and delayed list dialogs preserve an intentional action focus',async({page})=>{
  await song(page);await page.locator('[data-action="player-more"]').click();
  await page.route('**/call/playlists',route=>route.fulfill({json:[]}));await page.locator('[data-action="add-playlist"]').click();
- await expect(page.locator('#playlist-options')).toContainText('暂无可加入');await expect(page.locator('[data-action="cancel"]')).toBeFocused();
+ await expect(page.locator('#playlist-options')).toContainText('暂无可加入');await expect(page.locator('[data-action="create-for-track"]')).toBeFocused();
  await page.keyboard.press('Escape');await page.unroute('**/call/playlists');
  let release,started=false;const gate=new Promise(resolve=>release=resolve);
  await page.route('**/call/playlists',async route=>{started=true;await gate;await route.fulfill({json:[{id:'delayed',name:'迟到歌单',mine:true}]});});

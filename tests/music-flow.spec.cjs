@@ -20,7 +20,7 @@ test('account stays hidden on market and settings and remains known on music pag
  for(const nav of ['settings','market','search','home']){await page.locator('[data-focus="nav-'+nav+'"]').click();if(nav==='settings'||nav==='market')await expect(page.locator('#account-button')).toBeHidden();else await expect(page.locator('#account-button')).toBeVisible();await expect(page.locator('#account-name')).toHaveText('客厅听众');}
  fail=true;await page.locator('#account-button').click();await expect(page.locator('#modal-layer')).toContainText('账号查询超时');await expect(page.locator('#account-name')).toHaveText('客厅听众');await page.keyboard.press('Escape');
  fail=false;await page.locator('#account-button').click();await expect(page.locator('#modal-layer')).toContainText('客厅听众');
- await page.locator('#modal-layer [data-action="signout"]').click();await expect(page.locator('#account-name')).toHaveText('未登录');
+ await page.locator('#modal-layer [data-action="signout"]').click();await expect(page.locator('[data-action="cancel"]')).toBeFocused();await page.locator('[data-action="signout-confirm"]').click();await expect(page.locator('#account-name')).toHaveText('未登录');
 });
 
 test('late account response cannot replace the newly selected source account',async({page})=>{

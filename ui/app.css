@@ -258,3 +258,41 @@ html[data-poster-columns="6"] .album-grid>.album-card{width:calc(16.666% - 16px)
 .app-update-card [role=status]{min-height:29px;overflow-wrap:break-word;word-wrap:break-word}
 .app-update-card button[aria-busy=true] .icon{animation:spin 1.2s linear infinite}
 .app-update-card button[aria-disabled=true]{opacity:.55;cursor:default}
+
+/* TV audit: keep useful content and clear actions within the first screen. */
+.button-row{display:flex;align-items:center;flex-wrap:wrap;margin:-4px}
+.button-row>button,.button-row>.hint{margin:4px}
+.button-row>button{min-height:56px}
+.settings-card{padding:20px;margin-bottom:16px}
+.settings-card h2{margin:0 0 14px}
+.settings-card h3{font-size:20px;font-weight:500;margin:18px 0 12px;color:#b1c8b9}
+.settings-card .hint{margin:12px 0 0}
+.settings-card .appearance-choices{margin-top:4px}
+.settings-card .appearance-choice{margin-bottom:0}
+.setting-input-row{display:flex;align-items:center}
+.setting-input-row input{flex:1;width:auto;min-width:0}
+.setting-input-row button{margin:0;flex-shrink:0}
+.browse-intro{margin:4px 0 20px;font-size:20px;line-height:1.5;color:#b1c8b9}
+.market-search{margin:4px 0 18px}
+.market-toolbar{display:flex;align-items:center;justify-content:space-between;margin:0 0 12px;padding:4px}
+.market-toolbar #market-update-status{min-width:0;flex:1;margin-left:16px;text-align:right;word-wrap:break-word;color:#9bb4a5}
+.market-filters{flex-shrink:0}
+#market-results-count{font-size:17px;margin:10px 4px}
+#catalog-grid .plugin-card{display:flex;flex-direction:column;align-items:stretch;min-width:0;padding:18px}
+#catalog-grid .card-top{margin-bottom:12px}
+#catalog-grid .card-heading{margin-bottom:8px}
+#catalog-grid .card-description{height:54px}
+#catalog-grid .card-bottom{margin-top:auto;padding-top:10px}
+.compatibility-badge{display:block;font-size:16px;line-height:24px;color:#c6b991;margin-top:8px}
+.plugin-version:empty{display:none}
+#catalog-grid .plugin-version{margin:4px 0;font-size:16px}
+.recent-searches h2{font-size:22px;font-weight:500;margin:20px 0 16px}
+.recent-searches button{max-width:360px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track-time{min-width:46px;text-align:right}
+html[data-theme=light] .settings-card h3,html[data-theme=light] .browse-intro,html[data-theme=light] .market-toolbar #market-update-status{color:#6e6e78}
+html[data-theme=light] .compatibility-badge{color:#82653b}
+html[data-theme=light] #catalog-grid .card-top{margin-bottom:12px}
+html[data-theme=light] .music-feature{min-height:220px;padding:22px 28px;margin-bottom:20px}
+html[data-theme=light] .feature-art{width:176px;height:176px}
+html[data-theme=light] .feature-copy h2{font-size:34px;margin:8px 0}
+html[data-theme=light] .feature-copy p{margin-bottom:16px}

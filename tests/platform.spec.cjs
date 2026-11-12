@@ -49,13 +49,13 @@ for(const platform of ['android-tv','webos','tizen','browser','macos','linux','w
  await page.keyboard.press('Escape');await expect(page.locator('#modal-layer')).toBeHidden();
 });
 
-test('a TV information dialog without actions has a focusable reading region and remote return',async({page})=>{
+test('a TV account dialog keeps a safe explicit Close action and remote return',async({page})=>{
  await page.addInitScript(()=>{window.MyGoHost={platform:'android-tv'};});
  await page.route('**/call/account',r=>r.fulfill({json:{name:'音乐听众'}}));
  await page.route('**/api/sources',async r=>{const response=await r.fetch(),sources=await response.json();sources[0].capabilities.signOut=false;await r.fulfill({json:sources});});
  await boot(page);await page.locator('#account-button').click();
- await expect(page.locator('[data-focus="modal-content"]')).toBeFocused();
- await expect(page.locator('[data-navigation-back]')).toBeHidden();
+ await expect(page.locator('[data-action="cancel"]')).toBeFocused();
+ await expect(page.locator('[data-action="cancel"]')).toHaveText('关闭');
  await page.keyboard.press('Escape');await expect(page.locator('#account-button')).toBeFocused();
 });
 

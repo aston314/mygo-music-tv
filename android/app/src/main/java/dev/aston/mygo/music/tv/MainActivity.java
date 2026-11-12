@@ -102,7 +102,7 @@ public final class MainActivity extends Activity {
     private void confirmExit() {
         if (destroyed || exitVisible) return; exitVisible=true; ++backSequence;
         AlertDialog dialog = new AlertDialog.Builder(this,Appearance.light(this)?android.R.style.Theme_Material_Light_Dialog_Alert:android.R.style.Theme_Material_Dialog_Alert).setTitle(Appearance.text(this,R.string.exit_title)).setMessage(Appearance.text(this,R.string.exit_message)).setNegativeButton(Appearance.text(this,R.string.cancel),(d,w)->{}).setPositiveButton(Appearance.text(this,R.string.exit),(d,w)->{ finishEditing(); stopService(new Intent(this, CoreService.class)); finish(); }).create();
-        dialog.setOnDismissListener(d->{exitVisible=false;immersive();}); dialog.setOnShowListener(d->dialog.getButton(AlertDialog.BUTTON_NEGATIVE).requestFocus()); dialog.show();
+        dialog.setOnDismissListener(d->{exitVisible=false;immersive();}); dialog.setOnShowListener(d->{Appearance.styleExitDialog(this,dialog);dialog.getButton(AlertDialog.BUTTON_NEGATIVE).requestFocus();}); dialog.show();
     }
     private final class Bridge {
         @JavascriptInterface public String platform() { return "android-tv"; }
