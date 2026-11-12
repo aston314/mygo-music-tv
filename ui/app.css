@@ -296,3 +296,15 @@ html[data-theme=light] .music-feature{min-height:220px;padding:22px 28px;margin-
 html[data-theme=light] .feature-art{width:176px;height:176px}
 html[data-theme=light] .feature-copy h2{font-size:34px;margin:8px 0}
 html[data-theme=light] .feature-copy p{margin-bottom:16px}
+
+/* Search entry points share keyboard and phone input without shrinking TV targets. */
+.search-row>button{flex-shrink:0}
+.search-row>[data-action^="scan-"]{margin-left:12px}
+.scan-input-modal{width:620px;padding:24px 28px;overflow-y:auto}
+.scan-input-modal .scan-context{font-size:20px;margin:0 0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scan-input-modal #scan-qr{width:224px;height:224px;margin:12px auto}
+.scan-input-modal .scan-instruction{font-size:19px;margin:6px auto;max-width:100%}
+.scan-input-modal #scan-status{font-size:20px;line-height:1.5;min-height:38px;padding:4px 10px;margin:8px 0;border-radius:10px}
+.scan-input-modal #scan-pairing,.scan-input-modal #scan-expiry{font-size:17px;line-height:24px;margin:2px 0}
+.scan-input-modal .actions{margin-top:16px}
+.scan-input-modal button[aria-disabled=true]{opacity:.55}

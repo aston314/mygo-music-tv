@@ -18,6 +18,7 @@ go run -mod=vendor ./core/cmd/music-tv -mode real
 - 按仓库隔离插件实例、设置与登录数据；同 ID 不同作者的插件可以并存。卸载保留账号数据。
 - 上游 JS/TS 插件运行时、网络权限、crypto、storage、settings、capability 与 Source JSON 协议。
 - 音乐源切换、首页/自定义目录、多类型搜索与分页、歌单/专辑/歌手/播客、二维码登录；远端设备选择与 remote 播放/暂停/恢复/进度控制。
+- 资源搜索与插件搜索支持同一局域网内手机扫码输入：手机点击搜索后电视自动搜索并定位结果，保留当前来源、分类或安装状态筛选，不自动播放或安装。二维码五分钟有效，可取消或刷新；详见 [扫码搜索](docs/phone-search.md)。
 - Android 临时网页登录窗口接入 `host.webSignIn` 的 Cookie 回传和 `waitForRedirect` 的本机 OAuth 回调；凭据直接交给 Go，普通应用页面不接触 Cookie。支持会话取消、超时、重试和返回后继续查询。插件详情显示带版本的兼容性记录，分别说明安装、搜索与音频解析结果，详见 [登录与插件兼容性](docs/login-and-compatibility.md)。
 - 播放页左侧集中展示封面、歌曲信息和播放控制，右侧完整展示歌词；纯歌词全屏采用独立控制布局，进入/退出使用不同 SVG 图标。保留插件提供的真实逐字时间戳，普通 LRC 按行同步，纯文本歌词可用方向键滚动。加载失败提供重试。
 - 歌曲喜欢/取消喜欢、加入或新建来源歌单、专辑和歌单收藏、歌手关注、播客订阅。按插件能力展示操作，写入失败保留先前状态。
@@ -42,7 +43,7 @@ go run -mod=vendor ./core/cmd/music-tv -mode real
 
 二维码登录已提供。网页 Cookie 登录由 Android 原生窗口读取插件指定且有网络权限的域名；浏览器预览可打开 OAuth 登录，但不能从其他网站自动提取 Cookie。OAuth 回调绑定电视或预览所在机器的 loopback，手机访问自己的 localhost 不会返回电视，手机 OAuth 中转仍需按服务单独适配。远端设备沿用插件的 remote 协议，依赖外部设备与服务可用性，不等同于电视本机播放。源码安装不能替代插件自身需要的构建产物；选择的上游 release 必须包含可运行 JS/TS。
 
-长文本目前通过系统输入法或直接键盘输入，尚未提供手机扫码输入。
+手机扫码输入目前用于资源与插件搜索，其它文本字段仍通过系统输入法或直接键盘输入。
 
 当前未声称 Android 6 实机输入、真实账号同步或所有在线源可播放。详细证据见 [迁移方案](docs/migration-proposal.md) 与 [目录声明快照](docs/evidence/plugin-catalog-2026-11-11.json)。
 
@@ -68,7 +69,7 @@ GitHub 私有仓库 [aston314/mygo-music-tv](https://github.com/aston314/mygo-mu
 
 ## 协议入口
 
-核心只绑定 loopback。API 使用 HttpOnly 会话 Cookie 或本机 bearer 凭证，并校验浏览器 Origin。`/health` 明确返回 readiness 与能力；`/api/catalog` 管理目录；`/api/plugins/install` 和 `/api/jobs/{id}` 管理安装；`/api/plugins/updates`、`check-updates` 与 `update` 管理插件检查和更新，详见[插件更新及国内下载回退](docs/plugin-updates.md)；`/api/sources/{instance}/call/{method}` 保持 Source 协议（登录/stream 走专用入口）；`/api/player/*` 管理规范化播放状态；`/media/{lease}` 提供可撤销媒体流。
+应用 API 只绑定 loopback。API 使用 HttpOnly 会话 Cookie 或本机 bearer 凭证，并校验浏览器 Origin。`/health` 明确返回 readiness 与能力；`/api/catalog` 管理目录；`/api/plugins/install` 和 `/api/jobs/{id}` 管理安装；`/api/plugins/updates`、`check-updates` 与 `update` 管理插件检查和更新，详见[插件更新及国内下载回退](docs/plugin-updates.md)；`/api/sources/{instance}/call/{method}` 保持 Source 协议（登录/stream 走专用入口）；`/api/player/*` 管理规范化播放状态；`/media/{lease}` 提供可撤销媒体流。`/api/input-session` 管理扫码输入的生命周期，另开临时 LAN 端口提供受限手机输入页，结束后关闭，不开放应用 API。
 
 ## 许可证
 

@@ -12,8 +12,8 @@ test('separate language catalogs cover UI keys and safely fall back',()=>{
  for(const code of ['zh-CN','zh-TW'])vm.runInContext(fs.readFileSync('ui/locales/'+code+'.js','utf8'),ctx);
  const locales=ctx.window.MyGoLocales;expect(Object.keys(locales['zh-TW']).sort()).toEqual(Object.keys(locales['zh-CN']).sort());
  const keys=new Set();function visit(n){if(!n||typeof n!=='object')return;if(n.type==='CallExpression'&&['tr','dialog'].includes(n.callee.name)&&n.arguments[0]?.type==='Literal')keys.add(n.arguments[0].value);for(const v of Object.values(n)){if(Array.isArray(v))v.forEach(visit);else if(v&&typeof v==='object')visit(v);}}
- visit(acorn.parse(fs.readFileSync('ui/app.js','utf8'),{ecmaVersion:5}));
- for(const match of fs.readFileSync('ui/index.html','utf8').matchAll(/data-i18n(?:-aria-label|-title|-placeholder)?="([^"]+)"/g))keys.add(match[1]);
+ for(const file of ['ui/app.js','ui/scan-input.js','ui/phone.js'])visit(acorn.parse(fs.readFileSync(file,'utf8'),{ecmaVersion:5}));
+ for(const file of ['ui/index.html','ui/phone.html'])for(const match of fs.readFileSync(file,'utf8').matchAll(/data-i18n(?:-aria-label|-title|-placeholder)?="([^"]+)"/g))keys.add(match[1]);
  for(const code of ['zh-CN','zh-TW'])for(const key of keys)expect(locales[code][key],code+': '+key).toBeTruthy();
 });
 

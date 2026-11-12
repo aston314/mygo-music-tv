@@ -22,6 +22,7 @@ import (
 	"mygo-music-tv/core/internal/compatibility"
 	"mygo-music-tv/core/internal/i18n"
 	"mygo-music-tv/core/internal/music"
+	"mygo-music-tv/core/internal/phoneinput"
 	"mygo-music-tv/core/internal/plugin"
 	"mygo-music-tv/core/internal/sources"
 	"mygo-music-tv/ui"
@@ -37,6 +38,7 @@ func randomID() string {
 }
 
 type Server struct {
+	phoneInput              *phoneinput.Broker
 	sources                 *sources.Manager
 	catalog                 *catalog.Catalog
 	media                   *media
@@ -81,7 +83,7 @@ func New(data, mode, token string) (*Server, error) {
 	if e != nil {
 		return nil, e
 	}
-	s := &Server{sources: m, catalog: catalog.New(cfg.PluginCatalogURL, filepath.Join(data, "catalog.json")), media: newMedia(), mode: mode, token: token, mux: http.NewServeMux(), settingsPath: settingsPath, settings: settings}
+	s := &Server{phoneInput: phoneinput.New(), sources: m, catalog: catalog.New(cfg.PluginCatalogURL, filepath.Join(data, "catalog.json")), media: newMedia(), mode: mode, token: token, mux: http.NewServeMux(), settingsPath: settingsPath, settings: settings}
 	if mode != "real" {
 		s.fixtureDir = filepath.Join(data, "fixture")
 		if e = s.extractFixture(); e != nil {
@@ -157,6 +159,7 @@ func (s *Server) extractFixture() error {
 }
 func (s *Server) Token() string { return s.token }
 func (s *Server) Close() {
+	s.phoneInput.Close()
 	s.cancelLogin("")
 	s.player.close()
 	s.sources.Close()
@@ -224,6 +227,7 @@ func decode(w http.ResponseWriter, r *http.Request, v any) bool {
 	return true
 }
 func (s *Server) routes() {
+	s.phoneInputRoutes()
 	s.mux.HandleFunc("GET /api/plugins/compatibility", func(w http.ResponseWriter, r *http.Request) { respond(w, compatibility.Bundled()) })
 	s.mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		respond(w, map[string]any{"ready": true, "version": product.App().VersionName, "instance": s.token[:12], "mode": s.mode, "capabilities": map[string]bool{"plugins": true, "localMusic": false, "process": false, "webSignIn": runtime.GOOS == "android", "webSignInBroker": true, "oauthLoopback": true}})

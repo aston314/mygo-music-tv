@@ -81,7 +81,12 @@ public final class MainActivity extends Activity {
     private void immersive() { getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_LAYOUT_STABLE); }
     @Override public void onWindowFocusChanged(boolean focus) { super.onWindowFocusChanged(focus); if (focus) immersive(); }
     @Override protected void onResume() { super.onResume(); foreground=true; if(appUpdater!=null)appUpdater.resume(); if(loaded&&web!=null)web.evaluateJavascript("if(window.MyGo&&window.MyGo.resumeLogin)window.MyGo.resumeLogin()",null); }
-    @Override protected void onPause() { foreground=false; super.onPause(); }
+    @Override protected void onPause() { foreground=false;
+        long before=System.currentTimeMillis();
+        if(loaded&&!destroyed)web.evaluateJavascript("if(window.MyGo&&window.MyGo.cancelScanInput)window.MyGo.cancelScanInput("+before+")",null);
+        CoreService service=CoreService.get();if(service!=null)service.cancelPhoneInput(before);
+        super.onPause();
+    }
     @Override public void onBackPressed() {
         if (appUpdater!=null && appUpdater.back()) return;
         if (editing) { finishEditing(); web.evaluateJavascript("if(document.activeElement)document.activeElement.blur()",null); return; }
@@ -106,6 +111,7 @@ public final class MainActivity extends Activity {
     }
     private final class Bridge {
         @JavascriptInterface public String platform() { return "android-tv"; }
+        @JavascriptInterface public String lanAddress() { return PhoneInputNetwork.address(MainActivity.this); }
         @JavascriptInterface public int nativeViewWidth() { return nativeViewWidth; }
         @JavascriptInterface public boolean webSignInSupported() { return true; }
         @JavascriptInterface public void openLogin(String id,String requestId) {

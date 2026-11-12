@@ -64,6 +64,10 @@ public final class CoreService extends Service {
         Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this, CHANNEL) : new Notification.Builder(this);
         return b.setSmallIcon(android.R.drawable.ic_media_play).setContentTitle(getString(R.string.app_name)).setContentText(text).setContentIntent(pi).setOngoing(true).build();
     }
+    void cancelPhoneInput(long before) {
+        if(stopped||client==null)return;
+        try { network.execute(()->{try { if(client!=null)client.request("DELETE","/api/input-session?before="+before,null); } catch(Exception ignored) { }}); } catch(RejectedExecutionException ignored) { }
+    }
     void refreshAppearance() {
         if(stopped)return;
         startForeground(1,notification(notificationTrack==null?Appearance.text(this,R.string.playing_music):notificationTrack));
