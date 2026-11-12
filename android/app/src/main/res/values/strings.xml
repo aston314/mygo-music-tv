@@ -4,10 +4,10 @@
     <string name="login_browser_hint">请在网页完成登录，完成后自动返回</string>
     <string name="login_page_failed">网页加载失败，可重试或取消</string>
     <string name="login_connection_failed">登录服务暂时不可用，正在重试</string>
-    <string name="app_starting">正在启动 MyGo Music TV…</string>
+    <string name="app_starting">正在启动 My Music+…</string>
     <string name="version_label">版本 %1$s</string>
     <string name="retry">重试</string>
-    <string name="exit_title">退出 MyGo Music TV？</string>
+    <string name="exit_title">退出 My Music+？</string>
     <string name="exit_message">退出后停止播放音乐</string>
     <string name="cancel">取消</string>
     <string name="exit">退出</string>

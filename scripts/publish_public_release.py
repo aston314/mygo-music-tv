@@ -137,7 +137,7 @@ def publish(directory, notes):
     else:
         release = api(f'repos/{REPOSITORY}/releases', payload={
             'tag_name': tag, 'target_commitish': 'main', 'draft': True,
-            'name': 'MyGo Music TV ' + tag, 'body': notes.read_text()})
+            'name': APP['displayName'] + ' ' + tag, 'body': notes.read_text()})
     if release['draft']:
         existing = {a['name'] for a in release['assets']}
         for path in files:
@@ -158,7 +158,7 @@ def publish(directory, notes):
         return
     content = (directory / 'update.json').read_bytes()
     if old is None or base64.b64decode(old['content']) != content:
-        payload = {'message': 'Publish MyGo Music TV ' + tag, 'content': base64.b64encode(content).decode()}
+        payload = {'message': 'Publish ' + APP['displayName'] + ' ' + tag, 'content': base64.b64encode(content).decode()}
         if old is not None:
             payload['sha'] = old['sha']
         api(f'repos/{REPOSITORY}/contents/update.json', method='PUT', payload=payload)

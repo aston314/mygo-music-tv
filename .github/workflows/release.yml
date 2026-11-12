@@ -72,7 +72,8 @@ jobs:
         run: |
           release_flags=()
           if [ "$RELEASE_PRERELEASE" = "true" ]; then release_flags+=(--prerelease); fi
-          gh release create "$RELEASE_TAG" "$RELEASE_APK" build/release/update.json build/release/SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "MyGo Music TV $RELEASE_TAG" --notes-file "$RELEASE_NOTES" "${release_flags[@]}"
+          display_name=$(python3 -c 'import json; print(json.load(open("app.json"))["displayName"])')
+          gh release create "$RELEASE_TAG" "$RELEASE_APK" build/release/update.json build/release/SHA256SUMS.txt --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --title "$display_name $RELEASE_TAG" --notes-file "$RELEASE_NOTES" "${release_flags[@]}"
       - name: Mirror verified public downloads
         if: vars.MYGO_PUBLIC_RELEASES_ENABLED == 'true'
         env:

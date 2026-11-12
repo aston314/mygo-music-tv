@@ -6,14 +6,14 @@ from android_release import release_tag, verify_badging, verify_signature
 class AndroidReleaseTests(unittest.TestCase):
     app = {
         "applicationId": "dev.aston.mygo.music.tv",
-        "displayName": "MyGo Music TV",
+        "displayName": "My Music+",
         "versionName": "0.1.0",
         "versionCode": 1,
         "minSdk": 23,
     }
     badging = """package: name='dev.aston.mygo.music.tv' versionCode='1' versionName='0.1.0' platformBuildVersionName='15'
 sdkVersion:'23'
-application-label:'MyGo Music TV'
+application-label:'My Music+'
 """
     certificate = "ab" * 32
     signatures = """Verified using v1 scheme (JAR signing): true
@@ -38,7 +38,7 @@ Signer #1 certificate SHA-256 digest: """ + certificate + "\n"
             self.badging.replace("versionCode='1'", "versionCode='2'"),
             self.badging.replace("dev.aston.mygo.music.tv", "other.app"),
             self.badging.replace("sdkVersion:'23'", "sdkVersion:'26'"),
-            self.badging.replace("MyGo Music TV", "Other"),
+            self.badging.replace("My Music+", "Other"),
             self.badging + "application-debuggable\n",
         ):
             with self.subTest(badging=text), self.assertRaises(ValueError):

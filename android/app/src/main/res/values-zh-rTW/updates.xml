@@ -17,7 +17,7 @@
         <item>"下載重新導向缺少位址"</item>
         <item>"更新服務回傳 HTTP "</item>
         <item>"更新連線重新導向次數過多"</item>
-        <item>"MyGo Music TV 有新版本可以安裝。"</item>
+        <item>"My Music+ 有新版本可以安裝。"</item>
         <item>"\n\n覆蓋升級保留帳號和記錄。"</item>
         <item>"稍後"</item>
         <item>"立即更新"</item>
@@ -35,10 +35,10 @@
         <item>"已下載 %1$.1f / %2$.1f MB · %3$d%%"</item>
         <item>"安裝包的應用程式、版本或簽章不符，已停止安裝"</item>
         <item>"裝置 Android 版本不符合安裝要求"</item>
-        <item>"請允許 MyGo Music TV 安裝更新。授權返回後會自動繼續安裝。"</item>
+        <item>"請允許 My Music+ 安裝更新。授權返回後會自動繼續安裝。"</item>
         <item>"已開啟系統安裝程式，請完成系統確認"</item>
         <item>"一般安裝入口失敗："</item>
-        <item>"請先允許 MyGo Music TV 安裝更新，再使用備用安裝流程。"</item>
+        <item>"請先允許 My Music+ 安裝更新，再使用備用安裝流程。"</item>
         <item>"正在準備備用系統安裝入口…"</item>
         <item>"系統安裝程式啟動失敗："</item>
         <item>"\n備用安裝入口失敗："</item>
@@ -64,7 +64,7 @@
         <item>"網路或檔案校驗失敗"</item>
         <item>"更新資訊尚未重新整理或版本不一致，請稍後重試"</item>
         <item>"版本資訊不完整或不符"</item>
-        <item>"安裝包位址不是 MyGo Music TV 公開發行檔案"</item>
+        <item>"安裝包位址不是 My Music+ 公開發行檔案"</item>
         <item>"安裝包超過預期大小"</item>
         <item>"安裝已取消"</item>
         <item>"裝置安全政策阻止了安裝"</item>

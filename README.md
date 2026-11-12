@@ -1,6 +1,6 @@
-# MyGo Music TV
+# My Music+
 
-Android TV 在线音乐应用：Java 壳、Go 插件核心、固定 **1280×720** 的 WebView 界面。基于 MyGo Music v0.1.22 的音乐源协议与 moejs 运行时，不包含本地曲库。
+Android TV 在线音乐应用：Java 壳、Go 插件核心、以 **1280×720** 为最小设计画布、连续缩放并扩展可用空间的 WebView 界面。基于 MyGo Music v0.1.22 的音乐源协议与 moejs 运行时，不包含本地曲库。
 
 ## 运行预览
 
@@ -62,7 +62,7 @@ gradle -p android testDebugUnitTest lintDebug assembleDebug
 python3 scripts/verify_apk.py android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-GitHub 私有仓库 [aston314/mygo-music-tv](https://github.com/aston314/mygo-music-tv) 的 [CI](https://github.com/aston314/mygo-music-tv/actions/workflows/ci.yml) 执行上述 Go/浏览器/Java/Android 检查并编译 arm64-v8a、armeabi-v7a、x86_64。CI 不把 APK 上传成临时 Actions artifact。[Android Release](https://github.com/aston314/mygo-music-tv/actions/workflows/release.yml) 在签名 Secrets 填写完成后构建和校验签名 APK、校验和与 update.json，再发布到私有 Release，详见[电视测试版发布](docs/android-release.md)。当前没有配置匿名公开下载仓库或应用内升级地址。
+GitHub 私有仓库 [aston314/mygo-music-tv](https://github.com/aston314/mygo-music-tv) 的 [CI](https://github.com/aston314/mygo-music-tv/actions/workflows/ci.yml) 执行上述 Go/浏览器/Java/Android 检查并编译 arm64-v8a、armeabi-v7a、x86_64。CI 不把 APK 上传成临时 Actions artifact。[Android Release](https://github.com/aston314/mygo-music-tv/actions/workflows/release.yml) 在签名 Secrets 填写完成后构建和校验签名 APK、校验和与 update.json，再发布到私有 Release，详见[电视测试版发布](docs/android-release.md)。匿名下载与应用内升级使用 [my-music-release](https://github.com/aston314/my-music-release)，发布签名版本后由 CI 自动同步，详见[应用版本更新](docs/app-updates.md)。
 
 产品身份、ABI、画布和插件兼容版本保存在 `app.json`。应用版本独立于上游插件 `minAppVersion`。
 

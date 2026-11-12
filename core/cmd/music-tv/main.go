@@ -73,7 +73,7 @@ func main() {
 		}
 		defer os.Remove(*ready)
 	}
-	fmt.Printf("MyGo Music TV %s | mode=%s | %s/?token=%s\n", product.App().VersionName, *mode, address, s.Token())
+	fmt.Printf("%s %s | mode=%s | %s/?token=%s\n", product.App().DisplayName, product.App().VersionName, *mode, address, s.Token())
 	go func() {
 		if e := h.Serve(ln); e != nil && e != http.ErrServerClosed {
 			fmt.Fprintln(os.Stderr, e)

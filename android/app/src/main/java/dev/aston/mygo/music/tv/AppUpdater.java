@@ -245,7 +245,7 @@ final class AppUpdater {
             if (!allowed || !canShow() || target != latest || !"available".equals(state)) return;
             manualPrompt = false;
             AlertDialog prompt = new AlertDialog.Builder(activity, Appearance.light(activity) ? android.R.style.Theme_Material_Light_Dialog_Alert : android.R.style.Theme_Material_Dialog_Alert).setTitle(text("发现新版本 ") + target.name)
-                .setMessage((target.notes.isEmpty() ? text("MyGo Music TV有新版本可以安装。") : target.notes) + text("\n\n覆盖升级保留账号和记录。"))
+                .setMessage((target.notes.isEmpty() ? text("My Music+ 有新版本可以安装。") : target.notes) + text("\n\n覆盖升级保留账号和记录。"))
                 .setNegativeButton(text("稍后"), (d, which) -> defer(target))
                 .setPositiveButton(text("立即更新"), (d, which) -> beginDownload(target)).create();
             prompt.setOnCancelListener(d -> defer(target));
@@ -399,7 +399,7 @@ final class AppUpdater {
     private void launchInstaller(Manifest target) {
         if (!apk.isFile() || apk.length() != target.bytes || verifiedApkCode != target.code || destroyed) return;
         if (Build.VERSION.SDK_INT >= 26 && !activity.getPackageManager().canRequestPackageInstalls()) {
-            showInstallPermission(target, "请允许MyGo Music TV安装更新。授权返回后会自动继续安装。");
+            showInstallPermission(target, "请允许 My Music+ 安装更新。授权返回后会自动继续安装。");
             return;
         }
         try {
@@ -414,7 +414,7 @@ final class AppUpdater {
     private void launchSessionInstaller(Manifest target, String reason) {
         if (!apk.isFile() || apk.length() != target.bytes || verifiedApkCode != target.code || destroyed) return;
         if (Build.VERSION.SDK_INT >= 26 && !activity.getPackageManager().canRequestPackageInstalls()) {
-            showInstallPermission(target, "请先允许MyGo Music TV安装更新，再使用备用安装流程。");
+            showInstallPermission(target, "请先允许 My Music+ 安装更新，再使用备用安装流程。");
             return;
         }
         rememberInstallHandoff(target, "session");

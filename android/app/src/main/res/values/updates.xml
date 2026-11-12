@@ -17,7 +17,7 @@
         <item>"下载重定向缺少地址"</item>
         <item>"更新服务返回 HTTP "</item>
         <item>"更新连接重定向次数过多"</item>
-        <item>"MyGo Music TV有新版本可以安装。"</item>
+        <item>"My Music+ 有新版本可以安装。"</item>
         <item>"\n\n覆盖升级保留账号和记录。"</item>
         <item>"稍后"</item>
         <item>"立即更新"</item>
@@ -35,10 +35,10 @@
         <item>"已下载 %1$.1f / %2$.1f MB · %3$d%%"</item>
         <item>"安装包的应用、版本或签名不匹配，已停止安装"</item>
         <item>"设备 Android 版本不满足安装要求"</item>
-        <item>"请允许MyGo Music TV安装更新。授权返回后会自动继续安装。"</item>
+        <item>"请允许 My Music+ 安装更新。授权返回后会自动继续安装。"</item>
         <item>"已打开系统安装器，请完成系统确认"</item>
         <item>"普通安装入口失败："</item>
-        <item>"请先允许MyGo Music TV安装更新，再使用备用安装流程。"</item>
+        <item>"请先允许 My Music+ 安装更新，再使用备用安装流程。"</item>
         <item>"正在准备备用系统安装入口…"</item>
         <item>"系统安装器启动失败："</item>
         <item>"\n备用安装入口失败："</item>
@@ -64,7 +64,7 @@
         <item>"网络或文件校验失败"</item>
         <item>"更新信息尚未刷新或版本不一致，请稍后重试"</item>
         <item>"版本信息不完整或不匹配"</item>
-        <item>"安装包地址不是MyGo Music TV公开发行文件"</item>
+        <item>"安装包地址不是 My Music+ 公开发行文件"</item>
         <item>"安装包超过预期大小"</item>
         <item>"安装已取消"</item>
         <item>"设备安全策略阻止了安装"</item>

@@ -45,7 +45,7 @@ final class UpdatePolicy {
                 || uri.getRawUserInfo() != null || uri.getPort() != -1
                 || uri.getRawQuery() != null || uri.getRawFragment() != null
                 || path == null || !path.equals(prefix + "mygo-music-tv-" + name + ".apk"))
-            throw new IllegalArgumentException("安装包地址不是MyGo Music TV公开发行文件");
+            throw new IllegalArgumentException("安装包地址不是 My Music+ 公开发行文件");
     }
 
     static boolean matchingArchive(String installedPackage, int installedCode, String archivePackage,

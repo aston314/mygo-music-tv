@@ -62,7 +62,7 @@ public final class CoreService extends Service {
         Intent open = new Intent(this, MainActivity.class);
         PendingIntent pi = PendingIntent.getActivity(this, 0, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this, CHANNEL) : new Notification.Builder(this);
-        return b.setSmallIcon(android.R.drawable.ic_media_play).setContentTitle("MyGo Music TV").setContentText(text).setContentIntent(pi).setOngoing(true).build();
+        return b.setSmallIcon(android.R.drawable.ic_media_play).setContentTitle(getString(R.string.app_name)).setContentText(text).setContentIntent(pi).setOngoing(true).build();
     }
     void refreshAppearance() {
         if(stopped)return;
@@ -106,7 +106,7 @@ public final class CoreService extends Service {
                 if (!path.matches("/media/[a-f0-9]{48}")) return;
                 media = path;
                 JSONArray queue = s.optJSONArray("queue"); JSONObject t = queue == null ? null : queue.optJSONObject(s.optInt("index"));
-                MediaMetadata meta = new MediaMetadata.Builder().setTitle(t == null ? "MyGo Music TV" : t.optString("name")).build();
+                MediaMetadata meta = new MediaMetadata.Builder().setTitle(t == null ? getString(R.string.app_name) : t.optString("name")).build();
                 player.setMediaItem(new MediaItem.Builder().setUri(base + path).setMediaId(String.valueOf(gen)).setMediaMetadata(meta).build()); player.prepare();
                 notificationTrack=t==null?null:t.optString("name");refreshAppearance();
             }
