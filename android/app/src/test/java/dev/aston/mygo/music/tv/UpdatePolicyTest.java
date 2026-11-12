@@ -15,6 +15,7 @@ public class UpdatePolicyTest {
                         "https://gh-proxy.com/https://github.com/a",
                         "https://v4.gh-proxy.org/https://github.com/a",
                         "https://gh-proxy.org/https://github.com/a",
+                        "https://ghfast.top/https://github.com/a",
                         "https://github.com/a"},
                 UpdatePolicy.sources("https://github.com/a"));
     }

@@ -98,6 +98,21 @@ def verify_assets(release, files):
             raise ValueError('Published asset differs; preserving it: ' + path.name)
 
 
+def check_access():
+    repo = api(f'repos/{REPOSITORY}')
+    if repo['private'] or repo['default_branch'] != 'main':
+        raise ValueError('Download repository must be public with main as default branch')
+    # A fixed, unreferenced Git blob checks actual Contents write permission
+    # without changing branches, download metadata, releases or their assets.
+    content = b'Music release publishing access check\n'
+    expected = hashlib.sha1(b'blob ' + str(len(content)).encode() + b'\0' + content).hexdigest()
+    result = api(f'repos/{REPOSITORY}/git/blobs', method='POST', payload={
+        'content': content.decode(), 'encoding': 'utf-8'})
+    if result.get('sha') != expected:
+        raise ValueError('Download repository write verification failed')
+    print('Download repository Contents write access verified; published files unchanged')
+
+
 def publish(directory, notes):
     manifest, files = verify_bundle(directory)
     repo = api(f'repos/{REPOSITORY}')
@@ -152,11 +167,16 @@ def publish(directory, notes):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--directory', type=Path, required=True)
-    parser.add_argument('--notes', type=Path, required=True)
+    parser.add_argument('--directory', type=Path)
+    parser.add_argument('--notes', type=Path)
     parser.add_argument('--verify-only', action='store_true')
+    parser.add_argument('--check-access', action='store_true')
     args = parser.parse_args()
-    if args.verify_only:
+    if args.check_access:
+        check_access()
+    elif args.directory is None or not args.verify_only and args.notes is None:
+        parser.error('--directory and --notes are required for publication')
+    elif args.verify_only:
         verify_bundle(args.directory)
         print('Public bundle verified')
     else:

@@ -4,9 +4,11 @@
 
 行为沿用红果短剧的原生更新器：每日最多一次后台检查，手动检查不受间隔限制；选择“稍后”后不再自动提示同一版本。自动提示避开音乐播放、歌词、弹窗及输入；手动检查允许在设置页播放音乐时查看结果。下载由用户确认，显示真实进度，可取消、重试。后台检查不会改变音乐源、队列或焦点。检查按钮使用忙碌标识拦截重复操作，并保持焦点。
 
-更新线路依次为 `gh-proxy.com`、`v4.gh-proxy.org`、`gh-proxy.org`，最后 GitHub 直连。原生壳通过固定公开版本清单检查，拒绝陈旧/不一致清单，按整数 versionCode 比较。下载仅允许配置的公开仓库的固定版本 APK；每条线路失败后完整重试，校验大小、SHA256、包名、版本和当前安装包的完整签名集合。最大安装包为 100 MiB。
+更新线路与红果一致，依次为 `gh-proxy.com`、`v4.gh-proxy.org`、`gh-proxy.org`、`ghfast.top`，全部失败后 GitHub 直连；检查清单与下载 APK 都使用此顺序。原生壳通过固定公开版本清单检查，拒绝陈旧/不一致清单，按整数 versionCode 比较。下载仅允许配置的公开仓库的固定版本 APK；每条线路失败后完整重试，校验大小、SHA256、包名、版本和当前安装包的完整签名集合。最大安装包为 100 MiB。
 
 安装权限授权返回后自动继续；系统安装器不可用时可以改用 PackageInstaller 会话，处理系统确认、取消、存储不足等结果。取消安装保留已验证 APK，可从设置继续；启动清除已安装或超过 24 小时的缓存包。更新只使用独立缓存目录，不清理音乐源、账号或设置，不卸载旧应用。
+
+兼容判断沿用红果：Android 8/API 26 起检查 `canRequestPackageInstalls()`，授权页返回由 Activity.onResume 续装，进程重建后重新验证缓存 APK；系统 ACTION_VIEW 入口失败自动改用 PackageInstaller，也可从恢复弹窗选择备用方式。Android 12/API 31 起显式要求安装确认并使用可变 PendingIntent 接收会话结果，Android 13/API 33 起按新类型接口读取确认 Intent。非导出接收器处理 STATUS_PENDING_USER_ACTION、启动系统确认页并记录终态。原实现按 API 与安装结果判断，没有厂商型号白名单；移植这些逻辑不等于所有电视已完成实测。
 
 源码仍为私有仓库 `aston314/mygo-music-tv`。经用户确认，公开下载仓库使用 `aston314/my-music-release`，仅发布签名 APK、update.json、SHA256SUMS 和版本说明。现有正式 v0.1.3 已作为初始基准同步：APK 与私有 Release 字节相同，重新验证了 v1/v2 签名和证书，清单仅改为公开下载地址并重新生成配套校验文件。稳定入口为 `https://raw.githubusercontent.com/aston314/my-music-release/main/update.json`。`appUpdatesEnabled=true`；尚未配置下载源的产品可关闭此项，设置显示“更新下载源尚未启用”。
 
@@ -15,5 +17,7 @@
 发布工作流从已验证的同一个签名 APK 生成清单，先发布私有 Release，再按配置镜像公开下载。公开镜像只选择明确的三个文件，不上传源代码或整个目录，不替换同版本不同内容，不让旧版覆盖较新的稳定清单。上传中断后重试补齐缺失附件，所有附件校验后才更新 main/update.json。
 
 自动镜像使用专用 Repository Secret `MYGO_RELEASES_TOKEN`（Fine-grained PAT，仅下载仓库 Contents Read and write）；确认凭证后将 Repository Variable `MYGO_PUBLIC_RELEASES_ENABLED` 设为 `true`。默认关闭。私有仓库的 GITHUB_TOKEN 不能替代跨仓库凭证，也不能将本机 gh 登录令牌写进 APK 或 Actions。公开上传失败可运行 `Publish signed download` 指定已有标签，只上传现有签名文件，不重新编译。
+
+令牌首次填写或更换后，可运行同一工作流的 `verify_access_only=true`。它使用 Secret 在下载仓库创建固定内容、无分支引用的 Git blob，以验证实际 Contents 写入权限，不改 Release、稳定清单或现有文件。验证通过后再启用自动镜像。
 
 验证分层：浏览器模拟验证状态、繁简语言、忙碌动画、遥控焦点和提示时机；JVM 验证版本/下载地址/签名策略及文件校验与取消；Python 验证公开文件白名单和稳定清单防回退；Android CI 执行 unit/lint/编译。它们不能替代新签名 APK 在电视上的跨版本安装验收。

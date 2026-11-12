@@ -57,6 +57,7 @@ test('non-16:9 viewports expand the logical canvas to fill the screen without st
 });
 
 test('resizing restores the focused sidebar and content action inside their scroll regions', async ({ page }) => {
+  await page.addInitScript(()=>{window.MyGoAppUpdates={getStatus:()=>JSON.stringify({supported:true,state:'idle'}),setPromptAllowed:()=>{}};});
   await page.setViewportSize({width:1280,height:960}); await boot(page);
   const settings=page.locator('[data-focus="nav-settings"]');
   await settings.focus();
@@ -69,10 +70,10 @@ test('resizing restores the focused sidebar and content action inside their scro
   await expect(settings).toBeFocused(); await expect.poll(()=>inside('[data-focus="nav-settings"]')).toBe(true);
   await settings.click(); await page.setViewportSize({width:1280,height:960});
   await expect.poll(()=>page.locator('#stage').evaluate(n=>Math.round(n.getBoundingClientRect().height))).toBe(960);
-  const exit=page.locator('[data-action="exit-confirm"]'); await exit.focus();
+  const action=page.locator('[data-action="app-check-update"]'); await action.focus();
   await page.setViewportSize({width:1280,height:720});
   await expect.poll(()=>page.locator('#stage').evaluate(n=>Math.round(n.getBoundingClientRect().height))).toBe(720);
-  await expect(exit).toBeFocused(); await expect.poll(()=>inside('[data-action="exit-confirm"]')).toBe(true);
+  await expect(action).toBeFocused(); await expect.poll(()=>inside('[data-action="app-check-update"]')).toBe(true);
   await page.keyboard.press('ArrowLeft');
   expect(await page.evaluate(()=>document.querySelector('#nav').contains(document.activeElement))).toBe(true);
 });
@@ -170,9 +171,12 @@ test('sidebar setting persists with focus, and Back cancels the exit dialog', as
   await boot(page); await page.locator('[data-focus="nav-settings"]').click();
   await page.locator('[data-pref="icons"]').click(); await expect(page.locator('[data-pref="icons"]')).toBeFocused();
   await page.reload(); await expect(page.locator('#app')).toHaveClass('icons');
-  await page.locator('[data-focus="nav-settings"]').click(); await page.locator('[data-action="exit-confirm"]').click();
+  await page.locator('[data-focus="nav-settings"]').click();
+  await expect(page.locator('[data-action="exit-confirm"]')).toHaveCount(0);
+  await page.keyboard.press('Escape'); await expect(page.locator('[data-focus="nav-home"]')).toHaveClass('active');
+  await page.keyboard.press('Escape');
   await expect(page.locator('[data-action="cancel"]')).toBeFocused(); await page.keyboard.press('Escape'); await expect(page.locator('#modal-layer')).toBeHidden();
-  await page.locator('[data-pref="expanded"]').click();
+  await page.locator('[data-focus="nav-settings"]').click(); await page.locator('[data-pref="expanded"]').click();
 });
 
 test('legacy remote keys respect sidebar boundaries and return from detail to the original card', async ({ page }) => {

@@ -4,8 +4,12 @@ on:
     inputs:
       tag:
         description: '已完成私有签名 Release 的标签，例如 v0.1.4'
-        required: true
+        required: false
         type: string
+      verify_access_only:
+        description: '仅验证下载仓库令牌的实际写入权限，不发布或修改下载文件'
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -21,6 +25,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Fetch existing signed files
+        if: inputs.verify_access_only != true
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.tag }}
@@ -38,8 +43,17 @@ jobs:
           (root / 'notes.md').write_text(manifest.get('release_notes', ''))
           PY
       - name: Publish verified files without rebuilding
+        if: inputs.verify_access_only != true
         env:
           GH_TOKEN: ${{ secrets.MYGO_RELEASES_TOKEN }}
         run: |
           test -n "$GH_TOKEN" || { echo 'MYGO_RELEASES_TOKEN is required'; exit 1; }
           python3 scripts/publish_public_release.py --directory build/release --notes build/release/notes.md
+      - name: Verify download repository write access
+        if: inputs.verify_access_only == true
+        env:
+          GH_TOKEN: ${{ secrets.MYGO_RELEASES_TOKEN }}
+        run: |
+          test "$GITHUB_REF" = refs/heads/main
+          test -n "$GH_TOKEN" || { echo 'MYGO_RELEASES_TOKEN is required'; exit 1; }
+          python3 scripts/publish_public_release.py --check-access

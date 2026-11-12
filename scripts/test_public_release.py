@@ -3,8 +3,9 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
-from publish_public_release import APP, REPOSITORY, may_update, verify_bundle
+from publish_public_release import APP, REPOSITORY, check_access, may_update, verify_bundle
 
 
 class PublicReleaseTests(unittest.TestCase):
@@ -63,6 +64,24 @@ class PublicReleaseTests(unittest.TestCase):
         for old in [dict(self.manifest, sha256='cd' * 32), dict(self.manifest, version_name='0.1.3')]:
             with self.assertRaises(ValueError):
                 may_update(old, self.manifest)
+
+    def test_token_check_verifies_actual_writes_without_changing_published_files(self):
+        def reply(path, method=None, **kwargs):
+            if path == f'repos/{REPOSITORY}':
+                return {'private': False, 'default_branch': 'main'}
+            self.assertEqual(path, f'repos/{REPOSITORY}/git/blobs')
+            self.assertEqual(method, 'POST')
+            content = kwargs['payload']['content'].encode()
+            return {'sha': hashlib.sha1(b'blob ' + str(len(content)).encode() + b'\0' + content).hexdigest()}
+        with patch('publish_public_release.api', side_effect=reply) as request:
+            check_access()
+            self.assertEqual(request.call_count, 2)
+
+    def test_token_check_stops_before_writing_to_a_private_repository(self):
+        with patch('publish_public_release.api', return_value={'private': True, 'default_branch': 'main'}) as request:
+            with self.assertRaises(ValueError):
+                check_access()
+            self.assertEqual(request.call_count, 1)
 
 
 if __name__ == '__main__':

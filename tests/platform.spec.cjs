@@ -39,11 +39,14 @@ for(const platform of ['android-tv','webos','tizen','browser','macos','linux','w
  if(tv)await expect(page.locator('[data-navigation-back]')).toBeHidden();else await expect(page.locator('[data-navigation-back]')).toBeVisible();
  await expect(page.locator('[data-source="fixture"]')).toBeFocused();await page.keyboard.press('Escape');await expect(page.locator('#source-switch')).toBeFocused();
  await page.locator('[data-focus="nav-settings"]').click();
- const exit=page.locator('[data-action="exit-confirm"]');await exit.focus();
+ await expect(page.locator('[data-action="exit-confirm"]')).toHaveCount(0);
+ const action=page.locator('[data-focus="save-0"]');await action.focus();
  await page.evaluate(()=>document.querySelector('#content').scrollTop=document.querySelector('#content').scrollHeight);
  expect(await page.locator('#content').evaluate(n=>n.scrollTop)).toBeGreaterThan(0);
  await page.keyboard.press('ArrowUp');expect(await page.evaluate(()=>document.querySelector('#content').contains(document.activeElement))).toBe(true);
- await exit.click();await expect(page.locator('[data-action="cancel"]')).toBeVisible();await expect(page.locator('[data-action="cancel"]')).toBeFocused();await page.keyboard.press('Escape');await expect(exit).toBeFocused();
+ await page.keyboard.press('Escape');await expect(page.locator('[data-focus="nav-home"]')).toHaveClass('active');
+ await page.keyboard.press('Escape');await expect(page.locator('[data-action="cancel"]')).toBeVisible();await expect(page.locator('[data-action="cancel"]')).toBeFocused();
+ await page.keyboard.press('Escape');await expect(page.locator('#modal-layer')).toBeHidden();
 });
 
 test('a TV information dialog without actions has a focusable reading region and remote return',async({page})=>{

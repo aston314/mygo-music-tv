@@ -12,7 +12,8 @@ final class UpdatePolicy {
     static final String[] BUILTIN_PROXIES = new String[]{
             "https://gh-proxy.com/",
             "https://v4.gh-proxy.org/",
-            "https://gh-proxy.org/"
+            "https://gh-proxy.org/",
+            "https://ghfast.top/"
     };
     static final long MAX_APK_BYTES = 100L * 1024 * 1024;
     static final long CHECK_INTERVAL = 24L * 60 * 60 * 1000;
