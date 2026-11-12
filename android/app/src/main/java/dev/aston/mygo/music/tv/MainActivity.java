@@ -98,7 +98,7 @@ public final class MainActivity extends Activity {
     @Override public boolean dispatchKeyEvent(KeyEvent event) {
         String direction = KeyRoutingPolicy.editDirection(editing, event.getKeyCode());
         if (direction != null) {
-            if (event.getAction() == KeyEvent.ACTION_DOWN) web.evaluateJavascript("document.dispatchEvent(new KeyboardEvent('keydown',{key:'" + direction + "',bubbles:true}))", null);
+            if (event.getAction() == KeyEvent.ACTION_DOWN) web.evaluateJavascript("if(window.MyGo&&window.MyGo.nativeEditDirection)window.MyGo.nativeEditDirection('" + direction + "')", null);
             return true;
         }
         return super.dispatchKeyEvent(event);

@@ -199,7 +199,8 @@
     exitConfirm();return true;
   }
   function canShowAppUpdate(manual){return !$('app').hidden&&!document.hidden&&!state.modal&&state.page!=='player'&&!isEditor(document.activeElement)&&(manual||!state.player||!state.player.wantPlay);}
-  window.MyGo={cancelScanInput:function(before){if(state.modal==='扫码搜索'&&(!before||scanInput.startedBefore(before)))closeModal();},back:back,nativeBack:back,refreshViewport:refreshViewport,canShowAppUpdate:canShowAppUpdate};
+  function nativeEditDirection(dir){if(dir!=='ArrowUp'&&dir!=='ArrowDown')return false;if(state.modal)state.modalEntry=null;move(dir);return true;}
+  window.MyGo={cancelScanInput:function(before){if(state.modal==='扫码搜索'&&(!before||scanInput.startedBefore(before)))closeModal();},back:back,nativeBack:back,nativeEditDirection:nativeEditDirection,refreshViewport:refreshViewport,canShowAppUpdate:canShowAppUpdate};
   function exitConfirm(){if(window.Android&&window.Android.confirmExit)window.Android.confirmExit();else dialog('退出 My Music+？',("<p>"+tr("退出后停止播放音乐。")+"</p>"),button('cancel',tr("取消"))+button('exit',tr("退出"),'primary'));}
   function appClass(){ $('app').className=[state.pref==='icons'?'icons':'',state.page==='player'?'player-view':'',state.page==='player'&&state.lyricFull?'lyrics-full':'',hasPlayerBar()?'':'without-player'].filter(function(x){return x;}).join(' ');$('player-bar').hidden=!hasPlayerBar();renderLyricButton();renderNowLikeVisibility(); }
   function renderLyricButton(){var n=$('lyrics-button'),full=state.page==='player'&&state.lyricFull,label=full?tr("退出全屏歌词"):tr("全屏歌词");n.hidden=state.page!=='player';n.disabled=!currentTrack();n.innerHTML=buttonContent(null,full?'fullscreenExit':'fullscreen');n.setAttribute('aria-pressed',String(full));n.setAttribute('aria-label',label);n.title=label;}

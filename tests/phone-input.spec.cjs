@@ -63,6 +63,20 @@ test('remote search actions reach scan input, trap modal focus and retain direct
  await page.keyboard.press('Enter');await expect(page.locator('[data-track="0"]')).toBeVisible();await expect(input).toHaveValue('Song');await expect(page.locator('#modal-layer')).toBeHidden();
 });
 
+test('Android editing handoff calls the shared direction router for both search fields',async({page})=>{
+ await page.addInitScript(()=>{window.MyGoHost={platform:'android-tv'};window.Android={startSearchEditing(){window.editStarted=(window.editStarted||0)+1;},finishSearchEditing(){window.editFinished=(window.editFinished||0)+1;}};});
+ await boot(page);
+ for(const target of ['resource','plugins']){
+  await page.locator('[data-focus="nav-'+(target==='resource'?'search':'market')+'"]').click();
+  const input=page.locator(target==='resource'?'#search-input':'#market-search');await input.focus();await input.fill('保留文字');
+  expect(await page.evaluate(()=>window.MyGo.nativeEditDirection('ArrowRight'))).toBe(false);await expect(input).toBeFocused();
+  expect(await page.evaluate(()=>window.MyGo.nativeEditDirection('ArrowDown'))).toBe(true);
+  await expect(page.locator('[data-focus="'+(target==='resource'?'search-submit':'market-search-submit')+'"]')).toBeFocused();await expect(input).toHaveValue('保留文字');
+  await page.keyboard.press('ArrowRight');await expect(page.locator('[data-action="scan-'+target+'"]')).toBeFocused();
+ }
+ expect(await page.evaluate(()=>window.editStarted)).toBeGreaterThan(0);expect(await page.evaluate(()=>window.editFinished)).toBeGreaterThan(0);
+});
+
 test('a slow creation or submitted status cannot apply after leaving the page or backgrounding',async({page})=>{
  await boot(page);await page.locator('[data-focus="nav-search"]').click();let release,created;const gate=new Promise(resolve=>release=resolve);
  await page.route('**/api/input-session',async r=>{if(r.request().method()!=='POST')return r.continue();const response=await r.fetch();created=await response.json();await gate;await r.fulfill({response});});
