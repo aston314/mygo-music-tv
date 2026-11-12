@@ -8,8 +8,8 @@
   function cancel(){var ctx=current;current=null;if(!ctx)return;clearTimeout(ctx.timer);clearInterval(ctx.clock);remove(ctx.id);}
   function valid(ctx){return current===ctx&&ctx.valid();}
   function remaining(ctx){var seconds=Math.max(0,Math.ceil((ctx.deadline-Date.now())/1000));$('scan-expiry').textContent=tr('二维码有效期')+' · '+Math.floor(seconds/60)+':'+('0'+seconds%60).slice(-2);if(!seconds)expired(ctx);return seconds>0;}
-  function expired(ctx){if(!valid(ctx))return;clearTimeout(ctx.timer);clearInterval(ctx.clock);$('scan-qr').hidden=true;$('scan-status').textContent=tr('扫码连接已失效，请重新扫码');$('scan-expiry').textContent='';if(env.activeID()==='scan-status')env.focus('scan-refresh');}
-  function failed(ctx,message){if(!valid(ctx))return;clearTimeout(ctx.timer);$('scan-status').textContent=message;if(env.activeID()==='scan-status')env.focus('scan-refresh');}
+  function expired(ctx){if(!valid(ctx))return;clearTimeout(ctx.timer);clearInterval(ctx.clock);$('scan-qr').hidden=true;$('scan-status').textContent=tr('扫码连接已失效，请重新扫码');$('scan-expiry').textContent='';}
+  function failed(ctx,message){if(!valid(ctx))return;clearTimeout(ctx.timer);$('scan-status').textContent=message;}
   function poll(ctx,serial){
    if(!valid(ctx)||serial!==ctx.serial)return;
    env.request('GET','/api/input-session?id='+encodeURIComponent(ctx.id),null,function(err,d){
@@ -32,7 +32,7 @@
     if(err){failed(ctx,err);return;}ctx.id=d.id;ctx.deadline=Date.now()+Math.max(0,d.expiresAt-d.serverNow);$('scan-qr').src='/api/input-session/qr?id='+encodeURIComponent(d.id);$('scan-qr').hidden=false;$('scan-pairing').textContent=tr('连接标识')+' · '+d.pairCode;$('scan-status').textContent=tr('等待手机扫码…');if(!remaining(ctx))return;ctx.clock=setInterval(function(){if(valid(ctx))remaining(ctx);},1000);poll(ctx,serial);
    });
   }
-  function open(options){cancel();options.opened=Date.now();current=options;env.open('<p class="scan-context">'+env.escape(options.context)+'</p><img id="scan-qr" class="qr" alt="'+tr('使用手机扫码搜索')+'" hidden><p class="scan-instruction">'+tr('手机与电视需在同一局域网')+'</p><p id="scan-status" data-focus="scan-status" tabindex="0" role="status"></p><p id="scan-pairing" class="hint"></p><p id="scan-expiry" class="hint"></p>',env.button('cancel',tr('取消'))+env.button('scan-refresh',tr('刷新二维码'),'secondary','refresh'));start(options);}
+  function open(options){cancel();options.opened=Date.now();current=options;env.open('<p class="scan-context">'+env.escape(options.context)+'</p><img id="scan-qr" class="qr" alt="'+tr('使用手机扫码搜索')+'" hidden><p class="scan-instruction">'+tr('手机与电视需在同一局域网')+'</p><p id="scan-status" role="status"></p><p id="scan-pairing" class="hint"></p><p id="scan-expiry" class="hint"></p>',env.button('cancel',tr('取消'))+env.button('scan-refresh',tr('刷新二维码'),'secondary','refresh'));start(options);}
   return {open:open,cancel:cancel,startedBefore:function(before){return !current||current.opened<=before;},refresh:function(){if(current)start(current);}};
  }};
 }(window));

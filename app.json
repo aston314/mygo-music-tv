@@ -1,8 +1,8 @@
 {
   "displayName": "My Music+",
   "applicationId": "dev.aston.mygo.music.tv",
-  "versionName": "0.1.4-test.5",
-  "versionCode": 9,
+  "versionName": "0.1.4-test.6",
+  "versionCode": 10,
   "minSdk": 23,
   "abis": [
     "arm64-v8a",

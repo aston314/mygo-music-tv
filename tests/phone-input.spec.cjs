@@ -4,7 +4,7 @@ async function boot(page){await page.goto('/?token='+token);await expect(page.lo
 function phoneURL(data){const u=new URL(data.url);u.hostname='127.0.0.1';return u.href;}
 async function openScan(page,target){
  const started=page.waitForResponse(r=>r.url().endsWith('/api/input-session')&&r.request().method()==='POST');
- await page.locator('[data-action="scan-'+target+'"]').click();const response=await started;expect(response.ok()).toBe(true);const data=await response.json();await expect(page.locator('#scan-qr')).toBeVisible();await expect(page.locator('#scan-status')).toBeFocused();return data;
+ await page.locator('[data-action="scan-'+target+'"]').click();const response=await started;expect(response.ok()).toBe(true);const data=await response.json();await expect(page.locator('#scan-qr')).toBeVisible();await expect(page.locator('[data-action="cancel"]')).toBeFocused();expect(await page.locator('#scan-status').evaluate(n=>n.tabIndex)).toBe(-1);await expect(page.locator('#scan-status')).not.toHaveAttribute('data-focus');return data;
 }
 async function phone(browser,data){const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const page=await context.newPage();await page.goto(phoneURL(data));await expect(page.locator('#phone-form')).toBeVisible();return {page,context};}
 test.afterEach(async({request})=>{
@@ -18,7 +18,7 @@ test('phone resource search keeps source and type, focuses results, and never st
  const calls=[];await page.route('**/call/search',async r=>{const params=r.request().postDataJSON();calls.push({url:r.request().url(),params});await r.fulfill({json:{albums:[{id:'a1',name:'手机找来的专辑',imageUrl:''}],more:true}});});
  await page.locator('[data-focus="nav-search"]').click();await page.locator('[data-search-kind="albums"]').click();await page.locator('#search-input').fill('原词');const data=await openScan(page,'resource');
  expect(data.target).toBe('resource');expect(data.initial).toBe('原词');expect(data.context).toBe('演示 · 专辑');await expect(page.locator('#scan-expiry')).toContainText('二维码有效期');
- const mobile=await phone(browser,data);await expect(mobile.page.locator('#query')).toHaveValue('原词');await expect(mobile.page.locator('#context')).toHaveText('演示 · 专辑');await expect(page.locator('#scan-status')).toHaveText('手机已连接，请在手机上输入');
+ const mobile=await phone(browser,data);await expect(mobile.page.locator('#query')).toHaveValue('原词');await expect(mobile.page.locator('#context')).toHaveText('演示 · 专辑');await expect(page.locator('#scan-status')).toHaveText('手机已连接，请在手机上输入');await expect(page.locator('[data-action="cancel"]')).toBeFocused();
  await page.screenshot({path:info.outputPath('light-resource-qr.png')});await mobile.page.screenshot({path:info.outputPath('phone-resource.png')});
  await mobile.page.locator('#query').fill('中文 <专辑> 🎵');await mobile.page.locator('#submit').click();await expect(mobile.page.locator('#status')).toHaveText('已发送到电视，请在电视上查看搜索结果');
  await page.bringToFront();await expect(page.locator('#modal-layer')).toBeHidden({timeout:10000});await expect(page.locator('#search-input')).toHaveValue('中文 <专辑> 🎵');await expect(page.locator('[data-item="0"]')).toBeFocused();
@@ -38,7 +38,7 @@ test('phone plugin search preserves installed filter and does not install or cha
 
 test('Back and refresh revoke old phone capabilities and restore the originating action',async({page,browser})=>{
  await boot(page);await page.locator('[data-focus="nav-search"]').click();const first=await openScan(page,'resource'),mobile=await phone(browser,first);
- const response=page.waitForResponse(r=>r.url().endsWith('/api/input-session')&&r.request().method()==='POST');await page.locator('[data-action="scan-refresh"]').click();const second=await(await response).json();expect(second.id).not.toBe(first.id);
+ const response=page.waitForResponse(r=>r.url().endsWith('/api/input-session')&&r.request().method()==='POST');await page.locator('[data-action="scan-refresh"]').click();const second=await(await response).json();expect(second.id).not.toBe(first.id);await expect(page.locator('[data-action="scan-refresh"]')).toBeFocused();
  const rejected=await mobile.page.request.post(new URL('/input/session',phoneURL(first)).href,{headers:{Authorization:'Bearer '+new URL(first.url).hash.slice(1)},data:{target:'resource',value:'迟到'}}).catch(()=>null);expect(rejected===null||rejected.status()===410).toBe(true);
  await page.keyboard.press('Escape');await expect(page.locator('[data-action="scan-resource"]')).toBeFocused();await expect(page.locator('#search-input')).toHaveValue('');
  await expect.poll(async()=>(await page.request.get('/api/input-session?id='+second.id)).status()).toBe(410);await mobile.context.close();
@@ -52,12 +52,13 @@ test('remote search actions reach scan input, trap modal focus and retain direct
   await page.locator(target==='resource'?'#search-input':'#market-search').focus();await page.keyboard.press('ArrowDown');await expect(submit).toBeFocused();
   await page.keyboard.press('ArrowRight');await expect(page.locator('[data-action="scan-'+target+'"]')).toBeFocused();
   const created=page.waitForResponse(r=>r.url().endsWith('/api/input-session')&&r.request().method()==='POST');
-  await page.keyboard.press('Enter');const data=await(await created).json();await expect(page.locator('#scan-status')).toBeFocused();
-  await page.evaluate(before=>window.MyGo.cancelScanInput(before),data.serverNow-1000);await expect(page.locator('#scan-status')).toBeFocused();
-  await page.keyboard.press('ArrowDown');await expect(page.locator('.scan-input-modal .actions [data-focus]:focus')).toHaveCount(1);
+  await page.keyboard.press('Enter');const data=await(await created).json();await expect(page.locator('[data-action="cancel"]')).toBeFocused();
+  await page.evaluate(before=>window.MyGo.cancelScanInput(before),data.serverNow-1000);await expect(page.locator('[data-action="cancel"]')).toBeFocused();
+  for(const key of ['ArrowUp','ArrowDown','Tab','Shift+Tab']){await page.keyboard.press(key);await expect(page.locator('.scan-input-modal .actions button:focus')).toHaveCount(1);await expect(page.locator('#scan-status')).not.toBeFocused();}
   await page.keyboard.press('ArrowLeft');await expect(page.locator('[data-action="cancel"]')).toBeFocused();
   await page.keyboard.press('ArrowRight');await expect(page.locator('[data-action="scan-refresh"]')).toBeFocused();
   await page.keyboard.press('Escape');await expect(page.locator('[data-action="scan-'+target+'"]')).toBeFocused();
+  await openScan(page,target);await page.keyboard.press('Enter');await expect(page.locator('#modal-layer')).toBeHidden();await expect(page.locator('[data-action="scan-'+target+'"]')).toBeFocused();
  }
  await page.locator('[data-focus="nav-search"]').click();const input=page.locator('#search-input');await input.fill('Song');
  await page.keyboard.press('Enter');await expect(page.locator('[data-track="0"]')).toBeVisible();await expect(input).toHaveValue('Song');await expect(page.locator('#modal-layer')).toBeHidden();
@@ -98,9 +99,9 @@ test('a slow creation or submitted status cannot apply after leaving the page or
 test('expired and unavailable sessions offer recovery and search failures preserve the received keyword',async({page,browser})=>{
  await boot(page);await page.locator('[data-focus="nav-search"]').click();let unavailable=true;
  await page.route('**/api/input-session',r=>r.request().method()==='POST'&&unavailable?r.fulfill({status:422,json:{error:'未找到可用的局域网地址，请检查网络连接'}}):r.continue());
- await page.locator('[data-action="scan-resource"]').click();await expect(page.locator('#scan-status')).toHaveText('未找到可用的局域网地址，请检查网络连接');await expect(page.locator('[data-action="scan-refresh"]')).toBeFocused();
- unavailable=false;const response=page.waitForResponse(r=>r.url().endsWith('/api/input-session')&&r.request().method()==='POST');await page.keyboard.press('Enter');const data=await(await response).json();
- await page.route('**/api/input-session?id=*',r=>r.request().method()==='GET'?r.fulfill({json:{...data,state:'expired'}}):r.continue());await expect(page.locator('#scan-status')).toHaveText('扫码连接已失效，请重新扫码');await expect(page.locator('#scan-qr')).toBeHidden();await page.keyboard.press('Escape');await page.unroute('**/api/input-session?id=*');
+ await page.locator('[data-action="scan-resource"]').click();await expect(page.locator('#scan-status')).toHaveText('未找到可用的局域网地址，请检查网络连接');await expect(page.locator('[data-action="cancel"]')).toBeFocused();
+ await page.keyboard.press('ArrowRight');unavailable=false;const response=page.waitForResponse(r=>r.url().endsWith('/api/input-session')&&r.request().method()==='POST');await page.keyboard.press('Enter');const data=await(await response).json();
+ await page.route('**/api/input-session?id=*',r=>r.request().method()==='GET'?r.fulfill({json:{...data,state:'expired'}}):r.continue());await expect(page.locator('#scan-status')).toHaveText('扫码连接已失效，请重新扫码');await expect(page.locator('#scan-qr')).toBeHidden();await expect(page.locator('[data-action="scan-refresh"]')).toBeFocused();await page.keyboard.press('Escape');await page.unroute('**/api/input-session?id=*');
  let fail=true;await page.route('**/call/search',r=>r.fulfill(fail?{status:422,json:{error:'搜索服务超时'}}:{json:{tracks:[],more:false}}));const fresh=await openScan(page,'resource'),mobile=await phone(browser,fresh);await mobile.page.locator('#query').fill('保留这个词');await mobile.page.locator('#submit').click();
  await expect(page.locator('[data-action="search-retry"]')).toBeFocused();await expect(page.locator('#search-input')).toHaveValue('保留这个词');fail=false;await page.keyboard.press('Enter');await expect(page.locator('[data-action="edit-search"]')).toBeFocused();await expect(page.locator('#search-results')).toContainText('保留这个词');await mobile.context.close();
 });
@@ -112,7 +113,7 @@ for(const isMobile of [false,true])test((isMobile?'WebView':'desktop')+' QR dial
   for(const target of ['resource','plugins']){
    await page.locator('[data-focus="nav-'+(target==='resource'?'search':'market')+'"]').click();const data=await openScan(page,target);const mobile=await phone(browser,data);await expect(mobile.page.locator('html')).toHaveAttribute('data-theme',theme);
    for(const [width,height]of [[960,540],[1280,720],[1920,1080],[1280,800]]){
-    await page.setViewportSize({width,height});for(const focus of ['scan-status','cancel','scan-refresh']){await page.locator('[data-focus="'+focus+'"]').focus();await expect.poll(()=>page.locator('[data-focus="'+focus+'"]').evaluate(n=>{const a=n.getBoundingClientRect(),b=n.closest('.modal').getBoundingClientRect();return a.left>=b.left&&a.right<=b.right&&a.top>=b.top&&a.bottom<=b.bottom&&b.bottom<=document.documentElement.clientHeight;})).toBe(true);}
+    await page.setViewportSize({width,height});for(const focus of ['cancel','scan-refresh']){await page.locator('[data-focus="'+focus+'"]').focus();await expect.poll(()=>page.locator('[data-focus="'+focus+'"]').evaluate(n=>{const a=n.getBoundingClientRect(),b=n.closest('.modal').getBoundingClientRect();return a.left>=b.left&&a.right<=b.right&&a.top>=b.top&&a.bottom<=b.bottom&&b.bottom<=document.documentElement.clientHeight;})).toBe(true);}
     if(width===1280&&height===720)await page.screenshot({path:info.outputPath(theme+'-'+target+'-qr.png')});
    }
    await mobile.page.screenshot({path:info.outputPath(theme+'-'+target+'-phone.png')});await mobile.context.close();await page.keyboard.press('Escape');await expect(page.locator('[data-action="scan-'+target+'"]')).toBeFocused();
