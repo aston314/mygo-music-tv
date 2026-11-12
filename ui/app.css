@@ -250,6 +250,7 @@ html[data-theme=light] .install-badge.update-available{background:#fff1d6;color:
 .awaiting-permissions #catalog-compatibility{display:none}
 
 /* Poster density uses the visible host window, separately from canvas scaling. */
+.album-grid{align-items:flex-start}
 .album-grid>.album-card{min-width:0}
 html[data-poster-columns="4"] .album-grid>.album-card{width:calc(25% - 16px)}
 html[data-poster-columns="5"] .album-grid>.album-card{width:calc(20% - 16px)}
@@ -317,7 +318,9 @@ html[data-theme=light] .feature-copy p{margin-bottom:16px}
 /* The poster owns the highlight; text keeps the same position and surface. */
 .album-card:focus{outline:none;box-shadow:none;background:#1c3028}
 .album-card:focus .album-art{box-shadow:none}
-.album-card:focus .album-art:after{content:"";position:absolute;top:-10px;right:-10px;bottom:-10px;left:-10px;z-index:1;border:4px solid #b7f5d7;border-radius:19px;pointer-events:none}
+.album-art:after{opacity:0;content:"";position:absolute;top:-10px;right:-10px;bottom:-10px;left:-10px;z-index:1;border:4px solid #b7f5d7;border-radius:19px;pointer-events:none}
 html[data-theme=light] .album-card:focus{outline:none;box-shadow:none;background:transparent;transform:none}
 html[data-theme=light] .album-card:focus .album-art{box-shadow:none}
-html[data-theme=light] .album-card:focus .album-art:after{border-color:#e5324b;border-radius:22px}
+html[data-theme=light] .album-art:after{border-color:#e5324b;border-radius:22px}
+
+.album-card:focus .album-art:after{opacity:1}
