@@ -312,6 +312,8 @@ html[data-theme=light] .feature-copy p{margin-bottom:16px}
 .scan-input-modal button[aria-disabled=true]{opacity:.55}
 
 /* Card titles stay complete; subtitles keep a single ellipsized line. */
+.album-card[data-kind=playlist] strong{font-size:20px;line-height:1.35}
+.album-card[data-kind=playlist] small{font-size:16px}
 .settings-card h2,.settings-card h3,.appearance-choice strong,.hero h2{white-space:normal;word-wrap:break-word;overflow-wrap:break-word}
 .appearance-choice small,.hero p,.compatibility-badge{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .appearance-choice .button-content>span:not(.theme-swatch):not(.choice-check){min-width:0}
