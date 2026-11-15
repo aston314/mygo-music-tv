@@ -1,5 +1,7 @@
 # 启动页布局修复 — 2026-11-12
 
+后续设计：2026-11-15 已改为 Logo 内加号旋转，取消外部圆环，见 [当前启动动画说明](startup-plus-loading.md)。下文保留当时的排查与验收记录。
+
 SHIELD 的 v0.1.3 冷启动录屏复现：图标和状态行居中，版本号却位于屏幕左侧。原生垂直 LinearLayout 为没有显式 LayoutParams 的版本 TextView 分配整行宽度，而文本默认左对齐。系统 ProgressBar 的实际圆环还包含设备相关的 drawable 内边距，让圆环贴近音符。
 
 修复：

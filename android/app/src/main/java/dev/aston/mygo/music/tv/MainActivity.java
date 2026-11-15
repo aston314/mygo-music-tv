@@ -57,6 +57,12 @@ public final class MainActivity extends Activity {
         startCore(); connect();
     }
     private void startCore() { Intent i = new Intent(this, CoreService.class); if (Build.VERSION.SDK_INT >= 26) startForegroundService(i); else startService(i); }
+    private void dismissStartup() {
+        if (startup == null) return;
+        startupLogo.setLoading(false);
+        root.removeView(startup); startup=null;
+        web.requestFocus();
+    }
     private void showStartup() {
         if (startup != null) root.removeView(startup);
         startup = new LinearLayout(this); startup.setOrientation(LinearLayout.VERTICAL); startup.setGravity(Gravity.CENTER); startup.setBackgroundColor(Appearance.background(this));
@@ -139,12 +145,13 @@ public final class MainActivity extends Activity {
                 Appearance.save(MainActivity.this,theme,language);
                 appUpdater.refreshAppearance();
                 root.setBackgroundColor(Appearance.background(MainActivity.this));web.setBackgroundColor(Appearance.background(MainActivity.this));
-                if(startup!=null) { startup.setBackgroundColor(Appearance.background(MainActivity.this));startupLogo.setTintColor(Appearance.foreground(MainActivity.this));status.setTextColor(Appearance.foreground(MainActivity.this));version.setText(String.format(Appearance.text(MainActivity.this,R.string.version_label),BuildConfig.VERSION_NAME)); }
+                if(startup!=null) { startup.setBackgroundColor(Appearance.background(MainActivity.this));status.setTextColor(Appearance.foreground(MainActivity.this));version.setText(String.format(Appearance.text(MainActivity.this,R.string.version_label),BuildConfig.VERSION_NAME)); }
                 CoreService service=CoreService.get();if(service!=null)service.refreshAppearance();
             });
         }
         @JavascriptInterface public boolean nativePlayer() { return true; }
-        @JavascriptInterface public void uiReady() { handler.post(()->{if(!destroyed && trusted(web.getUrl())){pageReady=true;if(startup!=null){root.removeView(startup);startup=null;web.requestFocus();}appUpdater.start();}}); }
+        @JavascriptInterface public void startupFailed() { handler.post(()->{if(!destroyed && trusted(web.getUrl()))dismissStartup();}); }
+        @JavascriptInterface public void uiReady() { handler.post(()->{if(!destroyed && trusted(web.getUrl())){pageReady=true;dismissStartup();appUpdater.start();}}); }
         @JavascriptInterface public void confirmExit() { handler.post(MainActivity.this::confirmExit); }
         @JavascriptInterface public void startSearchEditing() { handler.post(()->editing=true); }
         @JavascriptInterface public void finishSearchEditing() { handler.post(MainActivity.this::finishEditing); }

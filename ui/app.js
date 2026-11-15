@@ -880,7 +880,48 @@
     case 'exit':control('stop');closeModal();toast(tr("播放已停止（浏览器预览）"));break;
     }
   });
-  function start(){window.MyGoI18n.localize(document);var boot=++state.boot;$('startup-retry').hidden=true;api('/health',function(err){if(err){$('startup-status').textContent=tr("核心连接失败，请重试");$('startup-retry').hidden=false;$('startup-retry').focus();return;}api('/api/config',function(e,conf){if(e){$('startup-status').textContent=e;$('startup-retry').hidden=false;return;}state.mode=conf.mode;state.version=conf.app.versionName;$('startup-version').textContent=tr("版本")+' '+state.version;api('/api/preferences',function(prefError,prefs){if(prefError){$('startup-status').textContent=prefError;$('startup-retry').hidden=false;return;}applyAppearance(prefs||{});state.pref=prefs&&prefs.sidebar==='icons'?'icons':'expanded';state.translation=!prefs||prefs.translation!=='off';appClass();loadSources(function(sourceError){if(sourceError){$('startup-status').textContent=tr("音乐源加载失败，请重试");$('startup-retry').hidden=false;return;}$('startup').hidden=true;$('app').hidden=false;navigate(state.sources.length?'home':'market');clearInterval(state.poll);state.poll=setInterval(pollPlayer,600);pollPlayer();clearTimeout(state.updatesTimer);pollUpdates();if(window.Android&&window.Android.uiReady)window.Android.uiReady();});});});});}
+  function startupError(message){
+    $('startup').setAttribute('data-loading','false');
+    $('startup-status').textContent=message;
+    $('startup-retry').hidden=false;
+    $('startup-retry').focus();
+    // Expose the WebView's retry action when a native startup overlay is present.
+    if(window.Android&&window.Android.startupFailed)window.Android.startupFailed();
+  }
+  function start(){
+    window.MyGoI18n.localize(document);
+    var boot=++state.boot;
+    $('startup').setAttribute('data-loading','true');
+    $('startup-status').textContent=tr('正在启动 My Music+…');
+    $('startup-retry').hidden=true;
+    api('/health',function(err){
+      if(boot!==state.boot)return;
+      if(err){startupError(tr('核心连接失败，请重试'));return;}
+      api('/api/config',function(e,conf){
+        if(boot!==state.boot)return;
+        if(e){startupError(e);return;}
+        state.mode=conf.mode;state.version=conf.app.versionName;
+        $('startup-version').textContent=tr('版本')+' '+state.version;
+        api('/api/preferences',function(prefError,prefs){
+          if(boot!==state.boot)return;
+          if(prefError){startupError(prefError);return;}
+          applyAppearance(prefs||{});
+          state.pref=prefs&&prefs.sidebar==='icons'?'icons':'expanded';
+          state.translation=!prefs||prefs.translation!=='off';appClass();
+          loadSources(function(sourceError){
+            if(boot!==state.boot)return;
+            if(sourceError){startupError(tr('音乐源加载失败，请重试'));return;}
+            $('startup').setAttribute('data-loading','false');
+            $('startup').hidden=true;$('app').hidden=false;
+            navigate(state.sources.length?'home':'market');
+            clearInterval(state.poll);state.poll=setInterval(pollPlayer,600);pollPlayer();
+            clearTimeout(state.updatesTimer);pollUpdates();
+            if(window.Android&&window.Android.uiReady)window.Android.uiReady();
+          });
+        });
+      });
+    });
+  }
   scanInput=window.MyGoScanInput.create({request:request,escape:esc,button:button,close:closeModal,open:function(html,actions){dialog('扫码搜索',html,actions,{centered:true,entry:'cancel'});$('modal-layer').firstChild.className+=' scan-input-modal';}});
   document.addEventListener('visibilitychange',function(){if(document.hidden)window.MyGo.cancelScanInput();});window.addEventListener('pagehide',function(){window.MyGo.cancelScanInput();});
   state.boot=0;$('startup-retry').onclick=start;start();setInterval(refreshAppUpdate,1000);
