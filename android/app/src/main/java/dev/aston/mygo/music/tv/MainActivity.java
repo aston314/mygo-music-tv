@@ -102,12 +102,12 @@ public final class MainActivity extends Activity {
         handler.postDelayed(() -> { if (seq == backSequence && !exitVisible && !web.isAttachedToWindow()) confirmExit(); }, 700);
     }
     @Override public boolean dispatchKeyEvent(KeyEvent event) {
-        return routeEditingDirection(event) || super.dispatchKeyEvent(event);
+        return routeVerticalDirection(event) || super.dispatchKeyEvent(event);
     }
-    private boolean routeEditingDirection(KeyEvent event) {
-        String direction = KeyRoutingPolicy.editDirection(editing, event.getKeyCode());
+    private boolean routeVerticalDirection(KeyEvent event) {
+        String direction = KeyRoutingPolicy.direction(pageReady && foreground && !exitVisible && !destroyed, editing, event.getKeyCode());
         if (direction != null) {
-            if (event.getAction() == KeyEvent.ACTION_DOWN) web.evaluateJavascript("if(window.MyGo&&window.MyGo.nativeEditDirection)window.MyGo.nativeEditDirection('" + direction + "')", null);
+            if (event.getAction() == KeyEvent.ACTION_DOWN) web.evaluateJavascript("if(window.MyGo&&window.MyGo.nativeDirection)window.MyGo.nativeDirection('" + direction + "')", null);
             return true;
         }
         return false;

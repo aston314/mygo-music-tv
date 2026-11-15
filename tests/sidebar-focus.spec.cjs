@@ -1,6 +1,27 @@
 const {test,expect}=require('@playwright/test');
 const token='playwright-only-local-session-0123456789';
 
+test('native vertical keys share sidebar boundaries and do not consume horizontal keys',async({page})=>{
+ await page.goto('/?token='+token);await expect(page.locator('[data-focus="nav-home"]')).toBeVisible();
+ await page.locator('[data-focus="nav-home"]').focus();
+ const route=await page.evaluate(()=>{
+  const result=[];for(const direction of ['ArrowUp','ArrowDown','ArrowDown','ArrowUp','ArrowLeft']){
+   result.push({handled:window.MyGo.nativeDirection(direction),focus:document.activeElement.getAttribute('data-focus')});
+  }return result;
+ });
+ expect(route).toEqual([
+  {handled:true,focus:'source-switch'},{handled:true,focus:'nav-home'},
+  {handled:true,focus:'nav-search'},{handled:true,focus:'nav-home'},
+  {handled:false,focus:'nav-home'}
+ ]);
+ await page.locator('#source-switch').click();
+ const first=await page.evaluate(()=>document.activeElement.getAttribute('data-focus'));
+ await page.evaluate(()=>window.MyGo.nativeDirection('ArrowDown'));
+ expect(await page.evaluate(()=>document.querySelector('#modal-layer').contains(document.activeElement))).toBe(true);
+ await page.keyboard.press('Escape');await expect(page.locator('#source-switch')).toBeFocused();
+ expect(first).toBeTruthy();
+});
+
 for(const sidebar of ['expanded','icons'])test('dark sidebar and settings keep rounded focus in '+sidebar+' mode',async({page},info)=>{
  await page.addInitScript(()=>{window.MyGoHost={platform:'android-tv'};});
  await page.goto('/?token='+token);
