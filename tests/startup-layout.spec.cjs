@@ -69,7 +69,7 @@ for(const endpoint of ['/health','/api/config','/api/preferences','/api/sources'
  await page.screenshot({path:info.outputPath('startup-failed.png')});
  await page.keyboard.press('Enter');
  await expect(page.locator('#startup')).toHaveAttribute('data-loading','true');
- await expect(page.locator('#startup-status')).toHaveText('正在启动 My Music+…');
+ await expect(page.locator('#startup-status')).toHaveText(await page.evaluate(()=>window.MyGoI18n.text('正在启动 My Music+…')));
  await expect(page.locator('#startup-retry')).toBeHidden();
  await expect(page.locator('.startup-plus')).toHaveCSS('animation-duration','3s');
  await expect(page.locator('.startup-plus')).toHaveCSS('animation-play-state','running');
