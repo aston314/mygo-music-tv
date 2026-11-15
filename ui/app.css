@@ -325,8 +325,6 @@ html[data-theme=light] .album-art:after{border-color:#e5324b;border-radius:19px}
 .album-card:focus .album-art:after{opacity:1}
 
 /* Optional support: local QR artwork, shared focus styles, no payment integration. */
-#support-button{color:#b7f5d7}
-html[data-theme=light] #support-button{color:#e5324b}
 .support-modal{position:relative;width:900px;padding:62px 28px 24px}
 .support-modal>.icon-button{position:absolute;right:14px;top:12px;width:40px;height:40px;border-color:#3c574b}
 .support-modal>.icon-button .icon{width:24px;height:24px}

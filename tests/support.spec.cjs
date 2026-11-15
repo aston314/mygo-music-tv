@@ -19,9 +19,9 @@ for(const platform of ['browser','android-tv'])for(const theme of ['light','dark
   await expect(support).toBeVisible();await expect(account).toBeVisible();
   const alignment=await support.evaluate(n=>{
    const r=n.getBoundingClientRect(),icon=n.querySelector('svg').getBoundingClientRect(),account=document.querySelector('#account-button').getBoundingClientRect();
-   return {afterAccount:r.left>account.right,centered:Math.abs((r.left+r.right-icon.left-icon.right)/2)<.75&&Math.abs((r.top+r.bottom-icon.top-icon.bottom)/2)<.75,themed:getComputedStyle(n.querySelector('svg')).color===getComputedStyle(document.querySelector('.brand-mark')).color};
+   return {afterAccount:r.left>account.right,centered:Math.abs((r.left+r.right-icon.left-icon.right)/2)<.75&&Math.abs((r.top+r.bottom-icon.top-icon.bottom)/2)<.75,sameColor:getComputedStyle(n.querySelector('svg')).color===getComputedStyle(document.querySelector('#account-button svg')).color};
   });
-  expect(alignment).toEqual({afterAccount:true,centered:true,themed:true});
+  expect(alignment).toEqual({afterAccount:true,centered:true,sameColor:true});
   await support.focus();await page.keyboard.press('ArrowLeft');await expect(account).toBeFocused();
   await page.keyboard.press('ArrowRight');await expect(support).toBeFocused();await page.keyboard.press('Enter');
   const dialog=page.locator('.support-modal'),wechat=page.locator('[data-focus="support-wechat"]'),alipay=page.locator('[data-focus="support-alipay"]');
