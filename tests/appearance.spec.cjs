@@ -84,7 +84,7 @@ for(const theme of ['dark','light'])for(const language of ['zh-CN','zh-TW'])test
   const result=await page.locator('button[data-theme="'+theme+'"]').evaluate(n=>{const r=n.getBoundingClientRect(),parent=n.closest('#content').getBoundingClientRect(),s=getComputedStyle(n);return{inside:r.left>=parent.left&&r.right<=parent.right&&r.top>=parent.top&&r.bottom<=parent.bottom,outline:s.outlineStyle,width:s.outlineWidth,shadow:s.boxShadow,clipped:n.scrollWidth>n.clientWidth};});
   expect(result.inside).toBe(true);expect(result.clipped).toBe(false);
   if(theme==='light'){expect(result.outline).toBe('none');expect(result.shadow).toBe('rgb(229, 50, 75) 0px 0px 0px 4px');}
-  else{expect(result.outline).toBe('solid');expect(parseInt(result.width)).toBeGreaterThanOrEqual(3);}
+  else{expect(result.outline).toBe('none');expect(result.shadow).toContain('rgb(183, 245, 215) 0px 0px 0px 6px');}
   await page.keyboard.press('ArrowDown');expect(await page.evaluate(()=>!!document.activeElement.getAttribute('data-focus'))).toBe(true);
  }
  await page.setViewportSize({width:1280,height:720});await page.locator('[data-language="'+language+'"]').focus();
