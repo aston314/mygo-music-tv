@@ -8,6 +8,7 @@
     scan:'<rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="3" width="6" height="6" rx="1"/><rect x="3" y="15" width="6" height="6" rx="1"/><path d="M15 15h3v3h3m-6 3h3m3-9v3M12 3v3m0 6h3M3 12h6"/>',
     search:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
     heart:'<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',
+    coffee:'<path d="M17 8h2a3 3 0 0 1 0 6h-2M4 8h13v9a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3zM3 22h16M7 2v3m4-3v3m4-3v3"/>',
     play:'<path d="m7 4 12 8-12 8z" fill="currentColor" stroke="none"/>',
     pause:'<path d="M8 5v14M16 5v14" stroke-width="4"/>',
     previous:'<path d="M5 5v14m14-14L7 12l12 7z"/>',
@@ -188,7 +189,7 @@
   function dialog(key,html,actions,options){options=options||{};options.label=tr(key);return modal(key,html,actions,options);}
   function modal(title,html,actions,options){
     options=options||{};if(scanInput&&state.modal==='扫码搜索'&&title!=='扫码搜索')scanInput.cancel();if(state.modal&&options.nest)state.modalStack.push({title:state.modal,gen:state.modalGen,node:$('modal-layer').firstChild,focus:activeID()});if(!state.modal){state.returnFocus=activeID();state.modalStack=[];}state.modal=title;state.modalGen=++state.modalSerial;finishEditing();
-    $('modal-layer').innerHTML='<section class="modal '+(options.drawer?'drawer':'')+(options.centered?' centered-modal':'')+'" role="dialog" aria-modal="true" aria-label="'+esc(options.label||title)+'">'+(options.drawer?'<div class="drawer-head"><h2>'+esc(options.label||title)+'</h2>'+tool('cancel',tr("关闭"),'close')+'</div>':'<h2>'+esc(options.label||title)+'</h2>')+html+(actions?'<div class="actions">'+actions+'</div>':'')+'</section>';
+    $('modal-layer').innerHTML='<section class="modal '+(options.drawer?'drawer':'')+(options.centered?' centered-modal':'')+(options.className?' '+esc(options.className):'')+'" role="dialog" aria-modal="true" aria-label="'+esc(options.label||title)+'">'+(options.hideTitle?'':options.drawer?'<div class="drawer-head"><h2>'+esc(options.label||title)+'</h2>'+tool('cancel',tr("关闭"),'close')+'</div>':'<h2>'+esc(options.label||title)+'</h2>')+html+(actions?'<div class="actions">'+actions+'</div>':'')+'</section>';
     $('modal-layer').hidden=false;if(!focusables().length){var region=$('modal-layer').firstChild;region.setAttribute('data-focus','modal-content');region.setAttribute('tabindex','0');}var first=modalListEntry();if(!focusId(options.entry)){if(first)focusNode(first);else if(!focusId('cancel'))focusNode(focusables()[0]);}state.modalEntry=first?null:{gen:state.modalGen,focus:activeID()};return state.modalGen;
   }
   function modalListEntry(){return $('modal-layer').querySelector('.source-option:not(:disabled),.menu-option:not(:disabled),[data-queue-jump],[data-comment-index]');}
@@ -212,7 +213,7 @@
   function nativeEditDirection(dir){if(dir!=='ArrowUp'&&dir!=='ArrowDown')return false;if(state.modal)state.modalEntry=null;move(dir);return true;}
   window.MyGo={cancelScanInput:function(before){if(state.modal==='扫码搜索'&&(!before||scanInput.startedBefore(before)))closeModal();},back:back,nativeBack:back,nativeEditDirection:nativeEditDirection,refreshViewport:refreshViewport,canShowAppUpdate:canShowAppUpdate};
   function exitConfirm(){if(window.Android&&window.Android.confirmExit)window.Android.confirmExit();else dialog('退出 My Music+？',("<p>"+tr("退出后停止播放音乐。")+"</p>"),button('cancel',tr("取消"))+button('exit',tr("退出"),'primary'));}
-  function appClass(){ $('app').className=[state.pref==='icons'?'icons':'',state.page==='player'?'player-view':'',state.page==='player'&&state.lyricFull?'lyrics-full':'',hasPlayerBar()?'':'without-player'].filter(function(x){return x;}).join(' ');$('player-bar').hidden=!hasPlayerBar();renderLyricButton();renderNowLikeVisibility(); }
+  function appClass(){ $('app').className=[state.pref==='icons'?'icons':'',state.page==='player'?'player-view':'',state.page==='player'&&state.lyricFull?'lyrics-full':'',hasPlayerBar()?'':'without-player'].filter(function(x){return x;}).join(' ');$('player-bar').hidden=!hasPlayerBar();$('support-button').hidden=state.page==='player';renderLyricButton();renderNowLikeVisibility(); }
   function renderLyricButton(){var n=$('lyrics-button'),full=state.page==='player'&&state.lyricFull,label=full?tr("退出全屏歌词"):tr("全屏歌词");n.hidden=state.page!=='player';n.disabled=!currentTrack();n.innerHTML=buttonContent(null,full?'fullscreenExit':'fullscreen');n.setAttribute('aria-pressed',String(full));n.setAttribute('aria-label',label);n.title=label;}
   function renderNowLikeVisibility(){var t=currentTrack();$('now-like').hidden=state.page==='player'||!t||!can(t.source,t.showId?'likeEpisode':'like');}
   function renderNav(){
@@ -236,6 +237,16 @@
   function loadSources(done){api('/api/sources',function(e,list){if(e){toast(e);if(done)done(e);return;}state.sources=list||[];state.installed={};state.sources.forEach(function(s){state.installed[s.repository.toLowerCase()]=s;});if(state.source)state.source=sourceInfo(state.source.instanceId);if(!state.source&&state.sources.length)state.source=sourceInfo(state.preferredSource)||state.sources[0];renderNav();if(done)done();});}
   function setSource(id){var source=sourceInfo(id);if(!source)return;state.source=source;saveAppearance('source',id);state.stack=[];state.detail=null;if(state.modal)closeModal();navigate('home');}
   function sourceMenu(){dialog('选择音乐源',state.sources.length?state.sources.map(function(s){var selected=!!(state.source&&state.source.instanceId===s.instanceId);return '<button class="source-option" data-focus="source-'+esc(s.instanceId)+'" data-source="'+esc(s.instanceId)+'" aria-pressed="'+selected+'">'+esc(s.manifest.name)+(selected?tr(" · 当前"):'')+'<div class="hint">'+esc(s.repository)+'</div></button>';}).join(''):("<p>"+tr("从插件市场安装在线音乐源。")+"</p>"),backButton('cancel')+button('go-market',tr("插件市场"),'primary'),{entry:state.source?'source-'+state.source.instanceId:null});}
+  function supportLabel(method){return method==='wechat'?tr('放大微信支持二维码'):tr('放大支付宝支持二维码');}
+  function supportImage(method){return '<img class="support-qr-image" src="/images/support-'+method+'.png" alt="'+esc(supportLabel(method))+'" draggable="false">';}
+  function support(){
+    var cards=['wechat','alipay'].map(function(method){return '<button class="support-qr-card" data-focus="support-'+method+'" data-support-qr="'+method+'" aria-label="'+esc(supportLabel(method))+'">'+supportImage(method)+'</button>';}).join('');
+    dialog('支持开发',tool('cancel',tr('关闭'),'close')+'<p class="support-copy">'+esc(tr('自愿支持 My Music+ 的开发与维护。支持与否不影响应用功能，也不提供任何音乐平台会员或额外播放权限。'))+'</p><div class="support-codes">'+cards+'</div>','',{hideTitle:true,className:'support-modal',entry:'support-wechat'});
+  }
+  function zoomSupport(method){
+    if(method!=='wechat'&&method!=='alipay')return;
+    modal(supportLabel(method),tool('cancel',tr('关闭'),'close')+supportImage(method),'',{hideTitle:true,className:'support-modal support-zoom',nest:true,entry:'cancel'});
+  }
   function title(t,eye){$('page-title').textContent=t;$('page-title').title=t;$('eyebrow').textContent=eye||'My Music+';}
   function loading(){ $('content').innerHTML='<div class="state"><div class="state-symbol">'+icon('music')+("</div><h2>"+tr("正在加载")+"</h2><p>"+tr("好音乐，稍等片刻")+"</p></div>");if(state.pendingContentFocus)state.pendingContentFocus.waiting=true; }
   function empty(t,detail,action){$('content').innerHTML='<div class="state"><div class="state-symbol">'+icon('music')+'</div><h2>'+esc(t)+'</h2><p>'+esc(detail||'')+'</p><div>'+(action||'')+'</div></div>';}
@@ -853,8 +864,10 @@
     if((v=n.getAttribute('data-comment-like'))!==null){likeComment(+v,n);return;}
     if((v=n.getAttribute('data-comment-expand'))!==null){var text=$('comment-text-'+v),expanded=text.className.indexOf('expanded')>=0;text.className='comment-text'+(expanded?'':' expanded');n.textContent=expanded?tr("展开全文"):tr("收起");if(expanded){text.removeAttribute('data-focus');text.removeAttribute('tabindex');focusNode(n);}else{text.setAttribute('data-focus','comment-body-'+state.comments.items[+v].id);text.setAttribute('tabindex','0');focusNode(text);}return;}
     if((v=n.getAttribute('data-device'))!==null){sourceCall('remoteUse',{deviceId:state.devices[+v].id},function(err){if(err)toast(err);else{closeModal();toast(tr("播放设备已切换"));}});return;}
+    if((v=n.getAttribute('data-support-qr'))!==null){zoomSupport(v);return;}
     var a=n.getAttribute('data-action')||n.id;
     switch(a){
+    case 'support':support();break;
     case 'app-check-update':activateAppUpdate();break;
     case 'source-switch':sourceMenu();break;case 'go-market':state.stack=[];navigate('market');break;case 'go-search':state.stack=[];state.detail=null;navigate('search');break;case 'cancel':closeModal();break;
     case 'check-all-updates':checkUpdates(true);break;case 'check-update':checkUpdates(false);break;case 'update-plugin':updatePlugin();break;case 'confirm-update':confirmUpdate();break;case 'retry-job':if(state.catalogView&&state.catalogView.job){state.catalogView.error='';pollJob(state.catalogView.job.id,state.catalogView);patchCatalogDetail();}break;case 'install':install();break;case 'refresh-catalog':if(!state.marketRefreshBusy)loadCatalog(state.pageGen,true);break;case 'retry':navigate(state.page);break;case 'load-more':n.disabled=true;n.textContent=tr("正在加载…");fetchList(true,state.pageGen);break;
