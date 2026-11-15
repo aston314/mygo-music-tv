@@ -26,7 +26,7 @@
 .lyric-line.word-effects .lyric-word,.lyric-line.word-effects .lyric-ink{display:inline-block;max-width:100%;white-space:pre-wrap;vertical-align:baseline}.lyric-line.word-effects .lyric-ink{transform-origin:center bottom}
 @media (prefers-reduced-motion:reduce){.lyric-lines{transition:none}.now-cover img{animation:none}}
 
-.page-heading{flex:1;min-width:0;padding-right:16px}.page-heading h1{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.header-tools{display:flex;align-items:center;flex-shrink:0;max-width:65%}#header-actions{flex-shrink:0}#account-button{height:52px;max-width:228px;min-width:100px;padding:10px 14px;margin-left:16px;border-color:#3c574b;text-align:left;font-size:20px;white-space:nowrap}#account-button .icon{width:25px;height:25px;margin-right:9px}#account-name{display:inline-block;max-width:160px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}.account-stale{color:#d4ceaa}.detail-tabs{display:flex;margin:8px 0 18px}.detail-tabs button{margin-right:14px}.detail-head h2{overflow-wrap:break-word;word-wrap:break-word}
+.page-heading{flex:1;min-width:0;padding-right:16px}.page-heading h1{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.header-tools{display:flex;align-items:center;flex-shrink:0;max-width:65%}#header-actions{flex-shrink:0}#account-button{height:52px;width:52px;min-width:52px;padding:0;margin-left:16px;border-color:#3c574b;border-radius:50%}#account-button .icon{width:28px;height:28px;margin:0}.account-icon{position:relative;display:block;width:28px;height:28px}.account-status-dot{position:absolute;top:-2px;right:-3px;width:7px;height:7px;border-radius:50%;background:#b7f5d7;pointer-events:none}.account-stale{color:#d4ceaa}.detail-tabs{display:flex;margin:8px 0 18px}.detail-tabs button{margin-right:14px}.detail-head h2{overflow-wrap:break-word;word-wrap:break-word}
 .now-meta .credit-link{display:block;flex-shrink:0;width:auto;max-width:100%;height:27px;min-height:27px;margin-top:8px;padding:1px 3px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:18px;line-height:23px;color:#b8d1bb;border-radius:5px}.now-meta strong{line-height:28px}.credit-link:disabled{opacity:1;cursor:default}.credit-link{text-decoration:none}#now-album{font-size:17px;color:#9fbba4}#now-like{width:48px;height:54px;flex-shrink:0;margin-left:8px}#now-like .icon{width:27px;height:27px}[data-like-key][aria-pressed=true] .icon{fill:currentColor}.player-heading .credit-link{display:inline-block;vertical-align:top;max-width:100%;width:auto;height:28px;padding:0 8px;line-height:26px;font-size:inherit;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .timeline{position:relative;height:100%}#playback-status{position:absolute;left:4px;right:4px;top:13px;min-width:0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:16px;color:#b2c9b6;line-height:20px}.progress-track i{position:relative}.progress-thumb{position:absolute;right:0;top:50%;width:12px;height:12px;transform:translate(50%,-50%);border-radius:50%;background:#b9edcb}#seek:focus{outline:none;box-shadow:none;background:transparent;border-color:transparent}#seek:focus .progress-thumb{width:16px;height:16px;box-shadow:0 0 0 4px #11221b,0 0 0 7px #b7f5d7}#seek:focus .progress-track{background:#598164}
 #lyrics-button{height:56px;width:56px;flex-shrink:0;margin-left:12px;color:#c5dfc9}.comment-card:focus{background:#2c4935}.comment-card{outline-offset:0}.comment-actions:empty{display:none}
@@ -69,9 +69,6 @@ html[data-theme=light] .grid{margin-left:0;margin-right:0;padding-top:12px;paddi
 .button-content>.button-label{display:block;min-width:0;line-height:1.25}
 .icon-button{position:relative;padding:0;line-height:0}
 .icon-button>.button-content{position:absolute;top:0;right:0;bottom:0;left:0}
-#account-button{display:block;line-height:1.25}
-#account-button>.button-content{height:100%}
-#account-name{display:block;min-width:0;line-height:1.25}
 .source-switch{display:block}
 .source-switch>.button-content{height:100%;justify-content:flex-start}
 .icons .source-switch>.button-content{justify-content:center}
@@ -106,7 +103,7 @@ html[data-theme=light] .brand-mark{color:#e5324b}
 html[data-theme=light] .brand-name{color:#1d1d1f}
 html[data-theme=light] .brand-name span{color:#6e6e78}
 html[data-theme=light] .source-switch{background:#e9e9ef;color:#3d3d45;border-color:transparent}
-html[data-theme=light] .source-dot{background:#e5324b}
+html[data-theme=light] .source-dot,html[data-theme=light] .account-status-dot{background:#e5324b}
 html[data-theme=light] nav button{color:#55555e}
 html[data-theme=light] nav button.active{background:#fde9ed;color:#c7283e;font-weight:600}
 html[data-theme=light] nav button.active .nav-icon{color:#e5324b}

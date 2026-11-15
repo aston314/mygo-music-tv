@@ -8,8 +8,9 @@ test('web cookie login exposes only a native request handle and restores account
  let complete=false;await page.route('**/api/login/fixture',r=>r.fulfill({json:{id:session}}));
  await page.route('**/api/login',r=>r.request().method()==='GET'?r.fulfill({json:{id:session,source:'fixture',state:complete?'complete':'waiting',web:complete?undefined:{id:requestId,kind:'cookies',url:'https://accounts.example.com/auth'}}}):r.fulfill({json:{ok:true}}));
  await boot(page);await open(page);const button=page.locator('[data-action="login-open-web"]');await expect(button).toBeVisible();await button.click();
+ await page.route('**/call/account',r=>r.fulfill({json:complete?{id:'listener',name:'音乐听众'}:null}));
  expect(await page.evaluate(()=>window.nativeLogins)).toEqual([{id:session,requestId}]);await expect(button).toBeFocused();await page.screenshot({path:info.outputPath('login-web-720.png')});
- complete=true;await expect(page.locator('#modal-layer')).toBeHidden();await expect(page.locator('#toast')).toHaveText('登录成功');
+ complete=true;await expect(page.locator('#modal-layer')).toBeHidden();await expect(page.locator('#toast')).toHaveText('登录成功');await expect(page.locator('#account-status-dot')).toBeVisible();await expect(page.locator('#account-button')).toHaveAttribute('aria-label','当前账号：音乐听众');
 });
 test('browser preview gives a clear cookie-login limit while OAuth opens through an explicit action',async({page})=>{
  let kind='cookies';await page.route('**/api/login/fixture',r=>r.fulfill({json:{id:session}}));await page.route('**/api/login',r=>r.request().method()==='GET'?r.fulfill({json:{id:session,state:'waiting',web:{id:requestId,kind,url:'https://example.com/authorize'}}}):r.fulfill({json:{ok:true}}));

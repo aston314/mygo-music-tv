@@ -13,14 +13,15 @@ async function song(page){
 }
 
 test('account stays hidden on market and settings and remains known on music pages after a refresh failure',async({page})=>{
- let signedIn=true,fail=false;
+ let signedIn=true,fail=false,failSignOut=true;
  await page.route('**/call/account',route=>route.fulfill(fail?{status:422,json:{error:'账号查询超时'}}:{json:signedIn?{id:'me',name:'客厅听众'}:null}));
- await page.route('**/call/signOut',route=>{signedIn=false;return route.fulfill({json:null});});
- await boot(page);await expect(page.locator('#account-name')).toHaveText('客厅听众');
- for(const nav of ['settings','market','search','home']){await page.locator('[data-focus="nav-'+nav+'"]').click();if(nav==='settings'||nav==='market')await expect(page.locator('#account-button')).toBeHidden();else await expect(page.locator('#account-button')).toBeVisible();await expect(page.locator('#account-name')).toHaveText('客厅听众');}
- fail=true;await page.locator('#account-button').click();await expect(page.locator('#modal-layer')).toContainText('账号查询超时');await expect(page.locator('#account-name')).toHaveText('客厅听众');await page.keyboard.press('Escape');
+ await page.route('**/call/signOut',route=>{if(failSignOut)return route.fulfill({status:422,json:{error:'退出失败，请重试'}});signedIn=false;return route.fulfill({json:null});});
+ await boot(page);await expect(page.locator('#account-button')).toHaveAttribute('aria-label','当前账号：客厅听众');await expect(page.locator('#account-status-dot')).toBeVisible();await expect(page.locator('#account-button')).toHaveText('');
+ for(const nav of ['settings','market','search','home']){await page.locator('[data-focus="nav-'+nav+'"]').click();if(nav==='settings'||nav==='market')await expect(page.locator('#account-button')).toBeHidden();else await expect(page.locator('#account-button')).toBeVisible();await expect(page.locator('#account-button')).toHaveAttribute('aria-label','当前账号：客厅听众');}
+ fail=true;await page.locator('#account-button').click();await expect(page.locator('#modal-layer')).toContainText('账号查询超时');await expect(page.locator('#account-button')).toHaveAttribute('aria-label','当前账号：客厅听众 · 读取失败，点击重试');await expect(page.locator('#account-status-dot')).toBeVisible();await page.keyboard.press('Escape');
  fail=false;await page.locator('#account-button').click();await expect(page.locator('#modal-layer')).toContainText('客厅听众');
- await page.locator('#modal-layer [data-action="signout"]').click();await expect(page.locator('[data-action="cancel"]')).toBeFocused();await page.locator('[data-action="signout-confirm"]').click();await expect(page.locator('#account-name')).toHaveText('未登录');
+ await page.locator('#modal-layer [data-action="signout"]').click();await expect(page.locator('[data-action="cancel"]')).toBeFocused();await page.locator('[data-action="signout-confirm"]').click();await expect(page.locator('#toast')).toHaveText('退出失败，请重试');await expect(page.locator('#account-status-dot')).toBeVisible();
+ failSignOut=false;await page.locator('[data-action="signout-confirm"]').click();await expect(page.locator('#account-button')).toHaveAttribute('aria-label','未登录');await expect(page.locator('#account-status-dot')).toBeHidden();await expect(page.locator('#account-button')).toBeFocused();
 });
 
 test('late account response cannot replace the newly selected source account',async({page})=>{
@@ -29,9 +30,20 @@ test('late account response cannot replace the newly selected source account',as
  await page.route('**/sources/fixture/call/account',async route=>{started=true;await gate;await route.fulfill({json:{id:'first-user',name:'原账号'}});});
  await page.route('**/sources/second/call/account',route=>route.fulfill({json:{id:'second-user',name:'第二账号'}}));
  await page.route('**/sources/second/call/home',route=>route.fulfill({json:{sections:[]}}));
- await boot(page);await expect.poll(()=>started).toBe(true);await page.locator('#source-switch').click();await page.locator('[data-source="second"]').click();
- await expect(page.locator('#account-name')).toHaveText('第二账号');release();await expect(page.locator('#source-name')).toHaveText('第二音乐源');
- await expect(page.locator('#account-name')).toHaveText('第二账号');
+ await boot(page);await expect.poll(()=>started).toBe(true);await expect(page.locator('#account-status-dot')).toBeHidden();await page.locator('#source-switch').click();await page.locator('[data-source="second"]').click();
+ await expect(page.locator('#account-button')).toHaveAttribute('aria-label','当前账号：第二账号');release();await expect(page.locator('#source-name')).toHaveText('第二音乐源');
+ await expect(page.locator('#account-button')).toHaveAttribute('aria-label','当前账号：第二账号');await expect(page.locator('#account-status-dot')).toBeVisible();
+});
+
+test('unknown account failures do not show a signed-in badge and retry restores the account entry',async({page})=>{
+ let mode='pending',release;const gate=new Promise(resolve=>release=resolve);
+ await page.route('**/call/account',async route=>{if(mode==='pending')await gate;return route.fulfill(mode==='ready'?{json:{name:'恢复后的账号'}}:{status:422,json:{error:'账号读取失败'}});});
+ await boot(page);const account=page.locator('#account-button'),dot=page.locator('#account-status-dot');
+ await expect(account).toHaveAttribute('aria-busy','true');await expect(dot).toBeHidden();mode='failed';release();
+ await expect(account).toHaveAttribute('aria-busy','false');await expect(dot).toBeHidden();
+ await account.click();await expect(page.locator('#modal-layer')).toContainText('账号读取失败');mode='ready';await page.locator('[data-action="account-retry"]').click();
+ await expect(page.locator('#modal-layer')).toContainText('恢复后的账号');await expect(dot).toBeVisible();await expect(account).toHaveText('');
+ await page.keyboard.press('Escape');await expect(account).toBeFocused();
 });
 
 test('favorites appear once on the lyrics page and keep their saved state across navigation and track changes',async({page})=>{
@@ -98,8 +110,8 @@ test('playing credits and their account keep the original source after browsing 
  await page.route('**/sources/second/call/home',route=>route.fulfill({json:{sections:[]}}));
  await song(page);await expect(page.locator('#account-button')).toBeHidden();
  await page.locator('#lyrics-button').click();await expect(page.locator('#account-button')).toBeHidden();await page.keyboard.press('Escape');
- await page.keyboard.press('Escape');await page.locator('#source-switch').click();await page.locator('[data-source="second"]').click();await expect(page.locator('#account-name')).toHaveText('浏览源账号');
- await page.locator('#now-artist').click();await expect(page.locator('#page-title')).toHaveText('The Examples');await expect(page.locator('#account-name')).toHaveText('播放源账号');
+ await page.keyboard.press('Escape');await page.locator('#source-switch').click();await page.locator('[data-source="second"]').click();await expect(page.locator('#account-button')).toHaveAttribute('aria-label','当前账号：浏览源账号');
+ await page.locator('#now-artist').click();await expect(page.locator('#page-title')).toHaveText('The Examples');await expect(page.locator('#account-button')).toHaveAttribute('aria-label','当前账号：播放源账号');
  await page.locator('[data-detail-section="albums"]').click();await page.locator('[data-kind="album"]').click();await expect(page.locator('#page-title')).toHaveText('First Album');await expect(page.locator('[data-track]')).toHaveCount(3);
- await page.keyboard.press('Escape');await page.keyboard.press('Escape');await expect(page.locator('#account-name')).toHaveText('浏览源账号');await expect(page.locator('#now-artist')).toBeFocused();
+ await page.keyboard.press('Escape');await page.keyboard.press('Escape');await expect(page.locator('#account-button')).toHaveAttribute('aria-label','当前账号：浏览源账号');await expect(page.locator('#now-artist')).toBeFocused();
 });

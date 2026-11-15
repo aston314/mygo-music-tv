@@ -64,7 +64,7 @@ async function centeredButtons(page,selectors){
   const scale=Math.min(document.documentElement.clientWidth/1280,document.documentElement.clientHeight/720),errors=[];
   for(const n of nodes){
    if(!n.getClientRects().length)continue;
-   const r=n.getBoundingClientRect(),parts=n.querySelectorAll('.button-content .icon,.button-content>.button-label,#account-name,.nav-text,.appearance-copy');
+   const r=n.getBoundingClientRect(),parts=n.querySelectorAll('.button-content .icon,.button-content>.button-label,.nav-text,.appearance-copy');
    for(const part of parts){
     if(!part.getClientRects().length)continue;
     const c=part.getBoundingClientRect(),dy=Math.abs((c.top+c.bottom-r.top-r.bottom)/2/scale),dx=Math.abs((c.left+c.right-r.left-r.right)/2/scale);
@@ -78,11 +78,14 @@ async function centeredButtons(page,selectors){
 
 for(const [theme,tv] of [['light',false],['dark',false],['light',true]])test(theme+(tv?' TV':' desktop')+' buttons center SVG and text in home, settings, player and dialogs',async({page},info)=>{
  if(tv)await page.addInitScript(()=>{window.MyGoHost={platform:'android-tv'};});
- await page.route('**/call/account',r=>r.fulfill({json:{name:'音乐听众'}}));
- await boot(page);await page.request.post('/api/preferences',{data:{theme,language:'zh-CN',sidebar:'expanded'}});await page.reload();await expect(page.locator('#account-name')).toHaveText('音乐听众');
+ const accountName='音乐听众的很长账号名称'.repeat(4);
+ await page.route('**/call/account',r=>r.fulfill({json:{name:accountName}}));
+ await boot(page);await page.request.post('/api/preferences',{data:{theme,language:'zh-CN',sidebar:'expanded'}});await page.reload();await expect(page.locator('#account-button')).toHaveAttribute('aria-label','当前账号：'+accountName);await expect(page.locator('#account-button')).toHaveText('');await expect(page.locator('#account-status-dot')).toBeVisible();
  for(const [width,height] of [[960,540],[1280,800],[1920,1080]]){
   await page.setViewportSize({width,height});
   await centeredButtons(page,'#account-button,nav button,.source-switch,.icon-button,.icon-label');
+  const badge=await page.locator('#account-status-dot').evaluate(n=>{const s=getComputedStyle(n),source=getComputedStyle(document.querySelector('.source-dot')),r=n.getBoundingClientRect(),icon=document.querySelector('#account-button .icon').getBoundingClientRect(),button=document.querySelector('#account-button').getBoundingClientRect();return {size:[s.width,s.height],matchesSource:s.backgroundColor===source.backgroundColor&&s.width===source.width&&s.height===source.height,static:s.animationName==='none',upperRight:r.top<icon.top&&r.left>icon.left+icon.width/2,inside:r.top>button.top&&r.right<button.right,buttonWidth:getComputedStyle(document.querySelector('#account-button')).width};});
+  expect(badge).toEqual({size:['7px','7px'],matchesSource:true,static:true,upperRight:true,inside:true,buttonWidth:'52px'});
   await expect(page.locator('.source-icon')).toBeHidden();
  }
  await page.screenshot({path:info.outputPath(theme+'-home-buttons.png')});

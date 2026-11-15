@@ -23,7 +23,7 @@ test('TV account dialogs prevent repeated Enter from signing out and require exp
  await expect(page.locator('[data-action="signout"]')).toBeFocused();expect(calls).toBe(0);
  await page.locator('[data-action="signout"]').click();await page.locator('[data-action="signout-confirm"]').click();
  await expect.poll(()=>calls).toBe(1);await page.locator('[data-action="signout-confirm"]').click({force:true});expect(calls).toBe(1);
- release();await expect(page.locator('#account-name')).toHaveText('未登录');await expect(page.locator('#modal-layer')).toBeHidden();
+ release();await expect(page.locator('#account-button')).toHaveAttribute('aria-label','未登录');await expect(page.locator('#modal-layer')).toBeHidden();
 });
 
 test('every playback mode reopens on its current item and Back preserves the choice',async({page})=>{
