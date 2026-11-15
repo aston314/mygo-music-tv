@@ -53,9 +53,28 @@ for(const platform of ['browser','android-tv'])for(const theme of ['light','dark
  }finally{await context.close();}
 });
 
-test('support works without an installed source and uses the separate Traditional Chinese catalog',async({page})=>{
+test('support and account both hide without an installed source',async({page})=>{
  await page.route('**/api/sources',r=>r.fulfill({json:[]}));
- await boot(page);await expect(page.locator('#account-button')).toBeHidden();await expect(page.locator('#support-button')).toBeVisible();
+ await boot(page);
+ for(const pageName of ['home','search','market','settings']){
+  await page.locator('[data-focus="nav-'+pageName+'"]').click();
+  await expect(page.locator('#account-button')).toBeHidden();await expect(page.locator('#support-button')).toBeHidden();
+ }
+});
+
+test('support and account both hide for a source without account capabilities',async({page})=>{
+ await page.route('**/api/sources',async r=>{
+  const response=await r.fetch(),sources=await response.json();
+  sources.forEach(source=>{delete source.capabilities.account;delete source.capabilities.signIn;});
+  await r.fulfill({json:sources});
+ });
+ await boot(page);await expect(page.locator('#account-button')).toBeHidden();await expect(page.locator('#support-button')).toBeHidden();
+});
+
+test('support stays beside a signed-out account and uses the separate Traditional Chinese catalog',async({page})=>{
+ await page.route('**/call/account',r=>r.fulfill({json:null}));
+ await boot(page);await expect(page.locator('#account-button')).toBeVisible();await expect(page.locator('#support-button')).toBeVisible();
+ await expect(page.locator('#account-status-dot')).toBeHidden();
  await page.request.post('/api/preferences',{data:{theme:'light',language:'zh-TW',sidebar:'expanded'}});await page.reload();
  await expect(page.locator('#support-button')).toHaveAttribute('aria-label','支持開發');await page.locator('#support-button').click();
  await expect(page.locator('.support-modal')).toHaveText(traditional);await expect(page.locator('[data-focus="support-wechat"]')).toBeFocused();
@@ -63,7 +82,7 @@ test('support works without an installed source and uses the separate Traditiona
  await page.request.post('/api/preferences',{data:{language:'zh-CN'}});
 });
 
-test('support is available in market and settings, hides on lyrics, and leaves playback intact',async({page})=>{
+test('support follows account visibility across pages and leaves playback intact',async({page})=>{
  await boot(page);await page.locator('[data-focus="nav-home"]').click();await page.locator('[data-track="0"]').click();
  await expect.poll(async()=>(await(await page.request.get('/api/player')).json()).state).toBe('playing');
  const before=await(await page.request.get('/api/player')).json();
@@ -72,9 +91,11 @@ test('support is available in market and settings, hides on lyrics, and leaves p
  expect(after.state).toBe('playing');expect(after.index).toBe(before.index);expect(after.queue).toEqual(before.queue);
  for(const pageName of ['market','settings']){
   await page.locator('[data-focus="nav-'+pageName+'"]').click();await expect(page.locator('#account-button')).toBeHidden();
-  await page.locator('#support-button').click();await expect(page.locator('.support-modal')).toBeVisible();await page.keyboard.press('Escape');await expect(page.locator('#support-button')).toBeFocused();
+  await expect(page.locator('#support-button')).toBeHidden();
  }
- await page.locator('[data-focus="nav-home"]').click();await page.locator('#open-player').click();await expect(page.locator('#support-button')).toBeHidden();
+ await page.locator('[data-focus="nav-home"]').click();await expect(page.locator('#account-button')).toBeVisible();await expect(page.locator('#support-button')).toBeVisible();
+ await page.locator('#open-player').click();await expect(page.locator('#account-button')).toBeHidden();await expect(page.locator('#support-button')).toBeHidden();
+ await page.keyboard.press('Escape');await expect(page.locator('#account-button')).toBeVisible();await expect(page.locator('#support-button')).toBeVisible();
 });
 
 test('both embedded PNGs preserve the Hongguo QR bytes and are served locally as images',async({page})=>{
