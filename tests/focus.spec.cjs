@@ -20,7 +20,7 @@ async function visibleFocus(page,container){
 test('list dialogs enter their first item, keep focus during refresh, and confirmations enter Cancel',async({page})=>{
  await song(page);
  await page.locator('#queue-button').click();await expect(page.locator('[data-queue-jump]').first()).toBeFocused();
- await page.keyboard.press('ArrowRight');const remove=page.locator('[data-queue-remove]').first();await expect(remove).toBeFocused();
+ await page.keyboard.press('ArrowRight');await expect(page.locator('[data-queue-album]').first()).toBeFocused();await page.keyboard.press('ArrowRight');const remove=page.locator('[data-queue-remove]').first();await expect(remove).toBeFocused();
  await page.keyboard.press('Enter');await expect(page.locator('[data-queue-jump]').first()).toBeFocused();
  await page.locator('[data-action="queue-clear"]').click();await expect(page.locator('[data-action="cancel"]')).toBeFocused();
  await page.keyboard.press('Escape');await expect(page.locator('[data-action="queue-clear"]')).toBeFocused();
@@ -31,6 +31,18 @@ test('list dialogs enter their first item, keep focus during refresh, and confir
  await page.keyboard.press('Escape');await expect(page.locator('[data-action="add-playlist"]')).toBeFocused();
  await page.keyboard.press('Escape');await page.keyboard.press('Escape');await page.locator('#source-switch').click();
  await expect(page.locator('[data-source]').first()).toBeFocused();
+});
+
+
+test('queue keeps song, album and operation in one row with column focus',async({page})=>{
+ await song(page);await page.locator('#queue-button').click();
+ const row=page.locator('#queue-list .track-wrap').first(),songCell=row.locator('[data-queue-jump]'),album=row.locator('[data-queue-album]'),remove=row.locator('[data-queue-remove]');
+ await expect(row).toHaveCount(1);await expect(songCell).toContainText('Song 1');await expect(row.locator('.track-meta small')).toContainText('The Examples');await expect(album).toBeVisible();
+ const boxes=await row.evaluate(n=>{const r=s=>n.querySelector(s).getBoundingClientRect();return {song:r('[data-queue-jump]'),album:r('[data-queue-album]'),remove:r('[data-queue-remove]')};});
+ expect(boxes.song.top).toBeLessThan(boxes.album.bottom);expect(boxes.album.top).toBeLessThan(boxes.song.bottom);expect(boxes.song.top).toBeLessThan(boxes.remove.bottom);expect(boxes.remove.top).toBeLessThan(boxes.song.bottom);expect(boxes.song.left).toBeLessThan(boxes.album.left);expect(boxes.album.left).toBeLessThan(boxes.remove.left);
+ await songCell.focus();await page.keyboard.press('ArrowRight');await expect(album).toBeFocused();await page.keyboard.press('ArrowRight');await expect(remove).toBeFocused();await page.keyboard.press('ArrowLeft');await expect(album).toBeFocused();
+ await album.click();await expect(page.locator('#page-title')).toHaveText('First Album');await expect(page.locator('#content [data-track]').first()).toBeVisible();await expect(page.locator('#content .track-meta small').first()).not.toContainText('First Album');
+ await page.keyboard.press('Escape');await expect(page.locator('#queue-button')).toBeFocused();
 });
 
 test('empty and delayed list dialogs preserve an intentional action focus',async({page})=>{
