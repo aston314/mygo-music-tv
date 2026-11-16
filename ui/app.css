@@ -336,14 +336,12 @@ html[data-theme=light] .album-art:after{border-color:#e5324b;border-radius:19px}
 .support-zoom .support-qr-image{height:540px;margin:0 auto}
 html[data-theme=light] .support-modal>.icon-button{background:#ececf1;border-color:transparent;color:#55555e}
 
-/* Playback queue keeps song, album and operation focus in one horizontal row. */
-#queue-list .track-wrap{display:flex;align-items:center;min-width:0}
-#queue-list .track-row{min-width:0}
-#queue-list .queue-album{display:flex;align-items:center;flex:0 1 250px;min-width:150px;height:54px;min-height:54px;margin:0 7px;padding:10px 12px;text-align:left;color:#b8d1bb;font-size:18px;line-height:1.25;border-radius:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#queue-list .queue-album:focus{background:#29453c}
-#queue-list .queue-album-text{flex:0 1 250px;min-width:150px;margin:0 7px;padding:10px 12px;color:#9db7a3;font-size:18px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#queue-list .queue-album-text.empty{color:#708778;text-align:center}
-html[data-theme=light] #queue-list .queue-album{color:#3d3d45}
-html[data-theme=light] #queue-list .queue-album:focus{background:#fff}
-html[data-theme=light] #queue-list .queue-album-text{color:#6e6e78}
-html[data-theme=light] #queue-list .queue-album-text.empty{color:#aaaab4}
+/* Detail song lists keep the album in its own column on the same song row. */
+.track-wrap .track-album{display:flex;align-items:center;flex:0 1 250px;min-width:150px;height:54px;min-height:54px;margin:0 7px;padding:10px 12px;text-align:left;color:#b8d1bb;font-size:18px;line-height:1.25;border-radius:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track-wrap .track-album:focus{background:#29453c}
+.track-wrap .track-album-text,.track-wrap .track-album-empty{display:flex;align-items:center;flex:0 1 250px;min-width:150px;height:54px;margin:0 7px;padding:10px 12px;color:#9db7a3;font-size:18px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track-wrap .track-album-empty{justify-content:center;color:#708778}
+html[data-theme=light] .track-wrap .track-album{color:#3d3d45}
+html[data-theme=light] .track-wrap .track-album:focus{background:#fff}
+html[data-theme=light] .track-wrap .track-album-text{color:#6e6e78}
+html[data-theme=light] .track-wrap .track-album-empty{color:#aaaab4}
